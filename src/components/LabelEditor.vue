@@ -1,8 +1,8 @@
 <template>
   <div class="label-editor">
     <div class="control-group">
-      <label>Text Content</label>
-      <input type="text" v-model="modelValue.text" placeholder="e.g. Living Room" />
+      <label>Label Text (Multi-line supported)</label>
+      <textarea v-model="modelValue.text" placeholder="e.g. Living Room" rows="2" class="text-input-area"></textarea>
     </div>
     
     <div class="control-row">
@@ -186,8 +186,14 @@ const clearImage = () => {
 }
 
 .control-group input[type="text"],
+.text-input-area,
 .control-group input[type="number"] {
   width: 100%;
+}
+
+.text-input-area {
+  resize: vertical;
+  min-height: 40px;
 }
 
 .control-row {

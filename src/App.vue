@@ -35,7 +35,7 @@
           <!-- LocalDeck Preview (Fixed 6x4) -->
           <div class="section-header device-header">
             <h2>LocalDeck Preview</h2>
-            <span class="badge">Included in print (Max 24)</span>
+            <span class="badge">Physical Layout (Max 24)</span>
             <div class="spacer"></div>
             
             <div class="setting-group" style="margin-right: 1rem; cursor: pointer;" @click="darkRoom = !darkRoom" title="Toggle Room Lighting">
@@ -61,26 +61,30 @@
           <div class="device-preview-container">
             <div class="localdeck-device">
               <div class="device-grid">
-                <!-- Selected Labels -->
+                
+                <!-- Fixed 24 Grid Slots -->
                 <div 
-                  v-for="(label, index) in printedLabels.slice(0, 24)"
-                  :key="'deck-' + label.id"
+                  v-for="i in 24"
+                  :key="'deck-slot-' + (i - 1)"
                   class="device-slot"
                   :class="{ 
-                    'is-selected': selectedIndex === labels.indexOf(label),
-                    'is-drag-over': dragOverTarget === 'deck-' + label.id
+                    'is-selected': getLabelAtSlot(i - 1) && selectedId === getLabelAtSlot(i - 1).id,
+                    'is-drag-over': dragOverTarget === 'deck-' + (i - 1),
+                    'empty-slot': !getLabelAtSlot(i - 1)
                   }"
-                  @click="selectedIndex = labels.indexOf(label)"
-                  draggable="true"
-                  @dragstart="onDragStart($event, label)"
-                  @dragenter.prevent="dragOverTarget = 'deck-' + label.id"
-                  @dragleave="dragOverTarget = null"
+                  @click="getLabelAtSlot(i - 1) ? selectedId = getLabelAtSlot(i - 1).id : null"
+                  :draggable="!!getLabelAtSlot(i - 1)"
+                  @dragstart="getLabelAtSlot(i - 1) && onDragStart($event, getLabelAtSlot(i - 1))"
+                  @dragenter.prevent="dragOverTarget = 'deck-' + (i - 1)"
+                  @dragleave.prevent="dragOverTarget = null"
                   @dragend="onDragEnd"
-                  @dragover.prevent="dragOverTarget = 'deck-' + label.id"
-                  @drop="onDropDeckSlot($event, label)"
+                  @dragover.prevent="dragOverTarget = 'deck-' + (i - 1)"
+                  @drop="onDropDeckSlot($event, i - 1)"
+                  :style="!getLabelAtSlot(i - 1) ? { width: `calc((${labelWidth + 4}mm) * 1.5)`, height: `calc((${labelHeight + 4}mm) * 1.5)` } : {}"
                 >
                   <LabelPreview 
-                    :label="label" 
+                    v-if="getLabelAtSlot(i - 1)"
+                    :label="getLabelAtSlot(i - 1)" 
                     :width="labelWidth" 
                     :height="labelHeight"
                     :scale="1.5"
@@ -94,24 +98,11 @@
                     :printMode="false"
                     :darkRoom="darkRoom"
                   />
-                  <div class="item-overlay" v-if="selectedIndex === labels.indexOf(label)">
+                  <div class="item-overlay" v-if="getLabelAtSlot(i - 1) && selectedId === getLabelAtSlot(i - 1).id">
                     <span class="iconify" data-icon="mdi:pencil"></span>
                   </div>
                 </div>
-                <!-- Empty Slots for the remainder of 24 -->
-                <div 
-                  v-for="i in Math.max(0, 24 - printedLabels.length)"
-                  :key="'empty-' + i"
-                  class="device-slot empty-slot"
-                  :class="{ 'is-drag-over': dragOverTarget === 'empty-' + i }"
-                  :style="{ width: `calc((${labelWidth + 4}mm) * 1.5)`, height: `calc((${labelHeight + 4}mm) * 1.5)` }"
-                  @dragenter.prevent="dragOverTarget = 'empty-' + i"
-                  @dragleave="dragOverTarget = null"
-                  @dragend="onDragEnd"
-                  @dragover.prevent="dragOverTarget = 'empty-' + i"
-                  @drop="onDropEmptySlot($event)"
-                >
-                </div>
+
               </div>
             </div>
           </div>
@@ -121,15 +112,15 @@
             <h2>Label Library</h2>
             <span class="badge">{{ labels.length }} items</span>
             
-            <button v-if="labels.length < 24" @click="fillTo24" class="fill-btn" title="Fill up to 24 labels">
-              <span class="iconify" data-icon="mdi:playlist-plus"></span> Fill to 24
+            <button @click="fillTo24" class="fill-btn" title="Fill empty deck slots with defaults">
+              <span class="iconify" data-icon="mdi:playlist-plus"></span> Fill Empty Deck Slots
             </button>
             
             <div class="spacer"></div>
             <div class="zoom-controls">
-              <span class="iconify" data-icon="mdi:magnify-minus"></span>
+              <span class="iconify zoom-btn" data-icon="mdi:magnify-minus" @click="zoomLevel = Math.max(1, zoomLevel - 0.5)"></span>
               <input type="range" v-model.number="zoomLevel" min="1" max="6" step="0.5" title="Zoom Level" />
-              <span class="iconify" data-icon="mdi:magnify-plus"></span>
+              <span class="iconify zoom-btn" data-icon="mdi:magnify-plus" @click="zoomLevel = Math.min(6, zoomLevel + 0.5)"></span>
               <span class="zoom-text">{{ zoomLevel }}x</span>
             </div>
           </div>
@@ -140,16 +131,15 @@
               :key="label.id"
               class="grid-item-wrapper"
               :class="{ 
-                'is-selected': selectedIndex === index,
-                'is-excluded': label.print === false,
-                'is-in-preview': printedLabels.slice(0, 24).includes(label),
+                'is-selected': selectedId === label.id,
+                'is-in-preview': label.deckSlot !== null,
                 'is-drag-over': dragOverTarget === 'lib-' + label.id
               }"
-              @click="selectedIndex = index"
+              @click="selectedId = label.id"
               draggable="true"
               @dragstart="onDragStart($event, label)"
               @dragenter.prevent="dragOverTarget = 'lib-' + label.id"
-              @dragleave="dragOverTarget = null"
+              @dragleave.prevent="dragOverTarget = null"
               @dragend="onDragEnd"
               @dragover.prevent="dragOverTarget = 'lib-' + label.id"
               @drop="onDropLibrary($event, label)"
@@ -169,19 +159,16 @@
                 :printMode="false"
                 :darkRoom="darkRoom"
               />
-              <div class="item-overlay" v-if="selectedIndex === index">
+              <div class="item-overlay" v-if="selectedId === label.id">
                 <span class="iconify" data-icon="mdi:pencil"></span>
-              </div>
-              <div class="excluded-overlay" v-if="label.print === false" title="Excluded from print">
-                <span class="iconify" data-icon="mdi:printer-off"></span>
               </div>
             </div>
             
             <div 
               class="add-grid-item" 
-              @click="addLabel"
+              @click="addLabel({}, null)"
               :style="{ width: `calc((${labelWidth + 4}mm) * ${zoomLevel})`, height: `calc((${labelHeight + 4}mm) * ${zoomLevel})` }"
-              title="Add new label"
+              title="Add new label to library"
             >
               <span class="iconify" data-icon="mdi:plus"></span>
             </div>
@@ -219,7 +206,7 @@
             </div>
           </div>
 
-          <div class="editor-panel detail-panel" v-if="selectedIndex !== null && labels[selectedIndex]">
+          <div class="editor-panel detail-panel" v-if="selectedItemIndex !== null">
             <div class="panel-header">
               <h2>Edit Label</h2>
               <div class="panel-actions">
@@ -234,14 +221,14 @@
             
             <div class="panel-content">
               <LabelEditor 
-                v-model="labels[selectedIndex]" 
+                v-model="labels[selectedItemIndex]" 
               />
             </div>
           </div>
           
           <div class="empty-state detail-panel" v-else>
             <span class="iconify empty-icon" data-icon="mdi:cursor-default-click-outline"></span>
-            <p>Select a label from the grid to edit its properties.</p>
+            <p>Select a label to edit its properties.</p>
           </div>
         </aside>
       </div>
@@ -259,7 +246,7 @@
       <div class="label-grid">
         <LabelPreview
           v-for="label in printedLabels"
-          :key="label.id"
+          :key="'print-' + label.id"
           :label="label"
           :width="labelWidth"
           :height="labelHeight"
@@ -306,10 +293,22 @@ const darkRoom = ref(true)
 const labels = ref([])
 const isDragging = ref(false)
 const dragOverTarget = ref(null)
-const selectedIndex = ref(null)
+const selectedId = ref(null)
 const previewMode = ref(false)
 
-const printedLabels = computed(() => labels.value.filter(l => l.print !== false))
+const getLabelAtSlot = (slotIndex) => {
+  return labels.value.find(l => l.deckSlot === slotIndex) || null
+}
+
+const printedLabels = computed(() => {
+  return labels.value.filter(l => l.deckSlot !== null).sort((a, b) => a.deckSlot - b.deckSlot)
+})
+
+const selectedItemIndex = computed(() => {
+  if (!selectedId.value) return null
+  const idx = labels.value.findIndex(l => l.id === selectedId.value)
+  return idx !== -1 ? idx : null
+})
 
 const homeAutomationDefaults = [
   { text: 'Living Room', icon: 'mdi:sofa' },
@@ -363,9 +362,20 @@ const loadState = () => {
       if (data.globalIconColor) globalIconColor.value = data.globalIconColor
       if (data.zoomLevel) zoomLevel.value = data.zoomLevel
       if (data.labels && data.labels.length > 0) {
-        labels.value = data.labels.map(l => {
+        let nextDeckSlot = 0;
+        labels.value = data.labels.map((l, index) => {
           if (l.textSize === 10 && l.textColor === '#000000') { l.textSize = null; l.textColor = null; }
           if (l.iconSize === 24 && l.iconColor === '#000000') { l.iconSize = null; l.iconColor = null; }
+          
+          if (l.deckSlot === undefined) {
+             if (l.print !== false && nextDeckSlot < 24) {
+               l.deckSlot = nextDeckSlot;
+               nextDeckSlot++;
+             } else {
+               l.deckSlot = null;
+             }
+             delete l.print;
+          }
           return l;
         })
         loaded = true
@@ -393,11 +403,12 @@ const saveState = () => {
   }))
 }
 
-const addLabel = (overrides = {}) => {
+const addLabel = (overrides = {}, slot = null) => {
   const newProps = Object.keys(overrides).length > 0 ? overrides : { text: 'New Label', icon: 'mdi:home' }
-  
+  const newId = generateId()
   labels.value.push({
-    id: generateId(),
+    id: newId,
+    deckSlot: slot,
     text: newProps.text,
     textSize: null,
     textColor: null,
@@ -406,44 +417,48 @@ const addLabel = (overrides = {}) => {
     iconColor: null,
     image: null,
     lightColor: null,
-    lightBrightness: null,
-    print: true
+    lightBrightness: null
   })
+  return newId
 }
 
 const fillTo24 = () => {
-  const needed = 24 - labels.value.length
-  if (needed > 0) {
-    for (let i = 0; i < needed; i++) {
-      addLabel(getRandomDefault())
+  for (let i = 0; i < 24; i++) {
+    if (!getLabelAtSlot(i)) {
+      addLabel(getRandomDefault(), i)
     }
   }
 }
 
 const duplicateSelected = () => {
-  if (selectedIndex.value === null) return
-  const toDuplicate = labels.value[selectedIndex.value]
-  const newIndex = selectedIndex.value + 1
+  if (selectedItemIndex.value === null) return
+  const toDuplicate = labels.value[selectedItemIndex.value]
+  const newId = generateId()
+  const newIndex = selectedItemIndex.value + 1
   labels.value.splice(newIndex, 0, {
     ...toDuplicate,
-    id: generateId()
+    id: newId,
+    deckSlot: null // Duplicates always go to library to prevent deck overlap
   })
-  selectedIndex.value = newIndex
+  selectedId.value = newId
 }
 
 const removeSelected = () => {
-  if (selectedIndex.value === null) return
-  labels.value.splice(selectedIndex.value, 1)
+  const idx = selectedItemIndex.value
+  if (idx === null) return
+  labels.value.splice(idx, 1)
   
   if (labels.value.length === 0) {
-    selectedIndex.value = null
-  } else if (selectedIndex.value >= labels.value.length) {
-    selectedIndex.value = labels.value.length - 1
+    selectedId.value = null
+  } else if (idx >= labels.value.length) {
+    selectedId.value = labels.value[labels.value.length - 1].id
+  } else {
+    selectedId.value = labels.value[idx].id
   }
 }
 
 const printLabels = async () => {
-  selectedIndex.value = null
+  selectedId.value = null
   await nextTick()
   window.print()
 }
@@ -454,7 +469,6 @@ const onDragStart = (e, label) => {
   e.dataTransfer.setData('text/plain', label.id)
   e.dataTransfer.effectAllowed = 'move'
   
-  // Use custom compact drag badge
   const ghost = document.getElementById('drag-ghost')
   const ghostText = document.getElementById('drag-ghost-text')
   if (ghost && ghostText) {
@@ -468,45 +482,42 @@ const onDragEnd = () => {
   dragOverTarget.value = null
 }
 
-const onDropDeckSlot = (e, targetLabel) => {
+const onDropDeckSlot = (e, targetSlotIndex) => {
   dragOverTarget.value = null
   const draggedId = e.dataTransfer.getData('text/plain')
   if (!draggedId) return
   
-  const draggedIndex = labels.value.findIndex(l => l.id === draggedId)
-  if (draggedIndex === -1) return
+  const draggedLabel = labels.value.find(l => l.id === draggedId)
+  if (!draggedLabel) return
   
-  const draggedLabel = labels.value[draggedIndex]
-  draggedLabel.print = true 
+  const targetLabel = getLabelAtSlot(targetSlotIndex)
   
   if (targetLabel && targetLabel.id !== draggedId) {
-    const targetIndex = labels.value.findIndex(l => l.id === targetLabel.id)
-    labels.value[draggedIndex] = targetLabel
-    labels.value[targetIndex] = draggedLabel
-    
-    if (selectedIndex.value === draggedIndex) selectedIndex.value = targetIndex
-    else if (selectedIndex.value === targetIndex) selectedIndex.value = draggedIndex
+    // Physical Deck: We SWAP slots so spatial memory isn't broken
+    const tempSlot = draggedLabel.deckSlot
+    draggedLabel.deckSlot = targetSlotIndex
+    targetLabel.deckSlot = tempSlot
+  } else if (!targetLabel) {
+    // Empty deck slot
+    draggedLabel.deckSlot = targetSlotIndex
   }
 }
 
-const onDropEmptySlot = (e) => {
+const onDropLibrary = (e, targetLabel) => {
   dragOverTarget.value = null
   const draggedId = e.dataTransfer.getData('text/plain')
   if (!draggedId) return
   
   const draggedIndex = labels.value.findIndex(l => l.id === draggedId)
-  if (draggedIndex === -1) return
+  const targetIndex = labels.value.findIndex(l => l.id === targetLabel.id)
+  
+  if (draggedIndex === -1 || targetIndex === -1 || draggedIndex === targetIndex) return
   
   const draggedLabel = labels.value[draggedIndex]
-  draggedLabel.print = true
   
+  // Library: Fluid list insertion
   labels.value.splice(draggedIndex, 1)
-  labels.value.push(draggedLabel)
-  if (selectedIndex.value === draggedIndex) selectedIndex.value = labels.value.length - 1
-}
-
-const onDropLibrary = (e, targetLabel) => {
-  onDropDeckSlot(e, targetLabel)
+  labels.value.splice(targetIndex, 0, draggedLabel)
 }
 
 watch([labelWidth, labelHeight, labelMaterial, globalLightColor, globalLightBrightness, globalTextSize, globalTextColor, globalIconSize, globalIconColor, zoomLevel, labels], saveState, { deep: true })
@@ -515,9 +526,9 @@ onMounted(() => {
   const loaded = loadState()
   if (!loaded) {
     fillTo24()
-    selectedIndex.value = 0
+    if (labels.value.length > 0) selectedId.value = labels.value[0].id
   } else if (labels.value.length > 0) {
-    selectedIndex.value = 0
+    selectedId.value = labels.value[0].id
   }
 })
 </script>
@@ -765,6 +776,20 @@ onMounted(() => {
   font-size: 1.1rem;
 }
 
+.zoom-btn {
+  cursor: pointer;
+  transition: color 0.2s, transform 0.1s;
+}
+
+.zoom-btn:hover {
+  color: white;
+  transform: scale(1.1);
+}
+
+.zoom-btn:active {
+  transform: scale(0.9);
+}
+
 .zoom-controls input[type="range"] {
   width: 100px;
 }
@@ -782,12 +807,6 @@ onMounted(() => {
   flex-wrap: wrap;
   gap: 2rem;
   align-content: flex-start;
-}
-
-
-.grid-item-wrapper.is-excluded {
-  opacity: 0.5;
-  filter: grayscale(0.8);
 }
 
 .grid-item-wrapper.is-in-preview {
@@ -819,24 +838,6 @@ onMounted(() => {
   font-size: 12px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.3);
   z-index: 20;
-}
-
-.excluded-overlay {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(0,0,0,0.7);
-  color: white;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 20px;
-  z-index: 20;
-  pointer-events: none;
 }
 
 .add-grid-item {

@@ -290,11 +290,11 @@ const innerStyle = computed(() => {
 
 .label-text {
   text-align: center;
-  white-space: nowrap;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
   overflow: hidden;
-  text-overflow: ellipsis;
   width: 100%;
-  line-height: 1.2;
+  line-height: 1.15;
 }
 
 /* Print Mode overrides - used both in CSS @media print AND on-screen previewMode */
