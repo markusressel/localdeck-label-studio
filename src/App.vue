@@ -76,7 +76,7 @@
                   @dragenter.prevent="dragOverTarget = 'deck-' + label.id"
                   @dragleave="dragOverTarget = null"
                   @dragend="onDragEnd"
-                  @dragover.prevent
+                  @dragover.prevent="dragOverTarget = 'deck-' + label.id"
                   @drop="onDropDeckSlot($event, label)"
                 >
                   <LabelPreview 
@@ -108,7 +108,7 @@
                   @dragenter.prevent="dragOverTarget = 'empty-' + i"
                   @dragleave="dragOverTarget = null"
                   @dragend="onDragEnd"
-                  @dragover.prevent
+                  @dragover.prevent="dragOverTarget = 'empty-' + i"
                   @drop="onDropEmptySlot($event)"
                 >
                 </div>
@@ -151,7 +151,7 @@
               @dragenter.prevent="dragOverTarget = 'lib-' + label.id"
               @dragleave="dragOverTarget = null"
               @dragend="onDragEnd"
-              @dragover.prevent
+              @dragover.prevent="dragOverTarget = 'lib-' + label.id"
               @drop="onDropLibrary($event, label)"
             >
               <LabelPreview 
