@@ -1,0 +1,52 @@
+/* Grid Layout - applies to print and on-screen preview mode */
+.label-grid {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 0 !important;
+  justify-content: flex-start !important;
+  align-items: flex-start !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.label-wrapper {
+  border: 1px dashed #ccc !important; /* Cut lines */
+  box-sizing: border-box !important;
+  page-break-inside: avoid;
+  break-inside: avoid;
+  /* ensure background colors print */
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+
+@media print {
+  /* Hide everything except the print grid */
+  body * {
+    visibility: hidden;
+  }
+  
+  #print-area, #print-area * {
+    visibility: visible;
+  }
+  
+  #print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Remove default browser margins */
+  @page {
+    margin: 0;
+    size: auto; 
+  }
+
+  /* Reset body styles that interfere with print */
+  body {
+    background: white;
+    min-height: auto;
+  }
+}
