@@ -276,6 +276,14 @@
         />
       </div>
     </div>
+
+    <!-- Offscreen drag ghost for custom drag image -->
+    <div style="position: absolute; top: -2000px; left: -2000px; pointer-events: none;">
+      <div id="drag-ghost" style="background: rgba(16, 185, 129, 0.85); padding: 0.4rem 0.8rem; border-radius: 20px; color: white; display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; box-shadow: 0 4px 12px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.3); font-weight: 500; white-space: nowrap;">
+        <span class="iconify" data-icon="mdi:cursor-move"></span>
+        <span id="drag-ghost-text">Label</span>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -445,6 +453,14 @@ const onDragStart = (e, label) => {
   isDragging.value = true
   e.dataTransfer.setData('text/plain', label.id)
   e.dataTransfer.effectAllowed = 'move'
+  
+  // Use custom compact drag badge
+  const ghost = document.getElementById('drag-ghost')
+  const ghostText = document.getElementById('drag-ghost-text')
+  if (ghost && ghostText) {
+    ghostText.textContent = label.text || 'Label'
+    e.dataTransfer.setDragImage(ghost, 15, 15)
+  }
 }
 
 const onDragEnd = () => {

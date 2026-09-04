@@ -202,36 +202,45 @@ const innerStyle = computed(() => {
   box-shadow: 0 1px 4px rgba(0,0,0,0.25);
 }
 
-/* Dark Room Materials */
-.keycap-outer.is-dark-room .material-thin-paper .material-layer {
-  background: rgba(30, 30, 30, 0.9);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+/* Dark Room Materials - No ambient light, pitch black */
+.keycap-outer.is-dark-room {
+  background-color: #000000;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.9), 0 2px 4px rgba(0,0,0,0.8);
 }
-.keycap-outer.is-dark-room .material-thick-paper .material-layer {
-  background: rgba(15, 15, 15, 0.98);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.7);
+
+.keycap-outer.is-dark-room.material-thin-paper .material-layer {
+  background: #000000;
+  box-shadow: none;
+}
+.keycap-outer.is-dark-room.material-thick-paper .material-layer {
+  background: #000000;
+  box-shadow: none;
 }
 
 /* Diffused LED glowing THROUGH the paper */
 .diffused-led-glow {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 50% 100%, var(--led-color) 0%, transparent 60%);
+  background: radial-gradient(circle at 50% 90%, var(--led-color) 0%, transparent 85%);
   z-index: 1;
   pointer-events: none;
   mix-blend-mode: screen;
   transition: opacity 0.3s, filter 0.3s;
 }
-.diffused-led-glow {
-  opacity: calc(var(--led-brightness) * 0.8);
+
+/* Transparent film doesn't diffuse, it just lets the base LED through */
+.material-transparent .diffused-led-glow {
+  opacity: 0;
 }
+
 .material-thin-paper .diffused-led-glow {
-  opacity: calc(var(--led-brightness) * 0.4);
-  filter: blur(2px);
+  opacity: calc(var(--led-brightness) * 0.9);
+  filter: blur(5px);
 }
+
 .material-thick-paper .diffused-led-glow {
-  opacity: calc(var(--led-brightness) * 0.15);
-  filter: blur(4px);
+  opacity: calc(var(--led-brightness) * 0.65);
+  filter: blur(10px);
 }
 
 .label-content {
