@@ -137,10 +137,11 @@ const innerStyle = computed(() => {
   transform: translateX(-50%);
   width: 150%;
   height: 120%;
-  background: radial-gradient(circle at 50% 100%, var(--led-color) 0%, transparent 75%);
+  background: radial-gradient(circle at 50% 100%, #ffffff 0%, var(--led-color) 20%, transparent 75%);
   opacity: var(--led-brightness);
   pointer-events: none;
   z-index: 1;
+  mix-blend-mode: screen;
 }
 
 .plastic-cap {
@@ -153,12 +154,28 @@ const innerStyle = computed(() => {
   border-style: solid;
   border-width: 2mm;
   border-top-color: rgba(255, 255, 255, 0.5);   
-  border-bottom-color: rgba(0, 0, 0, 0.2);      
+  border-bottom-color: rgba(0, 0, 0, 0.4);      
   border-left-color: rgba(255, 255, 255, 0.15);   
-  border-right-color: rgba(0, 0, 0, 0.1);
+  border-right-color: rgba(0, 0, 0, 0.15);
   
-  background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 40%);
+  background: linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0) 40%);
   background-clip: padding-box;
+}
+
+.plastic-cap::before {
+  content: '';
+  position: absolute;
+  inset: -2mm;
+  border-radius: 5px;
+  border: 2mm solid transparent;
+  border-bottom-color: var(--led-color);
+  border-left-color: var(--led-color);
+  border-right-color: var(--led-color);
+  -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 70%);
+  mask-image: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 70%);
+  opacity: calc(var(--led-brightness) * 1.2);
+  mix-blend-mode: screen;
+  filter: drop-shadow(0 0 4px var(--led-color));
 }
 
 .plastic-cap::after {
