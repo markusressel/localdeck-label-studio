@@ -5,6 +5,7 @@
       :style="innerStyle" 
       :class="[
         'material-' + material,
+        'effect-' + effectiveLightEffect,
         { 'is-print-mode': printMode, 'is-dark-room': darkRoom && !printMode }
       ]"
     >
@@ -25,6 +26,7 @@
           </div>
           <div v-else-if="label.icon" class="label-icon-container">
             <span 
+              :key="label.icon + '_' + effectiveIconSize + '_' + effectiveIconColor"
               class="iconify" 
               :data-icon="label.icon"
               :style="{ fontSize: effectiveIconSize + 'px', color: effectiveIconColor }"
@@ -34,8 +36,8 @@
             v-if="label.text" 
             class="label-text"
             :style="{ fontSize: effectiveTextSize + 'px', color: effectiveTextColor }"
+            v-html="formattedLabelText"
           >
-            {{ label.text }}
           </div>
         </div>
       </div>
@@ -54,6 +56,7 @@ const props = defineProps({
   material: { type: String, default: 'transparent' },
   globalLightColor: { type: String, default: '#10b981' },
   globalLightBrightness: { type: Number, default: 80 },
+  globalLightEffect: { type: String, default: 'static' },
   globalTextSize: { type: Number, default: 10 },
   globalTextColor: { type: String, default: '#000000' },
   globalIconSize: { type: Number, default: 24 },
@@ -73,10 +76,26 @@ const effectiveLightBrightness = computed(() => {
   return b / 100 
 })
 
+const effectiveLightEffect = computed(() => {
+  return props.label.lightEffect !== null && props.label.lightEffect !== undefined
+    ? props.label.lightEffect : props.globalLightEffect
+})
+
 const effectiveTextSize = computed(() => props.label.textSize ?? props.globalTextSize)
 const effectiveTextColor = computed(() => props.label.textColor ?? props.globalTextColor)
 const effectiveIconSize = computed(() => props.label.iconSize ?? props.globalIconSize)
 const effectiveIconColor = computed(() => props.label.iconColor ?? props.globalIconColor)
+
+const formattedLabelText = computed(() => {
+  if (!props.label.text) return ''
+  let text = props.label.text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+  return text.replace(/:([a-zA-Z0-9\-:]+):/g, '<span class="iconify" data-icon="$1"></span>')
+})
 
 const wrapperStyle = computed(() => {
   if (props.printMode) {
@@ -191,7 +210,6 @@ const innerStyle = computed(() => {
   position: relative;
   width: var(--label-width);
   height: var(--label-height);
-  z-index: 2;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -241,7 +259,6 @@ const innerStyle = computed(() => {
   background: radial-gradient(circle at 50% 90%, var(--led-color) 0%, transparent 85%);
   z-index: 1;
   pointer-events: none;
-  mix-blend-mode: screen;
   transition: opacity 0.3s, filter 0.3s;
 }
 
@@ -323,4 +340,70 @@ const innerStyle = computed(() => {
     display: none !important;
   }
 }
+
+/* RGB Light Effects */
+@keyframes breathing-glow {
+  0%, 100% { opacity: calc(var(--led-brightness) * 0.2); }
+  50% { opacity: var(--led-brightness); }
+}
+@keyframes breathing-plastic {
+  0%, 100% { opacity: calc(var(--led-brightness) * 1.2 * 0.2); }
+  50% { opacity: calc(var(--led-brightness) * 1.2); }
+}
+@keyframes breathing-diffused-thin {
+  0%, 100% { opacity: calc(var(--led-brightness) * 0.9 * 0.2); }
+  50% { opacity: calc(var(--led-brightness) * 0.9); }
+}
+@keyframes breathing-diffused-thick {
+  0%, 100% { opacity: calc(var(--led-brightness) * 0.65 * 0.2); }
+  50% { opacity: calc(var(--led-brightness) * 0.65); }
+}
+
+.effect-breathing .keycap-led-glow {
+  animation: breathing-glow 3s infinite ease-in-out;
+}
+.effect-breathing .plastic-cap::before {
+  animation: breathing-plastic 3s infinite ease-in-out;
+}
+.effect-breathing.material-thin-paper .diffused-led-glow,
+.effect-breathing .material-thin-paper .diffused-led-glow {
+  animation: breathing-diffused-thin 3s infinite ease-in-out;
+}
+.effect-breathing.material-thick-paper .diffused-led-glow,
+.effect-breathing .material-thick-paper .diffused-led-glow {
+  animation: breathing-diffused-thick 3s infinite ease-in-out;
+}
+
+@keyframes rainbow-glow {
+  0% { filter: hue-rotate(0deg); }
+  100% { filter: hue-rotate(360deg); }
+}
+@keyframes rainbow-plastic {
+  0% { filter: drop-shadow(0 0 4px var(--led-color)) hue-rotate(0deg); }
+  100% { filter: drop-shadow(0 0 4px var(--led-color)) hue-rotate(360deg); }
+}
+@keyframes rainbow-diffused-thin {
+  0% { filter: blur(5px) hue-rotate(0deg); }
+  100% { filter: blur(5px) hue-rotate(360deg); }
+}
+@keyframes rainbow-diffused-thick {
+  0% { filter: blur(10px) hue-rotate(0deg); }
+  100% { filter: blur(10px) hue-rotate(360deg); }
+}
+
+.effect-rainbow .keycap-led-glow {
+  animation: rainbow-glow 3s infinite linear;
+}
+.effect-rainbow .plastic-cap::before {
+  animation: rainbow-plastic 3s infinite linear;
+}
+.effect-rainbow.material-thin-paper .diffused-led-glow,
+.effect-rainbow .material-thin-paper .diffused-led-glow {
+  animation: rainbow-diffused-thin 3s infinite linear;
+}
+.effect-rainbow.material-thick-paper .diffused-led-glow,
+.effect-rainbow .material-thick-paper .diffused-led-glow {
+  animation: rainbow-diffused-thick 3s infinite linear;
+}
 </style>
+

@@ -16,6 +16,13 @@
             <input type="number" v-model.number="labelHeight" step="0.1" />
           </div>
 
+          <input type="file" ref="fileInput" @change="importData" accept=".json" style="display: none" />
+          <button @click="triggerImport" class="secondary import-btn">
+            <span class="iconify" data-icon="mdi:import"></span> Import
+          </button>
+          <button @click="exportData" class="secondary export-btn">
+            <span class="iconify" data-icon="mdi:export"></span> Export
+          </button>
           <button @click="previewMode = true" class="secondary preview-toggle-btn">
             <span class="iconify" data-icon="mdi:eye-outline"></span> Preview
           </button>
@@ -39,7 +46,7 @@
             <div class="spacer"></div>
             
             <div class="setting-group" style="margin-right: 1rem; cursor: pointer;" @click="darkRoom = !darkRoom" title="Toggle Room Lighting">
-              <span class="iconify" :data-icon="darkRoom ? 'mdi:weather-night' : 'mdi:weather-sunny'" style="font-size: 1.5rem; color: var(--text-muted);"></span>
+              <span :key="darkRoom ? 'night' : 'sunny'" class="iconify" :data-icon="darkRoom ? 'mdi:weather-night' : 'mdi:weather-sunny'" style="font-size: 1.5rem; color: var(--text-muted);"></span>
             </div>
 
             <div class="setting-group" style="margin-right: 1rem;">
@@ -55,6 +62,11 @@
               <div class="light-controls">
                 <input type="color" v-model="globalLightColor" title="Global LED Color" />
                 <input type="range" v-model.number="globalLightBrightness" min="0" max="100" title="Global Brightness" style="width: 60px" />
+                <select v-model="globalLightEffect" title="Light Effect" style="width: auto; margin-left: 0.5rem; padding: 0.2rem; background: rgba(0,0,0,0.2); border: 1px solid var(--card-border); color: white; border-radius: 4px;">
+                  <option value="static">Static</option>
+                  <option value="breathing">Breathing</option>
+                  <option value="rainbow">Rainbow</option>
+                </select>
               </div>
             </div>
           </div>
@@ -91,6 +103,7 @@
                     :material="labelMaterial"
                     :globalLightColor="globalLightColor"
                     :globalLightBrightness="globalLightBrightness"
+                    :globalLightEffect="globalLightEffect"
                     :globalTextSize="globalTextSize"
                     :globalTextColor="globalTextColor"
                     :globalIconSize="globalIconSize"
@@ -152,6 +165,7 @@
                 :material="labelMaterial"
                 :globalLightColor="globalLightColor"
                 :globalLightBrightness="globalLightBrightness"
+                :globalLightEffect="globalLightEffect"
                 :globalTextSize="globalTextSize"
                 :globalTextColor="globalTextColor"
                 :globalIconSize="globalIconSize"
@@ -236,12 +250,14 @@
 
     <!-- Hidden in UI, visible in print OR preview mode -->
     <div id="print-area">
-      <button v-if="previewMode" @click="previewMode = false" class="exit-preview-btn no-print">
-        <span class="iconify" data-icon="mdi:close"></span> Exit Preview
-      </button>
-      <button v-if="previewMode" @click="printLabels" class="primary print-now-btn no-print">
-        <span class="iconify" data-icon="mdi:printer"></span> Print Now
-      </button>
+      <div class="print-actions no-print" v-if="previewMode">
+        <button @click="printLabels" class="primary print-now-btn">
+          <span class="iconify" data-icon="mdi:printer"></span> Print Now
+        </button>
+        <button @click="previewMode = false" class="exit-preview-btn">
+          <span class="iconify" data-icon="mdi:close"></span> Exit Preview
+        </button>
+      </div>
       
       <div class="label-grid">
         <LabelPreview
@@ -254,6 +270,7 @@
           :material="labelMaterial"
           :globalLightColor="globalLightColor"
           :globalLightBrightness="globalLightBrightness"
+          :globalLightEffect="globalLightEffect"
           :globalTextSize="globalTextSize"
           :globalTextColor="globalTextColor"
           :globalIconSize="globalIconSize"
@@ -284,6 +301,7 @@ const labelHeight = ref(14)
 const labelMaterial = ref('transparent')
 const globalLightColor = ref('#10b981')
 const globalLightBrightness = ref(80)
+const globalLightEffect = ref('static')
 const globalTextSize = ref(10)
 const globalTextColor = ref('#000000')
 const globalIconSize = ref(24)
@@ -295,6 +313,7 @@ const isDragging = ref(false)
 const dragOverTarget = ref(null)
 const selectedId = ref(null)
 const previewMode = ref(false)
+const fileInput = ref(null)
 
 const getLabelAtSlot = (slotIndex) => {
   return labels.value.find(l => l.deckSlot === slotIndex) || null
@@ -356,11 +375,13 @@ const loadState = () => {
       if (data.material) labelMaterial.value = data.material
       if (data.globalLightColor) globalLightColor.value = data.globalLightColor
       if (data.globalLightBrightness !== undefined) globalLightBrightness.value = data.globalLightBrightness
+      if (data.globalLightEffect) globalLightEffect.value = data.globalLightEffect
       if (data.globalTextSize !== undefined) globalTextSize.value = data.globalTextSize
       if (data.globalTextColor) globalTextColor.value = data.globalTextColor
       if (data.globalIconSize !== undefined) globalIconSize.value = data.globalIconSize
       if (data.globalIconColor) globalIconColor.value = data.globalIconColor
       if (data.zoomLevel) zoomLevel.value = data.zoomLevel
+      if (data.selectedId) selectedId.value = data.selectedId
       if (data.labels && data.labels.length > 0) {
         let nextDeckSlot = 0;
         labels.value = data.labels.map((l, index) => {
@@ -394,11 +415,13 @@ const saveState = () => {
     material: labelMaterial.value,
     globalLightColor: globalLightColor.value,
     globalLightBrightness: globalLightBrightness.value,
+    globalLightEffect: globalLightEffect.value,
     globalTextSize: globalTextSize.value,
     globalTextColor: globalTextColor.value,
     globalIconSize: globalIconSize.value,
     globalIconColor: globalIconColor.value,
     zoomLevel: zoomLevel.value,
+    selectedId: selectedId.value,
     labels: labels.value
   }))
 }
@@ -463,6 +486,62 @@ const printLabels = async () => {
   window.print()
 }
 
+const exportData = () => {
+  const dataToExport = {
+    width: labelWidth.value,
+    height: labelHeight.value,
+    material: labelMaterial.value,
+    globalLightColor: globalLightColor.value,
+    globalLightBrightness: globalLightBrightness.value,
+    globalTextSize: globalTextSize.value,
+    globalTextColor: globalTextColor.value,
+    globalIconSize: globalIconSize.value,
+    globalIconColor: globalIconColor.value,
+    zoomLevel: zoomLevel.value,
+    labels: labels.value
+  }
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataToExport, null, 2))
+  const downloadAnchorNode = document.createElement('a')
+  downloadAnchorNode.setAttribute("href", dataStr)
+  downloadAnchorNode.setAttribute("download", "localdeck_labels.json")
+  document.body.appendChild(downloadAnchorNode)
+  downloadAnchorNode.click()
+  downloadAnchorNode.remove()
+}
+
+const triggerImport = () => {
+  if (fileInput.value) {
+    fileInput.value.click()
+  }
+}
+
+const importData = (event) => {
+  const file = event.target.files[0]
+  if (!file) return
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result)
+      if (data.width !== undefined) labelWidth.value = data.width
+      if (data.height !== undefined) labelHeight.value = data.height
+      if (data.material !== undefined) labelMaterial.value = data.material
+      if (data.globalLightColor !== undefined) globalLightColor.value = data.globalLightColor
+      if (data.globalLightBrightness !== undefined) globalLightBrightness.value = data.globalLightBrightness
+      if (data.globalTextSize !== undefined) globalTextSize.value = data.globalTextSize
+      if (data.globalTextColor !== undefined) globalTextColor.value = data.globalTextColor
+      if (data.globalIconSize !== undefined) globalIconSize.value = data.globalIconSize
+      if (data.globalIconColor !== undefined) globalIconColor.value = data.globalIconColor
+      if (data.zoomLevel !== undefined) zoomLevel.value = data.zoomLevel
+      if (data.labels) labels.value = data.labels
+    } catch (err) {
+      console.error("Failed to parse imported JSON", err)
+      alert("Invalid JSON file")
+    }
+    event.target.value = ''
+  }
+  reader.readAsText(file)
+}
+
 // Drag and Drop Logic
 const onDragStart = (e, label) => {
   isDragging.value = true
@@ -520,7 +599,7 @@ const onDropLibrary = (e, targetLabel) => {
   labels.value.splice(targetIndex, 0, draggedLabel)
 }
 
-watch([labelWidth, labelHeight, labelMaterial, globalLightColor, globalLightBrightness, globalTextSize, globalTextColor, globalIconSize, globalIconColor, zoomLevel, labels], saveState, { deep: true })
+watch([labelWidth, labelHeight, labelMaterial, globalLightColor, globalLightBrightness, globalLightEffect, globalTextSize, globalTextColor, globalIconSize, globalIconColor, zoomLevel, labels, selectedId], saveState, { deep: true })
 
 onMounted(() => {
   const loaded = loadState()
@@ -986,25 +1065,32 @@ onMounted(() => {
 }
 
 /* Print Area and Preview Mode */
+.label-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2mm;
+}
+
 #print-area {
   display: none;
 }
 
-.exit-preview-btn {
+.print-actions {
   position: fixed;
   top: 1rem;
   right: 1rem;
   z-index: 10000;
+  display: flex;
+  gap: 1rem;
+}
+
+.exit-preview-btn {
   background: rgba(15, 23, 42, 0.9);
   border: 1px solid var(--card-border);
   box-shadow: 0 4px 12px rgba(0,0,0,0.5);
 }
 
 .print-now-btn {
-  position: fixed;
-  top: 1rem;
-  right: 150px;
-  z-index: 10000;
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.5);
 }
 
@@ -1025,10 +1111,15 @@ onMounted(() => {
   width: 100%;
   min-height: 100vh;
   background: white;
-  padding: 2cm;
+  padding: 10mm;
 }
 
 @media print {
+  @page {
+    size: A4 portrait;
+    margin: 10mm;
+  }
+  
   .app-container {
     height: auto;
     padding: 0;
