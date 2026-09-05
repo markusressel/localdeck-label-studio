@@ -1,8 +1,8 @@
 <template>
   <div class="label-editor">
     <div class="control-group">
-      <label>Label Text (Multi-line supported)</label>
-      <textarea v-model="modelValue.text" placeholder="e.g. Living Room" rows="2" class="text-input-area"></textarea>
+      <label>Label Text</label>
+      <textarea v-model="modelValue.text" placeholder="Press Enter for new lines..." rows="2" class="text-input-area"></textarea>
     </div>
     
     <div class="control-row">
@@ -191,9 +191,32 @@ const clearImage = () => {
   width: 100%;
 }
 
+.control-group input:focus,
+.control-group textarea:focus,
+.control-group select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
+  background: rgba(0,0,0,0.3);
+}
+
 .text-input-area {
   resize: vertical;
   min-height: 40px;
+  line-height: 1.4;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+
+.text-input-area::-webkit-scrollbar {
+  width: 8px;
+}
+.text-input-area::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.1);
+  border-radius: 4px;
+}
+.text-input-area::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.2);
+  border-radius: 4px;
 }
 
 .control-row {
