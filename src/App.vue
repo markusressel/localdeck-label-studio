@@ -1580,6 +1580,7 @@ onMounted(() => {
     box-shadow: none !important;
     margin: 0 !important;
     background-image: none !important; /* Hide grid when actually printing */
+    transform: none !important;
     /* We KEEP padding: 5mm and the exact width/height from the standard CSS */
     /* so the browser prints exactly what we see on screen! */
   }
