@@ -60,7 +60,7 @@
             <div class="setting-group global-light-group" style="margin-right: 0;">
               <span class="iconify" data-icon="mdi:led-on" style="color: var(--text-muted); font-size: 1.2rem;"></span>
               <div class="light-controls">
-                <input type="color" v-model="globalLightColor" title="Global LED Color" />
+                <ColorPicker v-model="globalLightColor" title="Global LED Color" />
                 <input type="range" v-model.number="globalLightBrightness" min="0" max="100" title="Global Brightness" style="width: 60px" />
                 <select v-model="globalLightEffect" title="Light Effect" style="width: auto; margin-left: 0.5rem; padding: 0.2rem; background: rgba(0,0,0,0.2); border: 1px solid var(--card-border); color: white; border-radius: 4px;">
                   <option value="static">Static</option>
@@ -204,7 +204,7 @@
                 </div>
                 <div class="control-group half">
                   <label>Text Color</label>
-                  <input type="color" v-model="globalTextColor" class="color-picker" />
+                  <ColorPicker v-model="globalTextColor" />
                 </div>
               </div>
               <div class="control-row mt-2">
@@ -214,7 +214,7 @@
                 </div>
                 <div class="control-group half">
                   <label>Icon Color</label>
-                  <input type="color" v-model="globalIconColor" class="color-picker" />
+                  <ColorPicker v-model="globalIconColor" />
                 </div>
               </div>
             </div>
@@ -295,6 +295,7 @@
 import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import LabelEditor from './components/LabelEditor.vue'
 import LabelPreview from './components/LabelPreview.vue'
+import ColorPicker from './components/ColorPicker.vue'
 
 const labelWidth = ref(14)
 const labelHeight = ref(14)
@@ -606,7 +607,7 @@ onMounted(() => {
   if (!loaded) {
     fillTo24()
     if (labels.value.length > 0) selectedId.value = labels.value[0].id
-  } else if (labels.value.length > 0) {
+  } else if (labels.value.length > 0 && !selectedId.value) {
     selectedId.value = labels.value[0].id
   }
 })
@@ -1111,18 +1112,19 @@ onMounted(() => {
   width: 100%;
   min-height: 100vh;
   background: white;
-  padding: 10mm;
+  padding: 5mm;
 }
 
 @media print {
   @page {
     size: A4 portrait;
-    margin: 10mm;
+    margin: 5mm;
   }
   
   .app-container {
     height: auto;
     padding: 0;
+    margin: 0;
   }
   .app-header, .app-main {
     display: none !important;

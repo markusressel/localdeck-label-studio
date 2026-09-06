@@ -18,7 +18,7 @@
       </div>
       <div class="control-group half">
         <label>Text Color</label>
-        <input type="color" v-model="modelValue.textColor" class="color-picker" />
+        <ColorPicker v-model="modelValue.textColor" />
       </div>
     </div>
     
@@ -52,7 +52,7 @@
       </div>
       <div class="control-group half">
         <label>Icon Color</label>
-        <input type="color" v-model="modelValue.iconColor" class="color-picker" />
+        <ColorPicker v-model="modelValue.iconColor" />
       </div>
     </div>
     
@@ -83,7 +83,7 @@
           </div>
           <div class="control-group half">
             <label>Color</label>
-            <input type="color" v-model="modelValue.lightColor" class="color-picker" />
+            <ColorPicker v-model="modelValue.lightColor" />
           </div>
         </div>
       </div>
@@ -93,6 +93,7 @@
 
 <script setup>
 import { computed } from 'vue'
+import ColorPicker from './ColorPicker.vue'
 
 const props = defineProps({
   modelValue: {

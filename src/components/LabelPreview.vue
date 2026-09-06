@@ -1,5 +1,5 @@
 <template>
-  <div class="scale-wrapper" :style="wrapperStyle">
+  <div class="scale-wrapper" :style="wrapperStyle" ref="previewRef">
     <div 
       class="keycap-outer" 
       :style="innerStyle" 
@@ -26,7 +26,7 @@
           </div>
           <div v-else-if="label.icon" class="label-icon-container">
             <span 
-              :key="label.icon + '_' + effectiveIconSize + '_' + effectiveIconColor"
+              :key="label.icon"
               class="iconify" 
               :data-icon="label.icon"
               :style="{ fontSize: effectiveIconSize + 'px', color: effectiveIconColor }"
@@ -46,7 +46,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, onMounted, onUpdated } from 'vue'
 
 const props = defineProps({
   label: { type: Object, required: true },
@@ -96,6 +96,15 @@ const formattedLabelText = computed(() => {
     .replace(/'/g, '&#039;');
   return text.replace(/:([a-zA-Z0-9\-:]+):/g, '<span class="iconify" data-icon="$1"></span>')
 })
+
+const previewRef = ref(null)
+const scanIcons = () => {
+  if (window.Iconify && previewRef.value) {
+    window.Iconify.scan(previewRef.value)
+  }
+}
+onMounted(scanIcons)
+onUpdated(scanIcons)
 
 const wrapperStyle = computed(() => {
   if (props.printMode) {
