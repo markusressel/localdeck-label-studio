@@ -24,9 +24,8 @@
           <div v-if="label.image" class="label-image-container">
             <img :src="label.image" alt="Custom icon" class="custom-image" />
           </div>
-          <div v-else-if="label.icon" class="label-icon-container">
+          <div v-else-if="label.icon" class="label-icon-container" :key="label.icon">
             <span 
-              :key="label.icon"
               class="iconify" 
               :data-icon="label.icon"
               :style="{ fontSize: effectiveIconSize + 'px', color: effectiveIconColor }"
