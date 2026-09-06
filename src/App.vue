@@ -262,11 +262,7 @@
           </select>
         </div>
 
-        <div class="setting-group-vertical">
-          <label>Skip Positions</label>
-          <input type="number" v-model.number="printSkip" min="0" />
-          <small>Leave empty spaces at the beginning.</small>
-        </div>
+
 
         <div class="setting-group-vertical" style="flex: 1; overflow: hidden; display: flex; flex-direction: column;">
           <label>Labels to Print</label>
@@ -296,30 +292,78 @@
         </div>
       </div>
       
-      <div class="print-preview-content">
-        <div class="paper-sheet" :class="'format-' + printFormat">
-          <div class="paper-ruler no-print"></div>
-          
-          <div class="label-grid">
-            <div class="empty-print-slot" v-for="i in printSkip" :key="'skip-'+i" :style="{ width: labelWidth + 'mm', height: labelHeight + 'mm' }"></div>
-            <LabelPreview
-              v-for="label in explicitlyPrintedLabels"
-              :key="'print-' + label.id"
-              :label="label"
-              :width="labelWidth"
-              :height="labelHeight"
-              :scale="1"
-              :material="labelMaterial"
-              :globalLightColor="globalLightColor"
-              :globalLightBrightness="globalLightBrightness"
-              :globalLightEffect="globalLightEffect"
-              :globalTextSize="globalTextSize"
-              :globalTextColor="globalTextColor"
-              :globalIconSize="globalIconSize"
-              :globalIconColor="globalIconColor"
-              :printMode="true"
-              :darkRoom="darkRoom"
-            />
+      <div 
+        class="print-preview-content" 
+        ref="previewContentRef" 
+        @wheel.prevent="handleZoom" 
+        @mousedown="startPan" 
+        @mousemove="doPan" 
+        @mouseup="endPan" 
+        @mouseleave="endPan"
+      >
+        <div 
+          class="paper-zoom-wrapper" 
+          :style="{ 
+            width: `calc(${paperDimensions.w}mm * ${printZoom})`, 
+            height: `calc(${paperDimensions.h}mm * ${printZoom})` 
+          }"
+        >
+          <div 
+            class="paper-sheet" 
+            ref="paperSheetRef"
+            :class="'format-' + printFormat" 
+            :style="{ 
+              transform: `scale(${printZoom})`, 
+              transformOrigin: 'top left',
+              backgroundSize: `${labelWidth}mm ${labelHeight}mm`, 
+              backgroundPosition: '5mm 5mm' 
+            }"
+          >
+            <div class="paper-ruler no-print"></div>
+            <div 
+              v-if="printSelectionBox" 
+              class="print-selection-box no-print" 
+              :style="{ 
+                left: printSelectionBox.x + 'px', 
+                top: printSelectionBox.y + 'px', 
+                width: printSelectionBox.w + 'px', 
+                height: printSelectionBox.h + 'px' 
+              }"
+            ></div>
+            
+            <div class="label-grid">
+              <div 
+                v-for="(labelId, index) in printGrid.slice(0, totalPrintSlots)"
+                :key="'slot-' + index"
+                class="print-grid-slot"
+                :class="{ 'is-drag-over': printDragTarget === index, 'is-selected': selectedPrintSlots.has(index) }"
+                :style="{ width: labelWidth + 'mm', height: labelHeight + 'mm' }"
+                @dragover.prevent="printDragTarget = index"
+                @dragleave.prevent="printDragTarget = null"
+                @drop="onPrintDrop($event, index)"
+              >
+                <LabelPreview
+                  v-if="labelId"
+                  :label="getLabelById(labelId)"
+                  :width="labelWidth"
+                  :height="labelHeight"
+                  :scale="1"
+                  :material="labelMaterial"
+                  :globalLightColor="globalLightColor"
+                  :globalLightBrightness="globalLightBrightness"
+                  :globalLightEffect="globalLightEffect"
+                  :globalTextSize="globalTextSize"
+                  :globalTextColor="globalTextColor"
+                  :globalIconSize="globalIconSize"
+                  :globalIconColor="globalIconColor"
+                  :printMode="true"
+                  :darkRoom="darkRoom"
+                  draggable="true"
+                  @dragstart="onPrintDragStart($event, labelId, index)"
+                  @dragend="printDraggedSlot = null"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -328,6 +372,7 @@
     <!-- Offscreen drag ghost for custom drag image -->
     <div style="position: absolute; top: -2000px; left: -2000px; pointer-events: none;">
       <div id="drag-ghost" style="background: rgba(16, 185, 129, 0.85); padding: 0.4rem 0.8rem; border-radius: 20px; color: white; display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; box-shadow: 0 4px 12px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.3); font-weight: 500; white-space: nowrap;">
+
         <span class="iconify" data-icon="mdi:cursor-move"></span>
         <span id="drag-ghost-text">Label</span>
       </div>
@@ -361,8 +406,37 @@ const previewMode = ref(false)
 const fileInput = ref(null)
 
 const printFormat = ref('A4')
-const printSkip = ref(0)
+const printZoom = ref(1)
 const selectedPrintIds = ref([])
+const printGrid = ref([])
+const printDraggedSlot = ref(null)
+const printDragTarget = ref(null)
+const previewContentRef = ref(null)
+const isPanning = ref(false)
+const panStart = ref({ x: 0, y: 0 })
+const scrollStart = ref({ x: 0, y: 0 })
+const isBoxSelecting = ref(false)
+const boxSelectStart = ref({ x: 0, y: 0 })
+const printSelectionBox = ref(null)
+const selectedPrintSlots = ref(new Set())
+const spacePressed = ref(false)
+const paperSheetRef = ref(null)
+
+const paperDimensions = computed(() => {
+  if (printFormat.value === 'A4') return { w: 210, h: 297 }
+  if (printFormat.value === 'A4-L') return { w: 297, h: 210 }
+  return { w: 215.9, h: 279.4 }
+})
+
+const cols = computed(() => {
+  const w = paperDimensions.value.w - 10
+  return Math.floor(w / labelWidth.value)
+})
+const rows = computed(() => {
+  const h = paperDimensions.value.h - 10
+  return Math.floor(h / labelHeight.value)
+})
+const totalPrintSlots = computed(() => cols.value * rows.value)
 
 const getLabelAtSlot = (slotIndex) => {
   return labels.value.find(l => l.deckSlot === slotIndex) || null
@@ -372,16 +446,43 @@ const printedLabels = computed(() => {
   return labels.value.filter(l => l.deckSlot !== null).sort((a, b) => a.deckSlot - b.deckSlot)
 })
 
-watch(previewMode, (newVal) => {
-  if (newVal) {
-    selectedPrintIds.value = printedLabels.value.map(l => l.id)
-  }
-})
-
 const explicitlyPrintedLabels = computed(() => {
-  // Sort them as they appear in the UI: first deck slots, then library order, or just keep library order
   return labels.value.filter(l => selectedPrintIds.value.includes(l.id))
 })
+
+const syncPrintGrid = () => {
+  if (printGrid.value.length !== totalPrintSlots.value) {
+    const newGrid = new Array(totalPrintSlots.value).fill(null)
+    for(let i = 0; i < Math.min(printGrid.value.length, totalPrintSlots.value); i++) newGrid[i] = printGrid.value[i]
+    printGrid.value = newGrid
+  }
+  
+  const validIds = new Set(explicitlyPrintedLabels.value.map(l => l.id))
+  for(let i=0; i<printGrid.value.length; i++) {
+    if (printGrid.value[i] && !validIds.has(printGrid.value[i])) printGrid.value[i] = null
+  }
+  
+  const existingIds = new Set(printGrid.value.filter(Boolean))
+  let pointer = 0
+  explicitlyPrintedLabels.value.forEach(label => {
+    if (!existingIds.has(label.id)) {
+       while(pointer < printGrid.value.length && printGrid.value[pointer] !== null) pointer++
+       if (pointer < printGrid.value.length) printGrid.value[pointer] = label.id
+    }
+  })
+}
+
+watch(explicitlyPrintedLabels, syncPrintGrid, { deep: true })
+watch([printFormat, labelWidth, labelHeight], syncPrintGrid)
+
+watch(previewMode, (newVal) => {
+  if (newVal && selectedPrintIds.value.length === 0) {
+    selectedPrintIds.value = printedLabels.value.map(l => l.id)
+  }
+  if (newVal) syncPrintGrid()
+})
+
+
 
 const selectAllPrint = () => { selectedPrintIds.value = labels.value.map(l => l.id) }
 const selectNonePrint = () => { selectedPrintIds.value = [] }
@@ -543,6 +644,144 @@ const removeSelected = () => {
     selectedId.value = labels.value[idx].id
   }
 }
+
+const startPanOrSelect = (e) => {
+  if (e.target.closest('.label-insert') || e.target.closest('.scale-wrapper')) return
+  if (e.button === 1 || (e.button === 0 && spacePressed.value)) {
+    isPanning.value = true
+    panStart.value = { x: e.clientX, y: e.clientY }
+    if (previewContentRef.value) {
+      scrollStart.value = { x: previewContentRef.value.scrollLeft, y: previewContentRef.value.scrollTop }
+    }
+  } else if (e.button === 0) {
+    // Prevent text selection from breaking the mousemove!
+    e.preventDefault() 
+    
+    isBoxSelecting.value = true
+    const rect = paperSheetRef.value.getBoundingClientRect()
+    const relX = (e.clientX - rect.left) / printZoom.value
+    const relY = (e.clientY - rect.top) / printZoom.value
+    boxSelectStart.value = { x: relX, y: relY }
+    printSelectionBox.value = { x: relX, y: relY, w: 0, h: 0 }
+    if (!e.shiftKey) selectedPrintSlots.value.clear()
+  }
+}
+
+const doPanOrSelect = (e) => {
+  if (isPanning.value && previewContentRef.value) {
+    const dx = e.clientX - panStart.value.x
+    const dy = e.clientY - panStart.value.y
+    previewContentRef.value.scrollLeft = scrollStart.value.x - dx
+    previewContentRef.value.scrollTop = scrollStart.value.y - dy
+  } else if (isBoxSelecting.value && paperSheetRef.value) {
+    const rect = paperSheetRef.value.getBoundingClientRect()
+    const relX = (e.clientX - rect.left) / printZoom.value
+    const relY = (e.clientY - rect.top) / printZoom.value
+    const minX = Math.min(boxSelectStart.value.x, relX)
+    const maxX = Math.max(boxSelectStart.value.x, relX)
+    const minY = Math.min(boxSelectStart.value.y, relY)
+    const maxY = Math.max(boxSelectStart.value.y, relY)
+    printSelectionBox.value = { x: minX, y: minY, w: maxX - minX, h: maxY - minY }
+    
+    const mmToPx = 96 / 25.4
+    const newSelection = new Set()
+    for (let i = 0; i < totalPrintSlots.value; i++) {
+       if (!printGrid.value[i]) continue
+       const c = i % cols.value
+       const r = Math.floor(i / cols.value)
+       const slotX = 5 * mmToPx + c * labelWidth.value * mmToPx
+       const slotY = 5 * mmToPx + r * labelHeight.value * mmToPx
+       const slotW = labelWidth.value * mmToPx
+       const slotH = labelHeight.value * mmToPx
+       if (minX < slotX + slotW && maxX > slotX && minY < slotY + slotH && maxY > slotY) {
+         newSelection.add(i)
+       }
+    }
+    selectedPrintSlots.value = newSelection
+  }
+}
+
+const endPanOrSelect = () => {
+  isPanning.value = false
+  isBoxSelecting.value = false
+  printSelectionBox.value = null
+}
+
+const handleZoom = (e) => {
+  e.preventDefault()
+  if (!previewContentRef.value) return
+  const oldZoom = printZoom.value
+  const zoomStep = 0.1
+  const delta = e.deltaY < 0 ? zoomStep : -zoomStep
+  const newZoom = Math.min(4, Math.max(0.3, oldZoom + delta))
+  if (newZoom === oldZoom) return
+
+  const rect = previewContentRef.value.getBoundingClientRect()
+  const mouseX = e.clientX - rect.left
+  const mouseY = e.clientY - rect.top
+  const contentMouseX = mouseX + previewContentRef.value.scrollLeft
+  const contentMouseY = mouseY + previewContentRef.value.scrollTop
+
+  printZoom.value = newZoom
+  nextTick(() => {
+     const ratio = newZoom / oldZoom
+     previewContentRef.value.scrollLeft = (contentMouseX * ratio) - mouseX
+     previewContentRef.value.scrollTop = (contentMouseY * ratio) - mouseY
+  })
+}
+
+const onPrintDragStart = (e, labelId, slotIndex) => {
+  if (!selectedPrintSlots.value.has(slotIndex)) {
+    selectedPrintSlots.value.clear()
+    selectedPrintSlots.value.add(slotIndex)
+  }
+  
+  const anchorCol = slotIndex % cols.value
+  const anchorRow = Math.floor(slotIndex / cols.value)
+  
+  const payload = []
+  selectedPrintSlots.value.forEach(idx => {
+    payload.push({
+      id: printGrid.value[idx],
+      sourceIdx: idx,
+      dc: (idx % cols.value) - anchorCol,
+      dr: Math.floor(idx / cols.value) - anchorRow
+    })
+  })
+  e.dataTransfer.setData('application/json', JSON.stringify(payload))
+}
+
+const onPrintDrop = (e, targetIndex) => {
+  printDragTarget.value = null
+  const data = e.dataTransfer.getData('application/json')
+  if (!data) return
+  const payload = JSON.parse(data)
+  
+  const targetCol = targetIndex % cols.value
+  const targetRow = Math.floor(targetIndex / cols.value)
+  
+  const newGrid = [...printGrid.value]
+  payload.forEach(item => newGrid[item.sourceIdx] = null)
+  
+  const newSelection = new Set()
+  payload.forEach(item => {
+    const c = targetCol + item.dc
+    const r = targetRow + item.dr
+    if (c >= 0 && c < cols.value && r >= 0 && r < rows.value) {
+      const idx = r * cols.value + c
+      if (payload.length === 1) {
+        newGrid[item.sourceIdx] = printGrid.value[idx] // swap
+      }
+      newGrid[idx] = item.id
+    } else {
+      newGrid[item.sourceIdx] = item.id // bounce back
+    }
+  })
+  printGrid.value = newGrid
+  selectedPrintSlots.value.clear()
+}
+
+const getLabelById = (id) => labels.value.find(l => l.id === id)
 
 const printLabels = async () => {
   selectedId.value = null
@@ -1203,23 +1442,53 @@ onMounted(() => {
 
 .print-preview-content {
   flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
   overflow: auto;
   padding: 2rem;
+  background: var(--bg-color);
+}
+
+.paper-zoom-wrapper {
+  margin: 2rem auto;
 }
 
 .paper-sheet {
   background: white;
   box-shadow: 0 10px 30px rgba(0,0,0,0.5);
   position: relative;
-  /* Visual grid lines to help align */
   background-image: linear-gradient(#e5e5e5 1px, transparent 1px), linear-gradient(90deg, #e5e5e5 1px, transparent 1px);
-  background-size: 10mm 10mm;
-  padding: 5mm; /* Default margins */
+  padding: 5mm; 
   margin: auto;
+  flex-shrink: 0;
+  box-sizing: border-box;
 }
+
+.print-grid-slot {
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: transform 0.1s;
+}
+.print-grid-slot.is-drag-over {
+  background: rgba(16, 185, 129, 0.2);
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+}
+
+.print-grid-slot.is-selected {
+  outline: 2px solid #3b82f6;
+  outline-offset: -2px;
+  background: rgba(59, 130, 246, 0.15);
+}
+
+.print-selection-box {
+  position: absolute;
+  background: rgba(59, 130, 246, 0.2);
+  border: 1px solid #3b82f6;
+  pointer-events: none;
+  z-index: 100;
+}
+
 
 .format-A4 {
   width: 210mm;
@@ -1252,8 +1521,14 @@ onMounted(() => {
 
 @media print {
   @page {
-    size: auto;
-    margin: 5mm;
+    margin: 0;
+  }
+  
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    height: 100% !important;
+    overflow: hidden !important;
   }
   
   .app-container {
@@ -1261,6 +1536,11 @@ onMounted(() => {
     padding: 0;
     margin: 0;
     background: white;
+  }
+  .paper-zoom-wrapper {
+    transform: none !important;
+    width: auto !important;
+    margin: 0 !important;
   }
   .app-header, .app-main {
     display: none !important;
@@ -1276,12 +1556,11 @@ onMounted(() => {
     overflow: visible;
   }
   .paper-sheet {
-    box-shadow: none;
-    margin: 0;
-    padding: 0;
+    box-shadow: none !important;
+    margin: 0 !important;
     background-image: none !important; /* Hide grid when actually printing */
-    width: 100%;
-    min-height: auto;
+    /* We KEEP padding: 5mm and the exact width/height from the standard CSS */
+    /* so the browser prints exactly what we see on screen! */
   }
   .no-print {
     display: none !important;
