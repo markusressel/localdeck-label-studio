@@ -34,6 +34,9 @@
       </div>
 
       <div class="print-actions-bottom" style="margin-top: auto; display: flex; flex-direction: column; gap: 0.5rem;">
+        <AlertBox type="warning">
+          Please ensure your browser's print dialog is manually set to <strong>{{ printFormat }}</strong> to match your preview.
+        </AlertBox>
         <button @click="printLabels" class="primary print-now-btn" style="width: 100%;">
           <span class="iconify" data-icon="mdi:printer"></span> Print
         </button>
@@ -125,6 +128,7 @@
 import { useStore } from '../composables/useStore.js'
 import LabelPreview from './LabelPreview.vue'
 import CustomSelect from './CustomSelect.vue'
+import AlertBox from './AlertBox.vue'
 import { computed } from 'vue'
 
 const {
@@ -165,4 +169,8 @@ const {
   endPanOrSelect,
   handleZoom
 } = useStore()
+
+const pageCssSize = computed(() => {
+  return `${paperDimensions.value.w}mm ${paperDimensions.value.h}mm`
+})
 </script>

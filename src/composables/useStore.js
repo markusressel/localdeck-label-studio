@@ -91,6 +91,20 @@ const syncPrintGrid = () => {
 watch(explicitlyPrintedLabels, syncPrintGrid, { deep: true })
 watch([printFormat, labelWidth, labelHeight], syncPrintGrid)
 
+watch(printFormat, (format) => {
+  let sizeStr = 'A4 portrait'
+  if (format === 'A4-L') sizeStr = 'A4 landscape'
+  if (format === 'Letter') sizeStr = 'letter portrait'
+  
+  let styleEl = document.getElementById('dynamic-print-style')
+  if (!styleEl) {
+    styleEl = document.createElement('style')
+    styleEl.id = 'dynamic-print-style'
+    document.head.appendChild(styleEl)
+  }
+  styleEl.textContent = `@media print { @page { size: ${sizeStr} !important; margin: 0 !important; } }`
+}, { immediate: true })
+
 watch(previewMode, (newVal) => {
   if (newVal && selectedPrintIds.value.length === 0) {
     selectedPrintIds.value = printedLabels.value.map(l => l.id)
