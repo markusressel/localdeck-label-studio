@@ -724,6 +724,7 @@ onMounted(() => {
   .paper-zoom-wrapper {
     transform: none !important;
     width: auto !important;
+    height: auto !important;
     margin: 0 !important;
   }
   .app-header, .app-main {
@@ -737,15 +738,18 @@ onMounted(() => {
   .print-preview-content {
     display: block;
     padding: 0;
-    overflow: visible;
+    overflow: hidden !important;
+    max-height: 100vh !important;
   }
   .paper-sheet {
     box-shadow: none !important;
     margin: 0 !important;
-    background-image: none !important; /* Hide grid when actually printing */
+    background-image: none !important;
     transform: none !important;
-    /* We KEEP padding: 5mm and the exact width/height from the standard CSS */
-    /* so the browser prints exactly what we see on screen! */
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    max-height: 100vh !important;
+    overflow: hidden !important;
   }
   .no-print {
     display: none !important;

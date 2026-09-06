@@ -503,24 +503,29 @@ const endPanOrSelect = () => {
 
 const handleZoom = (e) => {
   e.preventDefault()
-  if (!previewContentRef.value) return
+  if (!previewContentRef.value || !paperSheetRef.value) return
+  
   const oldZoom = printZoom.value
   const zoomStep = 0.1
   const delta = e.deltaY < 0 ? zoomStep : -zoomStep
   const newZoom = Math.min(4, Math.max(0.3, oldZoom + delta))
   if (newZoom === oldZoom) return
 
-  const rect = previewContentRef.value.getBoundingClientRect()
-  const mouseX = e.clientX - rect.left
-  const mouseY = e.clientY - rect.top
-  const contentMouseX = mouseX + previewContentRef.value.scrollLeft
-  const contentMouseY = mouseY + previewContentRef.value.scrollTop
+  const paperRect = paperSheetRef.value.getBoundingClientRect()
+  const paperX = (e.clientX - paperRect.left) / oldZoom
+  const paperY = (e.clientY - paperRect.top) / oldZoom
 
   printZoom.value = newZoom
   nextTick(() => {
-     const ratio = newZoom / oldZoom
-     previewContentRef.value.scrollLeft = (contentMouseX * ratio) - mouseX
-     previewContentRef.value.scrollTop = (contentMouseY * ratio) - mouseY
+     const newPaperRect = paperSheetRef.value.getBoundingClientRect()
+     const currentPointScreenX = newPaperRect.left + (paperX * newZoom)
+     const currentPointScreenY = newPaperRect.top + (paperY * newZoom)
+     
+     const deltaX = currentPointScreenX - e.clientX
+     const deltaY = currentPointScreenY - e.clientY
+     
+     previewContentRef.value.scrollLeft += deltaX
+     previewContentRef.value.scrollTop += deltaY
   })
 }
 
