@@ -23,7 +23,7 @@
               v-for="emoji in displayedEmojis" 
               :key="emoji" 
               class="icon-cell emoji-cell" 
-              @click="selectIcon(emoji)"
+              @mousedown.prevent="selectIcon(emoji)"
             >
               {{ emoji }}
             </div>
@@ -41,7 +41,7 @@
             :key="icon" 
             class="icon-cell" 
             :title="icon"
-            @click="selectIcon(icon)"
+            @mousedown.prevent="selectIcon(icon)"
           >
             <span class="iconify" :data-icon="icon"></span>
           </div>
@@ -93,6 +93,7 @@ watch(() => props.modelValue, (newVal) => {
 
 let searchTimeout = null
 watch(searchQuery, (newVal) => {
+  if (!isSelecting) isOpen.value = true
   if (!newVal) {
     emit('update:modelValue', '')
     iconifyResults.value = [...popularIcons]
@@ -148,10 +149,13 @@ const searchIconify = async (query) => {
   }
 }
 
+let isSelecting = false
 const selectIcon = (iconStr) => {
+  isSelecting = true
   searchQuery.value = iconStr
   emit('update:modelValue', iconStr)
   isOpen.value = false
+  setTimeout(() => isSelecting = false, 50)
 }
 
 // Close on outside click
