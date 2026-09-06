@@ -1,13 +1,5 @@
 # TODO
 
-## Bugs
-
-- Changing the icon doesn't immediately update the UI, changing its color also doesn't. Neither the LocalDeck preview nor the Label Library.
-- The buttons on the print preview overlap each other
-- When clicking on "Print Now", the print preview has huge margins on the sides of the A4 page, which is wasted real estate. The print preview should fill almost the entire page,
-  only leaving a small margin to avoid printing on the edge of the paper sheet.
-- When refreshing the page, the current entry selection is not remembered
-
 ## Icon Selection
 
 Icon selection is horrendous, we need a full-fledged picker that allows manual input, search and browsing through the entire icon set. We should also not only show the mdi set but
