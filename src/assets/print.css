@@ -10,7 +10,7 @@
 }
 
 .label-wrapper {
-  border: 1px dashed #ccc !important; /* Cut lines */
+  border: 0.5px dashed #ccc !important; /* Cut lines */
   box-sizing: border-box !important;
   page-break-inside: avoid;
   break-inside: avoid;

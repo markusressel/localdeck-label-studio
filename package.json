@@ -8,9 +8,11 @@
     "build": "vite build",
     "preview": "vite preview",
     "type-check": "echo \"No type-checking (vanilla JS project)\"",
-    "test:unit": "vitest", "test": "vitest run"
+    "test:unit": "vitest",
+    "test": "vitest run"
   },
   "dependencies": {
+    "node-emoji": "^2.2.0",
     "vue": "^3.5.0"
   },
   "devDependencies": {

@@ -250,34 +250,78 @@
 
     <!-- Hidden in UI, visible in print OR preview mode -->
     <div id="print-area">
-      <div class="print-actions no-print" v-if="previewMode">
-        <button @click="printLabels" class="primary print-now-btn">
-          <span class="iconify" data-icon="mdi:printer"></span> Print Now
-        </button>
-        <button @click="previewMode = false" class="exit-preview-btn">
-          <span class="iconify" data-icon="mdi:close"></span> Exit Preview
-        </button>
+      <div class="print-preview-sidebar no-print" v-if="previewMode">
+        <h2>Print Settings</h2>
+        
+        <div class="setting-group-vertical">
+          <label>Paper Format</label>
+          <select v-model="printFormat">
+            <option value="A4">A4 (Portrait)</option>
+            <option value="A4-L">A4 (Landscape)</option>
+            <option value="Letter">US Letter</option>
+          </select>
+        </div>
+
+        <div class="setting-group-vertical">
+          <label>Skip Positions</label>
+          <input type="number" v-model.number="printSkip" min="0" />
+          <small>Leave empty spaces at the beginning.</small>
+        </div>
+
+        <div class="setting-group-vertical" style="flex: 1; overflow: hidden; display: flex; flex-direction: column;">
+          <label>Labels to Print</label>
+          <div class="checklist-actions" style="margin-bottom: 0.5rem; display: flex; gap: 0.5rem;">
+             <button @click="selectAllPrint" class="secondary" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">All</button>
+             <button @click="selectNonePrint" class="secondary" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">None</button>
+             <button @click="selectDeckPrint" class="secondary" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">Deck Only</button>
+          </div>
+          <div class="labels-checklist" style="overflow-y: auto; flex: 1; border: 1px solid var(--card-border); padding: 0.5rem; border-radius: 4px;">
+            <div v-for="label in labels" :key="label.id" class="checklist-item" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+              <input type="checkbox" :id="'chk-'+label.id" :value="label.id" v-model="selectedPrintIds" />
+              <label :for="'chk-'+label.id" style="font-size: 0.85rem; margin: 0; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                <span v-if="label.icon" class="iconify" :data-icon="label.icon" style="margin-right: 4px; vertical-align: middle;"></span>
+                {{ label.text || 'Unnamed' }}
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="print-actions-bottom" style="margin-top: auto; display: flex; flex-direction: column; gap: 0.5rem;">
+          <button @click="printLabels" class="primary print-now-btn" style="width: 100%;">
+            <span class="iconify" data-icon="mdi:printer"></span> Print
+          </button>
+          <button @click="previewMode = false" class="secondary exit-preview-btn" style="width: 100%;">
+            Cancel
+          </button>
+        </div>
       </div>
       
-      <div class="label-grid">
-        <LabelPreview
-          v-for="label in printedLabels"
-          :key="'print-' + label.id"
-          :label="label"
-          :width="labelWidth"
-          :height="labelHeight"
-          :scale="1"
-          :material="labelMaterial"
-          :globalLightColor="globalLightColor"
-          :globalLightBrightness="globalLightBrightness"
-          :globalLightEffect="globalLightEffect"
-          :globalTextSize="globalTextSize"
-          :globalTextColor="globalTextColor"
-          :globalIconSize="globalIconSize"
-          :globalIconColor="globalIconColor"
-          :printMode="true"
-          :darkRoom="darkRoom"
-        />
+      <div class="print-preview-content">
+        <div class="paper-sheet" :class="'format-' + printFormat">
+          <div class="paper-ruler no-print"></div>
+          
+          <div class="label-grid">
+            <div class="empty-print-slot" v-for="i in printSkip" :key="'skip-'+i" :style="{ width: labelWidth + 'mm', height: labelHeight + 'mm' }"></div>
+            <LabelPreview
+              v-for="label in explicitlyPrintedLabels"
+              :key="'print-' + label.id"
+              :label="label"
+              :width="labelWidth"
+              :height="labelHeight"
+              :scale="1"
+              :material="labelMaterial"
+              :globalLightColor="globalLightColor"
+              :globalLightBrightness="globalLightBrightness"
+              :globalLightEffect="globalLightEffect"
+              :globalTextSize="globalTextSize"
+              :globalTextColor="globalTextColor"
+              :globalIconSize="globalIconSize"
+              :globalIconColor="globalIconColor"
+              :printMode="true"
+              :darkRoom="darkRoom"
+            />
+          </div>
+        </div>
       </div>
     </div>
 
@@ -316,6 +360,10 @@ const selectedId = ref(null)
 const previewMode = ref(false)
 const fileInput = ref(null)
 
+const printFormat = ref('A4')
+const printSkip = ref(0)
+const selectedPrintIds = ref([])
+
 const getLabelAtSlot = (slotIndex) => {
   return labels.value.find(l => l.deckSlot === slotIndex) || null
 }
@@ -323,6 +371,21 @@ const getLabelAtSlot = (slotIndex) => {
 const printedLabels = computed(() => {
   return labels.value.filter(l => l.deckSlot !== null).sort((a, b) => a.deckSlot - b.deckSlot)
 })
+
+watch(previewMode, (newVal) => {
+  if (newVal) {
+    selectedPrintIds.value = printedLabels.value.map(l => l.id)
+  }
+})
+
+const explicitlyPrintedLabels = computed(() => {
+  // Sort them as they appear in the UI: first deck slots, then library order, or just keep library order
+  return labels.value.filter(l => selectedPrintIds.value.includes(l.id))
+})
+
+const selectAllPrint = () => { selectedPrintIds.value = labels.value.map(l => l.id) }
+const selectNonePrint = () => { selectedPrintIds.value = [] }
+const selectDeckPrint = () => { selectedPrintIds.value = printedLabels.value.map(l => l.id) }
 
 const selectedItemIndex = computed(() => {
   if (!selectedId.value) return null
@@ -1070,33 +1133,16 @@ onMounted(() => {
   display: flex;
   flex-wrap: wrap;
   gap: 2mm;
+  align-content: flex-start;
 }
 
 #print-area {
   display: none;
 }
 
-.print-actions {
-  position: fixed;
-  top: 1rem;
-  right: 1rem;
-  z-index: 10000;
-  display: flex;
-  gap: 1rem;
-}
-
-.exit-preview-btn {
-  background: rgba(15, 23, 42, 0.9);
-  border: 1px solid var(--card-border);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-}
-
-.print-now-btn {
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.5);
-}
-
+/* Make preview-mode NOT flashbang with white background */
 .preview-mode {
-  background-color: white;
+  background-color: var(--bg);
 }
 
 .preview-mode .app-header, 
@@ -1105,19 +1151,108 @@ onMounted(() => {
 }
 
 .preview-mode #print-area {
-  display: block !important;
+  display: flex !important;
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
-  min-height: 100vh;
+  height: 100vh;
+  background: rgba(15, 23, 42, 0.95);
+}
+
+.print-preview-sidebar {
+  width: 320px;
+  background: var(--card-bg);
+  border-right: 1px solid var(--card-border);
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  gap: 1.5rem;
+  box-shadow: 2px 0 10px rgba(0,0,0,0.5);
+  z-index: 10;
+}
+
+.print-preview-sidebar h2 {
+  font-size: 1.25rem;
+  margin: 0;
+}
+
+.setting-group-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.setting-group-vertical label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+.setting-group-vertical select,
+.setting-group-vertical input[type="number"] {
+  width: 100%;
+  background: rgba(0,0,0,0.2);
+  border: 1px solid var(--card-border);
+  color: white;
+  padding: 0.5rem;
+  border-radius: 4px;
+}
+.setting-group-vertical small {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.print-preview-content {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: auto;
+  padding: 2rem;
+}
+
+.paper-sheet {
   background: white;
-  padding: 5mm;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  position: relative;
+  /* Visual grid lines to help align */
+  background-image: linear-gradient(#e5e5e5 1px, transparent 1px), linear-gradient(90deg, #e5e5e5 1px, transparent 1px);
+  background-size: 10mm 10mm;
+  padding: 5mm; /* Default margins */
+  margin: auto;
+}
+
+.format-A4 {
+  width: 210mm;
+  min-height: 297mm;
+}
+.format-A4-L {
+  width: 297mm;
+  min-height: 210mm;
+}
+.format-Letter {
+  width: 215.9mm;
+  min-height: 279.4mm;
+}
+
+.paper-ruler {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  border: 1px solid #ccc;
+  z-index: 0;
+}
+
+.paper-sheet .label-grid {
+  position: relative;
+  z-index: 1;
 }
 
 @media print {
   @page {
-    size: A4 portrait;
+    size: auto;
     margin: 5mm;
   }
   
@@ -1125,6 +1260,7 @@ onMounted(() => {
     height: auto;
     padding: 0;
     margin: 0;
+    background: white;
   }
   .app-header, .app-main {
     display: none !important;
@@ -1132,6 +1268,20 @@ onMounted(() => {
   #print-area {
     display: block !important;
     padding: 0;
+    background: transparent;
+  }
+  .print-preview-content {
+    display: block;
+    padding: 0;
+    overflow: visible;
+  }
+  .paper-sheet {
+    box-shadow: none;
+    margin: 0;
+    padding: 0;
+    background-image: none !important; /* Hide grid when actually printing */
+    width: 100%;
+    min-height: auto;
   }
   .no-print {
     display: none !important;

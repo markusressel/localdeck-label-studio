@@ -46,6 +46,7 @@
 
 <script setup>
 import { computed, ref, onMounted, onUpdated } from 'vue'
+import * as emoji from 'node-emoji'
 
 const props = defineProps({
   label: { type: Object, required: true },
@@ -93,6 +94,8 @@ const formattedLabelText = computed(() => {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
+    
+  text = emoji.emojify(text);
   return text.replace(/:([a-zA-Z0-9\-:]+):/g, '<span class="iconify" data-icon="$1"></span>')
 })
 
@@ -329,7 +332,7 @@ const innerStyle = computed(() => {
   height: var(--label-height) !important;
   background: transparent !important;
   box-shadow: none !important;
-  border: 1px dashed #ccc !important;
+  border: 0.5px dashed #ccc !important;
   border-radius: 0 !important;
   transform: none !important; /* Printing doesn't use scale */
 }

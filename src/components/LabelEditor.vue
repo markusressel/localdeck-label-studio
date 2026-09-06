@@ -26,7 +26,7 @@
 
     <div class="control-group">
       <label>Icon / Image</label>
-      <input type="text" v-model="modelValue.icon" placeholder="Iconify key (e.g. mdi:home)" />
+      <IconPicker v-model="modelValue.icon" />
       
       <div class="file-upload-wrapper mt-2">
         <input type="file" accept="image/*" @change="handleFileUpload" id="image-upload" class="file-input" />
@@ -94,6 +94,7 @@
 <script setup>
 import { computed } from 'vue'
 import ColorPicker from './ColorPicker.vue'
+import IconPicker from './IconPicker.vue'
 
 const props = defineProps({
   modelValue: {
