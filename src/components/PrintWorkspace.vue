@@ -55,67 +55,68 @@
       @mouseup="endPanOrSelect" 
       @mouseleave="endPanOrSelect"
     >
-      <div 
-        class="paper-zoom-wrapper" 
-        :style="{ 
-          width: `calc(${paperDimensions.w}mm * ${printZoom})`, 
-          height: `calc(${paperDimensions.h}mm * ${printZoom})` 
-        }"
-      >
+      <div class="canvas-infinite-space" style="padding: 100vh 100vw; display: flex; justify-content: center; align-items: center; min-width: max-content; min-height: max-content;">
         <div 
-          class="paper-sheet" 
-          ref="paperSheetRef"
-          :class="'format-' + printFormat" 
+          class="paper-zoom-wrapper" 
           :style="{ 
-            transform: `scale(${printZoom})`, 
-            transformOrigin: 'top left',
-            backgroundSize: `${labelWidth}mm ${labelHeight}mm`, 
-            backgroundPosition: '5mm 5mm' 
+            width: `calc(${paperDimensions.w}mm * ${printZoom})`, 
+            height: `calc(${paperDimensions.h}mm * ${printZoom})` 
           }"
         >
-          <div class="paper-ruler no-print"></div>
           <div 
-            v-if="printSelectionBox" 
-            class="print-selection-box no-print" 
+            class="paper-sheet" 
+            ref="paperSheetRef"
+            :class="'format-' + printFormat" 
             :style="{ 
-              left: printSelectionBox.x + 'px', 
-              top: printSelectionBox.y + 'px', 
-              width: printSelectionBox.w + 'px', 
-              height: printSelectionBox.h + 'px' 
+              transform: `scale(${printZoom})`, 
+              transformOrigin: 'top left',
+              backgroundSize: `${labelWidth}mm ${labelHeight}mm`, 
+              backgroundPosition: '5mm 5mm' 
             }"
-          ></div>
-          
-          <div class="label-grid">
+          >
             <div 
-              v-for="(labelId, index) in printGrid.slice(0, totalPrintSlots)"
-              :key="'slot-' + index"
-              class="print-grid-slot"
-              :class="{ 'is-drag-over': printDragTarget === index, 'is-selected': selectedPrintSlots.has(index) }"
-              :style="{ width: labelWidth + 'mm', height: labelHeight + 'mm' }"
-              @dragover.prevent="printDragTarget = index"
-              @dragleave.prevent="printDragTarget = null"
-              @drop="onPrintDrop($event, index)"
-            >
-              <LabelPreview
-                v-if="labelId"
-                :label="getLabelById(labelId)"
-                :width="labelWidth"
-                :height="labelHeight"
-                :scale="1"
-                :material="labelMaterial"
-                :globalLightColor="globalLightColor"
-                :globalLightBrightness="globalLightBrightness"
-                :globalLightEffect="globalLightEffect"
-                :globalTextSize="globalTextSize"
-                :globalTextColor="globalTextColor"
-                :globalIconSize="globalIconSize"
-                :globalIconColor="globalIconColor"
-                :printMode="true"
-                :darkRoom="darkRoom"
-                draggable="true"
-                @dragstart="onPrintDragStart($event, labelId, index)"
-                @dragend="printDraggedSlot = null"
-              />
+              v-if="printSelectionBox" 
+              class="print-selection-box no-print" 
+              :style="{ 
+                left: printSelectionBox.x + 'px', 
+                top: printSelectionBox.y + 'px', 
+                width: printSelectionBox.w + 'px', 
+                height: printSelectionBox.h + 'px' 
+              }"
+            ></div>
+            
+            <div class="label-grid">
+              <div 
+                v-for="(labelId, index) in printGrid.slice(0, totalPrintSlots)"
+                :key="'slot-' + index"
+                class="print-grid-slot"
+                :class="{ 'is-drag-over': printDragTarget === index, 'is-selected': selectedPrintSlots.has(index) }"
+                :style="{ width: labelWidth + 'mm', height: labelHeight + 'mm' }"
+                @dragover.prevent="printDragTarget = index"
+                @dragleave.prevent="printDragTarget = null"
+                @drop="onPrintDrop($event, index)"
+              >
+                <LabelPreview
+                  v-if="labelId"
+                  :label="getLabelById(labelId)"
+                  :width="labelWidth"
+                  :height="labelHeight"
+                  :scale="printZoom"
+                  :material="labelMaterial"
+                  :globalLightColor="globalLightColor"
+                  :globalLightBrightness="globalLightBrightness"
+                  :globalLightEffect="globalLightEffect"
+                  :globalTextSize="globalTextSize"
+                  :globalTextColor="globalTextColor"
+                  :globalIconSize="globalIconSize"
+                  :globalIconColor="globalIconColor"
+                  :printMode="true"
+                  :darkRoom="darkRoom"
+                  draggable="true"
+                  @dragstart="onPrintDragStart($event, labelId, index)"
+                  @dragend="onDragEnd"
+                />
+              </div>
             </div>
           </div>
         </div>

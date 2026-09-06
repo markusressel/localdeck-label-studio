@@ -105,11 +105,22 @@ watch(printFormat, (format) => {
   styleEl.textContent = `@media print { @page { size: ${sizeStr} !important; margin: 0 !important; } }`
 }, { immediate: true })
 
-watch(previewMode, (newVal) => {
+watch(previewMode, async (newVal) => {
   if (newVal && selectedPrintIds.value.length === 0) {
     selectedPrintIds.value = printedLabels.value.map(l => l.id)
   }
-  if (newVal) syncPrintGrid()
+  if (newVal) {
+    syncPrintGrid()
+    await nextTick()
+    if (previewContentRef.value) {
+       const cw = previewContentRef.value.clientWidth
+       const ch = previewContentRef.value.clientHeight
+       const sw = previewContentRef.value.scrollWidth
+       const sh = previewContentRef.value.scrollHeight
+       previewContentRef.value.scrollLeft = (sw - cw) / 2
+       previewContentRef.value.scrollTop = (sh - ch) / 2
+    }
+  }
 })
 
 const selectAllPrint = () => { selectedPrintIds.value = labels.value.map(l => l.id) }
