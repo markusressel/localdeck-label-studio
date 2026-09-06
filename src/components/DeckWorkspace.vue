@@ -10,12 +10,15 @@
         <span :key="darkRoom ? 'night' : 'sunny'" class="iconify" :data-icon="darkRoom ? 'mdi:weather-night' : 'mdi:weather-sunny'" style="font-size: 1.5rem; color: var(--text-muted);"></span>
       </div>
 
-      <div class="setting-group" style="margin-right: 1rem;">
-        <select v-model="labelMaterial">
-          <option value="transparent">Transparent Film</option>
-          <option value="thin-paper">Thin Paper</option>
-          <option value="thick-paper">Thick Paper</option>
-        </select>
+      <div class="setting-group" style="margin-right: 1rem; min-width: 150px;">
+        <CustomSelect 
+          v-model="labelMaterial" 
+          :options="[
+            { value: 'transparent', label: 'Transparent Film' },
+            { value: 'thin-paper', label: 'Thin Paper' },
+            { value: 'thick-paper', label: 'Thick Paper' }
+          ]"
+        />
       </div>
 
       <div class="setting-group global-light-group" style="margin-right: 0;">
@@ -152,6 +155,7 @@
 import { useStore } from '../composables/useStore.js'
 import LabelPreview from './LabelPreview.vue'
 import ColorPicker from './ColorPicker.vue'
+import CustomSelect from './CustomSelect.vue'
 
 const {
   labelWidth,

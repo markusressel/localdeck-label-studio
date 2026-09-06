@@ -5,11 +5,14 @@
       
       <div class="setting-group-vertical">
         <label>Paper Format</label>
-        <select v-model="printFormat">
-          <option value="A4">A4 (Portrait)</option>
-          <option value="A4-L">A4 (Landscape)</option>
-          <option value="Letter">US Letter</option>
-        </select>
+        <CustomSelect 
+          v-model="printFormat" 
+          :options="[
+            { value: 'A4', label: 'A4 (Portrait)' },
+            { value: 'A4-L', label: 'A4 (Landscape)' },
+            { value: 'Letter', label: 'US Letter' }
+          ]"
+        />
       </div>
 
       <div class="setting-group-vertical" style="flex: 1; overflow: hidden; display: flex; flex-direction: column;">
@@ -121,6 +124,8 @@
 <script setup>
 import { useStore } from '../composables/useStore.js'
 import LabelPreview from './LabelPreview.vue'
+import CustomSelect from './CustomSelect.vue'
+import { computed } from 'vue'
 
 const {
   previewMode,
