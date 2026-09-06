@@ -547,6 +547,10 @@ const loadState = () => {
       if (data.globalIconColor) globalIconColor.value = data.globalIconColor
       if (data.zoomLevel) zoomLevel.value = data.zoomLevel
       if (data.selectedId) selectedId.value = data.selectedId
+      if (data.printFormat) printFormat.value = data.printFormat
+      if (data.printZoom) printZoom.value = data.printZoom
+      if (data.selectedPrintIds) selectedPrintIds.value = data.selectedPrintIds
+      if (data.printGrid) printGrid.value = data.printGrid
       if (data.labels && data.labels.length > 0) {
         let nextDeckSlot = 0;
         labels.value = data.labels.map((l, index) => {
@@ -587,6 +591,10 @@ const saveState = () => {
     globalIconColor: globalIconColor.value,
     zoomLevel: zoomLevel.value,
     selectedId: selectedId.value,
+    printFormat: printFormat.value,
+    printZoom: printZoom.value,
+    selectedPrintIds: selectedPrintIds.value,
+    printGrid: printGrid.value,
     labels: labels.value
   }))
 }
@@ -646,17 +654,21 @@ const removeSelected = () => {
 }
 
 const startPanOrSelect = (e) => {
-  if (e.target.closest('.label-insert') || e.target.closest('.scale-wrapper')) return
   if (e.button === 1 || (e.button === 0 && spacePressed.value)) {
     isPanning.value = true
     panStart.value = { x: e.clientX, y: e.clientY }
     if (previewContentRef.value) {
       scrollStart.value = { x: previewContentRef.value.scrollLeft, y: previewContentRef.value.scrollTop }
     }
-  } else if (e.button === 0) {
-    // Prevent text selection from breaking the mousemove!
-    e.preventDefault() 
+    return
+  }
+  
+  const isLabel = e.target.closest('.label-insert') || e.target.closest('.scale-wrapper')
+  
+  if (e.button === 0) {
+    if (isLabel && !e.shiftKey) return // Let native drag handle this
     
+    e.preventDefault() // prevent native drag and text selection
     isBoxSelecting.value = true
     const rect = paperSheetRef.value.getBoundingClientRect()
     const relX = (e.clientX - rect.left) / printZoom.value
@@ -902,9 +914,18 @@ const onDropLibrary = (e, targetLabel) => {
   labels.value.splice(targetIndex, 0, draggedLabel)
 }
 
-watch([labelWidth, labelHeight, labelMaterial, globalLightColor, globalLightBrightness, globalLightEffect, globalTextSize, globalTextColor, globalIconSize, globalIconColor, zoomLevel, labels, selectedId], saveState, { deep: true })
+watch([labelWidth, labelHeight, labelMaterial, globalLightColor, globalLightBrightness, globalLightEffect, globalTextSize, globalTextColor, globalIconSize, globalIconColor, zoomLevel, labels, selectedId, printFormat, printZoom, selectedPrintIds, printGrid], saveState, { deep: true })
 
 onMounted(() => {
+  window.addEventListener('keydown', (e) => {
+    if (e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+      e.preventDefault()
+      spacePressed.value = true
+    }
+  })
+  window.addEventListener('keyup', (e) => {
+    if (e.code === 'Space') spacePressed.value = false
+  })
   const loaded = loadState()
   if (!loaded) {
     fillTo24()
