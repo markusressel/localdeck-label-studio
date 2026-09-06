@@ -15,12 +15,22 @@
     </div>
 
     <div class="picker-dropdown" v-if="isOpen">
-      <div class="dropdown-header">
-        <span class="tab" :class="{ active: activeTab === 'iconify' }" @click="activeTab = 'iconify'; searchIconify()">Icons</span>
-        <span class="tab" :class="{ active: activeTab === 'emoji' }" @click="activeTab = 'emoji'">Emojis</span>
-      </div>
-      
-      <div class="dropdown-content" v-if="activeTab === 'iconify'">
+      <div class="dropdown-content">
+        <div v-if="displayedEmojis.length > 0">
+          <div class="section-headline">{{ searchQuery && searchQuery.length > 1 ? 'Matching Emojis' : 'Emojis' }}</div>
+          <div class="icon-grid emoji-grid">
+            <div 
+              v-for="emoji in displayedEmojis" 
+              :key="emoji" 
+              class="icon-cell emoji-cell" 
+              @click="selectIcon(emoji)"
+            >
+              {{ emoji }}
+            </div>
+          </div>
+        </div>
+
+        <div class="section-headline mt-3">Iconify Icons</div>
         <div v-if="isSearching" class="loading">Searching...</div>
         <div v-else-if="iconifyResults.length === 0" class="empty-state">
           Type to search icons (e.g. 'home', 'arrow', 'user')...
@@ -37,25 +47,13 @@
           </div>
         </div>
       </div>
-      
-      <div class="dropdown-content" v-if="activeTab === 'emoji'">
-        <div class="icon-grid emoji-grid">
-          <div 
-            v-for="emoji in popularEmojis" 
-            :key="emoji" 
-            class="icon-cell emoji-cell" 
-            @click="selectIcon(emoji)"
-          >
-            {{ emoji }}
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import * as emoji from 'node-emoji'
 
 const props = defineProps({
   modelValue: { type: String, default: '' }
@@ -67,16 +65,23 @@ const isOpen = ref(false)
 const searchQuery = ref(props.modelValue)
 const activeTab = ref('iconify')
 const isSearching = ref(false)
-const iconifyResults = ref([])
+const popularIcons = [
+  'mdi:home', 'mdi:lock', 'mdi:settings', 'mdi:account', 'mdi:camera', 
+  'mdi:heart', 'mdi:star', 'mdi:check', 'mdi:close', 'mdi:menu', 
+  'mdi:magnify', 'mdi:power', 'mdi:play', 'mdi:pause', 'mdi:stop', 'mdi:lightbulb'
+]
+const iconifyResults = ref([...popularIcons])
 
 const popularEmojis = [
   '😀','😂','😊','😍','😎','😭','😡','🤔','👍','👎','👏','🙌','🤝','🔥','✨','🌟',
   '❤️','💔','💯','✅','❌','🛑','⚠️','🚀','🛸','🚗','🏠','💻','📱','⌨️','🖱️','🎧',
   '🎮','🎵','🍔','🍕','☕','🍺','🎉','🎁','📅','⏰','💡','🔋','⚙️','🔧','🔒','🔓'
 ]
+const displayedEmojis = ref([...popularEmojis])
 
 // Simple check if string contains an emoji (non-ascii roughly)
 const isEmoji = (str) => {
+  if (!str) return false
   return /[\u{1F300}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F900}-\u{1F9FF}\u{1F018}-\u{1F270}]/u.test(str)
 }
 
@@ -88,23 +93,43 @@ watch(() => props.modelValue, (newVal) => {
 
 let searchTimeout = null
 watch(searchQuery, (newVal) => {
-  // If user types, we emit it directly so they can manually type an icon
-  emit('update:modelValue', newVal)
-  
-  if (activeTab.value === 'iconify') {
+  if (!newVal) {
+    emit('update:modelValue', '')
+    iconifyResults.value = [...popularIcons]
+    displayedEmojis.value = [...popularEmojis]
     clearTimeout(searchTimeout)
-    if (newVal && newVal.length > 2 && !isEmoji(newVal)) {
-      searchTimeout = setTimeout(() => {
-        searchIconify(newVal)
-      }, 500)
-    } else if (!newVal) {
-      iconifyResults.value = []
-    }
+    return
+  }
+  
+  // Auto-resolve emoji shortcodes like :traffic_light:
+  const emojified = emoji.emojify(newVal)
+  if (emojified !== newVal && isEmoji(emojified)) {
+    emit('update:modelValue', emojified)
+    searchQuery.value = emojified
+    return
+  }
+  
+  emit('update:modelValue', newVal)
+  clearTimeout(searchTimeout)
+  
+  // Strip colons if the user typed :mdi:lock:
+  const cleanVal = newVal.replace(/^:/, '').replace(/:$/, '')
+  
+  if (cleanVal.length > 1 && !isEmoji(cleanVal)) {
+    searchTimeout = setTimeout(() => {
+      searchIconify(cleanVal)
+    }, 500)
   }
 })
 
-const searchIconify = async (query = searchQuery.value) => {
-  if (!query || query.length < 3 || isEmoji(query)) return
+const searchIconify = async (query) => {
+  if (!query || query.length < 2 || isEmoji(query)) return
+  
+  // Search emojis locally first (instant)
+  const emojiMatches = emoji.search(query).map(e => e.emoji)
+  displayedEmojis.value = emojiMatches.slice(0, 32)
+  
+  if (query.length < 3) return // Iconify requires at least 3 chars
   
   isSearching.value = true
   try {
@@ -184,27 +209,19 @@ onUnmounted(() => document.removeEventListener('click', handleClickOutside))
   flex-direction: column;
 }
 
-.dropdown-header {
-  display: flex;
+.section-headline {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.25rem;
   border-bottom: 1px solid var(--card-border);
 }
 
-.tab {
-  flex: 1;
-  text-align: center;
-  padding: 0.5rem;
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: var(--text-muted);
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-}
-.tab:hover {
-  background: rgba(255,255,255,0.05);
-}
-.tab.active {
-  color: var(--primary);
-  border-bottom-color: var(--primary);
+.mt-3 {
+  margin-top: 1rem;
 }
 
 .dropdown-content {

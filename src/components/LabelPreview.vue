@@ -26,10 +26,17 @@
           </div>
           <div v-else-if="label.icon" class="label-icon-container" :key="label.icon">
             <span 
+              v-if="!isEmoji(label.icon)"
               class="iconify" 
               :data-icon="label.icon"
               :style="{ fontSize: effectiveIconSize + 'px', color: effectiveIconColor }"
             ></span>
+            <span 
+              v-else
+              :style="{ fontSize: effectiveIconSize + 'px' }"
+            >
+              {{ label.icon }}
+            </span>
           </div>
           <div 
             v-if="label.text" 
@@ -45,8 +52,12 @@
 </template>
 
 <script setup>
-import { computed, ref, onMounted, onUpdated } from 'vue'
+import { computed, ref, onMounted, onUpdated, nextTick } from 'vue'
 import * as emoji from 'node-emoji'
+
+const isEmoji = (str) => {
+  return /[\u{1F300}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F900}-\u{1F9FF}\u{1F018}-\u{1F270}]/u.test(str)
+}
 
 const props = defineProps({
   label: { type: Object, required: true },
@@ -105,8 +116,8 @@ const scanIcons = () => {
     window.Iconify.scan(previewRef.value)
   }
 }
-onMounted(scanIcons)
-onUpdated(scanIcons)
+onMounted(() => nextTick(scanIcons))
+onUpdated(() => nextTick(scanIcons))
 
 const wrapperStyle = computed(() => {
   if (props.printMode) {
