@@ -26,6 +26,18 @@ const printDragTarget = ref(null)
 const selectedPrintSlots = ref(new Set())
 const spacePressed = ref(false)
 
+const fileInput = ref(null)
+const printDraggedSlot = ref(null)
+const previewContentRef = ref(null)
+const isPanning = ref(false)
+const panStart = ref({ x: 0, y: 0 })
+const scrollStart = ref({ x: 0, y: 0 })
+const isBoxSelecting = ref(false)
+const boxSelectStart = ref({ x: 0, y: 0 })
+const printSelectionBox = ref(null)
+const paperSheetRef = ref(null)
+
+
 const paperDimensions = computed(() => {
   if (printFormat.value === 'A4') return { w: 210, h: 297 }
   if (printFormat.value === 'A4-L') return { w: 297, h: 210 }
@@ -278,6 +290,13 @@ const exportData = () => {
   downloadAnchorNode.remove()
 }
 
+
+const triggerImport = () => {
+  if (fileInput.value) {
+    fileInput.value.click()
+  }
+}
+
 const importData = (event) => {
   const file = event.target.files[0]
   if (!file) return
@@ -415,6 +434,96 @@ const onPrintDrop = (e, targetIndex) => {
 
 const getLabelById = (id) => labels.value.find(l => l.id === id)
 
+
+const startPanOrSelect = (e) => {
+  if (e.button === 1 || (e.button === 0 && spacePressed.value)) {
+    isPanning.value = true
+    panStart.value = { x: e.clientX, y: e.clientY }
+    if (previewContentRef.value) {
+      scrollStart.value = { x: previewContentRef.value.scrollLeft, y: previewContentRef.value.scrollTop }
+    }
+    return
+  }
+  
+  const isLabel = e.target.closest('.label-insert') || e.target.closest('.scale-wrapper')
+  
+  if (e.button === 0) {
+    if (isLabel && !e.shiftKey) return // Let native drag handle this
+    
+    e.preventDefault() // prevent native drag and text selection
+    isBoxSelecting.value = true
+    const rect = paperSheetRef.value.getBoundingClientRect()
+    const relX = (e.clientX - rect.left) / printZoom.value
+    const relY = (e.clientY - rect.top) / printZoom.value
+    boxSelectStart.value = { x: relX, y: relY }
+    printSelectionBox.value = { x: relX, y: relY, w: 0, h: 0 }
+    if (!e.shiftKey) selectedPrintSlots.value.clear()
+  }
+}
+
+const doPanOrSelect = (e) => {
+  if (isPanning.value && previewContentRef.value) {
+    const dx = e.clientX - panStart.value.x
+    const dy = e.clientY - panStart.value.y
+    previewContentRef.value.scrollLeft = scrollStart.value.x - dx
+    previewContentRef.value.scrollTop = scrollStart.value.y - dy
+  } else if (isBoxSelecting.value && paperSheetRef.value) {
+    const rect = paperSheetRef.value.getBoundingClientRect()
+    const relX = (e.clientX - rect.left) / printZoom.value
+    const relY = (e.clientY - rect.top) / printZoom.value
+    const minX = Math.min(boxSelectStart.value.x, relX)
+    const maxX = Math.max(boxSelectStart.value.x, relX)
+    const minY = Math.min(boxSelectStart.value.y, relY)
+    const maxY = Math.max(boxSelectStart.value.y, relY)
+    printSelectionBox.value = { x: minX, y: minY, w: maxX - minX, h: maxY - minY }
+    
+    const mmToPx = 96 / 25.4
+    const newSelection = new Set()
+    for (let i = 0; i < totalPrintSlots.value; i++) {
+       if (!printGrid.value[i]) continue
+       const c = i % cols.value
+       const r = Math.floor(i / cols.value)
+       const slotX = 5 * mmToPx + c * labelWidth.value * mmToPx
+       const slotY = 5 * mmToPx + r * labelHeight.value * mmToPx
+       const slotW = labelWidth.value * mmToPx
+       const slotH = labelHeight.value * mmToPx
+       if (minX < slotX + slotW && maxX > slotX && minY < slotY + slotH && maxY > slotY) {
+         newSelection.add(i)
+       }
+    }
+    selectedPrintSlots.value = newSelection
+  }
+}
+
+const endPanOrSelect = () => {
+  isPanning.value = false
+  isBoxSelecting.value = false
+  printSelectionBox.value = null
+}
+
+const handleZoom = (e) => {
+  e.preventDefault()
+  if (!previewContentRef.value) return
+  const oldZoom = printZoom.value
+  const zoomStep = 0.1
+  const delta = e.deltaY < 0 ? zoomStep : -zoomStep
+  const newZoom = Math.min(4, Math.max(0.3, oldZoom + delta))
+  if (newZoom === oldZoom) return
+
+  const rect = previewContentRef.value.getBoundingClientRect()
+  const mouseX = e.clientX - rect.left
+  const mouseY = e.clientY - rect.top
+  const contentMouseX = mouseX + previewContentRef.value.scrollLeft
+  const contentMouseY = mouseY + previewContentRef.value.scrollTop
+
+  printZoom.value = newZoom
+  nextTick(() => {
+     const ratio = newZoom / oldZoom
+     previewContentRef.value.scrollLeft = (contentMouseX * ratio) - mouseX
+     previewContentRef.value.scrollTop = (contentMouseY * ratio) - mouseY
+  })
+}
+
 const printLabels = async () => {
   selectedId.value = null
   await nextTick()
@@ -478,6 +587,21 @@ export function useStore() {
     onPrintDragStart,
     onPrintDrop,
     getLabelById,
+    fileInput,
+    printDraggedSlot,
+    previewContentRef,
+    isPanning,
+    panStart,
+    scrollStart,
+    isBoxSelecting,
+    boxSelectStart,
+    printSelectionBox,
+    paperSheetRef,
+    triggerImport,
+    startPanOrSelect,
+    doPanOrSelect,
+    endPanOrSelect,
+    handleZoom,
     printLabels
   }
 }
