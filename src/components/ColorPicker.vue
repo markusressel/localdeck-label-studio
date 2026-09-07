@@ -54,7 +54,7 @@ const triggerInput = () => {
 
 .color-picker-wrapper:focus-within {
   border-color: var(--primary, #10b981);
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
+  box-shadow: 0 0 0 3px var(--primary-transparent);
 }
 
 .hidden-color-input {

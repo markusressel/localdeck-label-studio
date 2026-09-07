@@ -1,0 +1,64 @@
+:root {
+  /* Tailwind-inspired Palette */
+  
+  /* Slate */
+  --slate-50: #f8fafc;
+  --slate-100: #f1f5f9;
+  --slate-200: #e2e8f0;
+  --slate-300: #cbd5e1;
+  --slate-400: #94a3b8;
+  --slate-500: #64748b;
+  --slate-600: #475569;
+  --slate-700: #334155;
+  --slate-800: #1e293b;
+  --slate-900: #0f172a;
+  --slate-950: #020617;
+
+  /* Emerald */
+  --emerald-400: #34d399;
+  --emerald-500: #10b981;
+  --emerald-600: #059669;
+
+  /* Red */
+  --red-400: #f87171;
+  --red-500: #ef4444;
+  --red-600: #dc2626;
+
+  /* Amber */
+  --amber-400: #fbbf24;
+  --amber-500: #f59e0b;
+  --amber-600: #d97706;
+
+  /* Blue */
+  --blue-400: #60a5fa;
+  --blue-500: #3b82f6;
+  --blue-600: #2563eb;
+  
+  /* Semantic Variables */
+  --bg-color: var(--slate-900);
+  --card-bg: var(--slate-800);
+  --card-border: var(--slate-700);
+  
+  --text-main: var(--slate-50);
+  --text-muted: var(--slate-400);
+  
+  --primary: var(--emerald-500);
+  --primary-hover: var(--emerald-600);
+  --primary-transparent: rgba(16, 185, 129, 0.15);
+  
+  --danger: var(--red-500);
+  --danger-hover: var(--red-600);
+  
+  --input-bg: var(--slate-900);
+  --input-border: var(--slate-600);
+  --input-border-focus: var(--primary);
+  
+  --hover-bg: rgba(255, 255, 255, 0.05);
+  
+  /* Overlay/Backdrop */
+  --overlay-bg: rgba(15, 23, 42, 0.85); /* slate-900 based */
+  
+  /* Print Preview Specific */
+  --paper-bg: #ffffff;
+  --paper-transparent-bg: #f0f4f8;
+}

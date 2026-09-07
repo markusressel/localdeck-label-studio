@@ -51,34 +51,32 @@ const iconName = computed(() => {
 }
 
 .alert-warning {
-  background-color: rgba(245, 158, 11, 0.1);
+  background-color: rgba(245, 158, 11, 0.1); /* fallback/raw amber */
   border: 1px solid rgba(245, 158, 11, 0.3);
-  color: #d97706;
+  color: var(--amber-600);
 }
 
 .alert-info {
-  background-color: rgba(59, 130, 246, 0.1);
+  background-color: rgba(59, 130, 246, 0.1); /* fallback/raw blue */
   border: 1px solid rgba(59, 130, 246, 0.3);
-  color: #2563eb;
+  color: var(--blue-600);
 }
 
 .alert-error {
   background-color: rgba(239, 68, 68, 0.1);
   border: 1px solid rgba(239, 68, 68, 0.3);
-  color: #dc2626;
+  color: var(--red-600);
 }
 
 .alert-success {
   background-color: rgba(16, 185, 129, 0.1);
   border: 1px solid rgba(16, 185, 129, 0.3);
-  color: #059669;
+  color: var(--emerald-600);
 }
 
-/* Dark mode adjustments */
-@media (prefers-color-scheme: dark) {
-  .alert-warning { color: #fbbf24; }
-  .alert-info { color: #60a5fa; }
-  .alert-error { color: #f87171; }
-  .alert-success { color: #34d399; }
-}
+/* Dark mode adjustments (Since we default to dark mode, we can use lighter text colors) */
+.alert-warning { color: var(--amber-400); }
+.alert-info { color: var(--blue-400); }
+.alert-error { color: var(--red-400); }
+.alert-success { color: var(--emerald-400); }
 </style>

@@ -252,7 +252,7 @@ onUnmounted(() => document.removeEventListener('click', handleClickOutside))
 }
 
 .icon-cell:hover {
-  background: rgba(16, 185, 129, 0.2);
+  background: var(--primary-transparent);
   color: var(--primary);
 }
 

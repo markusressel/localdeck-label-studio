@@ -66,7 +66,7 @@
           <div 
             class="paper-sheet" 
             ref="paperSheetRef"
-            :class="'format-' + printFormat" 
+            :class="['format-' + printFormat, 'sheet-material-' + labelMaterial]"
             :style="{ 
               transform: `scale(${printZoom})`, 
               transformOrigin: 'top left',

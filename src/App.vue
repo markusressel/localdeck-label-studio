@@ -137,7 +137,7 @@ onMounted(() => {
 
 .logo-area h1 {
   font-size: 1.5rem;
-  background: linear-gradient(to right, #10b981, #3b82f6);
+  background: linear-gradient(to right, var(--primary), var(--blue-500));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -646,6 +646,22 @@ onMounted(() => {
   box-sizing: border-box;
 }
 
+.sheet-material-transparent {
+  background-color: #f0f4f8;
+}
+.sheet-material-transparent::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: 
+    linear-gradient(45deg, rgba(0,0,0,0.02) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.02) 75%, rgba(0,0,0,0.02)),
+    linear-gradient(45deg, rgba(0,0,0,0.02) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.02) 75%, rgba(0,0,0,0.02));
+  background-size: 20px 20px;
+  background-position: 0 0, 10px 10px;
+  z-index: 0;
+}
+
 .print-grid-slot {
   box-sizing: border-box;
   display: flex;
@@ -750,6 +766,9 @@ onMounted(() => {
     break-inside: avoid !important;
     max-height: 100vh !important;
     overflow: hidden !important;
+  }
+  .sheet-material-transparent::before {
+    display: none !important;
   }
   .no-print {
     display: none !important;

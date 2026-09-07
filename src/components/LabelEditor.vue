@@ -198,8 +198,8 @@ const clearImage = () => {
 .control-group select:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
-  background: rgba(0,0,0,0.3);
+  box-shadow: 0 0 0 2px var(--primary-transparent);
+  background: var(--overlay-bg);
 }
 
 .text-input-area {
@@ -303,6 +303,6 @@ const clearImage = () => {
 .file-upload-wrapper:hover .file-label {
   border-color: var(--primary);
   color: var(--primary);
-  background: rgba(16, 185, 129, 0.1);
+  background: var(--primary-transparent);
 }
 </style>
