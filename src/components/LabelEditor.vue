@@ -2,6 +2,33 @@
   <div class="label-editor">
     <div class="control-group">
       <label>Icon / Image</label>
+      <div style="display: flex; gap: 0.75rem; align-items: stretch; margin-bottom: 0.5rem;">
+        <div class="large-icon-preview">
+          <template v-if="modelValue.icon">
+            <span v-if="isEmoji(modelValue.icon)" class="emoji-large">{{ modelValue.icon }}</span>
+            <Icon :icon="modelValue.icon" v-else class="svg-large" />
+          </template>
+          <div v-else class="placeholder-icon">
+            <Icon icon="mdi:image-outline" />
+          </div>
+        </div>
+        
+        <div class="icon-overrides" v-if="useCustomIcon" style="display: flex; gap: 0.5rem; flex: 1;">
+          <NumberStepper v-model="modelValue.iconSize" :min="10" :max="64" :defaultVal="24" title="Icon Size" />
+          <ColorPicker v-model="modelValue.iconColor" style="flex: 1; height: 100%; border-radius: 8px;" title="Icon Color" />
+          <button @click="useCustomIcon = false" class="icon-btn danger-text" title="Reset Overrides" style="border: 1px dashed var(--card-border); border-radius: 8px; width: 42px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.15);">
+             <Icon icon="mdi:close" style="font-size: 1.2rem;" />
+          </button>
+        </div>
+        
+        <div v-else class="icon-overrides-enable" @click="useCustomIcon = true" style="flex: 1; display: flex; align-items: center; justify-content: center; border: 1px dashed var(--card-border); border-radius: 8px; cursor: pointer; color: var(--text-muted); font-size: 0.8rem; background: rgba(255,255,255,0.02); transition: all 0.2s;">
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 0.25rem;">
+            <Icon icon="mdi:pencil-outline" style="font-size: 1.25rem;" />
+            Override Size/Color
+          </div>
+        </div>
+      </div>
+
       <IconPicker v-model="modelValue.icon" />
       
       <div class="file-upload-wrapper mt-2">
@@ -14,23 +41,6 @@
         Custom image loaded. <a href="#" @click.prevent="clearImage" class="danger-text">Remove</a>
       </div>
     </div>
-    
-    <div class="control-row mt-2">
-      <CustomCheckbox v-model="useCustomIcon" style="margin-bottom: 0.5rem;  color: var(--text-muted);">Override Global Icon Style</CustomCheckbox>
-    </div>
-
-    <Transition name="slide-down">
-    <div class="control-row mt-2" v-if="useCustomIcon">
-      <div class="control-group half">
-        <label>Icon Size (px)</label>
-        <input type="number" v-model.number="modelValue.iconSize" min="10" max="64" />
-      </div>
-      <div class="control-group half">
-        <label>Icon Color</label>
-        <ColorPicker v-model="modelValue.iconColor" />
-      </div>
-    </div>
-    </Transition>
     
     <div class="divider"></div>
 
@@ -95,6 +105,12 @@ import { computed, watch } from 'vue'
 import ColorPicker from './ColorPicker.vue'
 import CustomCheckbox from './CustomCheckbox.vue'
 import IconPicker from './IconPicker.vue'
+import NumberStepper from './NumberStepper.vue'
+
+const isEmoji = (str) => {
+  if (!str) return false
+  return /[\u{1F300}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F900}-\u{1F9FF}\u{1F018}-\u{1F270}]/u.test(str)
+}
 
 const props = defineProps({
   modelValue: {
@@ -303,4 +319,30 @@ const clearImage = () => {
 .slide-down-enter-active, .slide-down-leave-active { transition: all 0.3s ease; overflow: hidden; }
 .slide-down-enter-from, .slide-down-leave-to { opacity: 0; max-height: 0; padding-top: 0; padding-bottom: 0; margin-top: 0; }
 .slide-down-enter-to, .slide-down-leave-from { opacity: 1; max-height: 200px; }
+.large-icon-preview {
+  width: 80px;
+  height: 80px;
+  background: rgba(0,0,0,0.15);
+  border: 1px dashed var(--card-border);
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+}
+.emoji-large, .svg-large {
+  font-size: 3.5rem;
+  color: var(--text-main);
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+}
+.placeholder-icon {
+  font-size: 2.5rem;
+  color: var(--text-muted);
+  opacity: 0.5;
+}
+.icon-overrides-enable:hover {
+  border-color: var(--primary);
+  color: var(--primary) !important;
+  background: rgba(16, 185, 129, 0.05) !important;
+}
 </style>
