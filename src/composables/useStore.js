@@ -284,7 +284,8 @@ const addLabel = (overrides = {}, slot = null) => {
     iconColor: null,
     image: null,
     lightColor: null,
-    lightBrightness: null
+    lightBrightness: null,
+    lightEffect: null
   })
   
   if (slot !== null) {

@@ -29,6 +29,7 @@ Always import and utilize these instead:
 - **Dropdowns / Selects:** Use `<CustomSelect v-model="..." :options="[{value: '...', label: '...'}]" />`. Do NOT use native `<select>`.
 - **Checkboxes / Booleans:** Use `<CustomCheckbox v-model="...">Text Label</CustomCheckbox>`. Do NOT use native `<input type="checkbox">`.
 - **Colors:** Use `<ColorPicker v-model="..." />`. Do NOT use native `<input type="color">`.
+- **Sliders:** Use `<CustomSlider v-model="..." :min="0" :max="100" :step="1" />`. Do NOT use native `<input type="range">`.
 - **Numeric Inputs (with Up/Down Steppers):** Use `<NumberStepper v-model="..." :min="0" :max="100" />`.
 - **Text Inputs / Textareas:** Use `<CustomInput v-model="..." [multiline] [icon="mdi:..."] />`. Do NOT use native `<input type="text">` or `<textarea>`.
 - **Icons:** Use the official `@iconify/vue` component: `<Icon icon="mdi:name" />`. Do NOT use the legacy vanilla `<span class="iconify">` tags, as they mutate the VDOM and cause silent Vue crash loops.

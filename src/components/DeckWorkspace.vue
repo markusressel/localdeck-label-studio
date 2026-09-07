@@ -35,7 +35,7 @@
         <Icon icon="mdi:led-on" style="color: var(--text-muted); font-size: 1.2rem;" />
         <div class="light-controls">
           <ColorPicker v-model="globalLightColor" title="Global LED Color" />
-          <input type="range" v-model.number="globalLightBrightness" min="0" max="100" title="Global Brightness" style="width: 60px" />
+          <div style="width: 80px;" title="Global Brightness"><CustomSlider v-model="globalLightBrightness" :min="0" :max="100" /></div>
           <CustomSelect 
             v-model="globalLightEffect" 
             :options="[
@@ -111,7 +111,7 @@
       <div class="spacer"></div>
       <div class="zoom-controls">
         <Icon icon="mdi:magnify-minus" @click="zoomLevel = Math.max(1, zoomLevel - 0.5)" />
-        <input type="range" v-model.number="zoomLevel" min="1" max="6" step="0.5" title="Zoom Level" />
+        <div style="width: 100px;" title="Zoom Level"><CustomSlider v-model="zoomLevel" :min="1" :max="6" :step="0.5" /></div>
         <Icon icon="mdi:magnify-plus" @click="zoomLevel = Math.min(6, zoomLevel + 0.5)" />
         <span class="zoom-text">{{ zoomLevel }}x</span>
       </div>
@@ -177,6 +177,7 @@ import LabelPreview from './LabelPreview.vue'
 import ColorPicker from './ColorPicker.vue'
 import CustomSelect from './CustomSelect.vue'
 import CustomInput from './CustomInput.vue'
+import CustomSlider from './CustomSlider.vue'
 
 const store = useStore()
 const {

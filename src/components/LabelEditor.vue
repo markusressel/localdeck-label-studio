@@ -74,16 +74,31 @@
         <CustomCheckbox v-model="useCustomLight">Custom LED for this key</CustomCheckbox>
         
         <Transition name="slide-down">
-        <div class="control-row mt-2" v-if="useCustomLight">
-          <div class="control-group half">
-            <label>Brightness</label>
-            <input type="range" v-model.number="modelValue.lightBrightness" min="0" max="100" />
+          <div v-if="useCustomLight">
+            <div class="control-row mt-2">
+              <div class="control-group half">
+                <label>Brightness</label>
+                <CustomSlider v-model="modelValue.lightBrightness" :min="0" :max="100" />
+              </div>
+              <div class="control-group half">
+                <label>Color</label>
+                <ColorPicker v-model="modelValue.lightColor" />
+              </div>
+            </div>
+            <div class="control-row mt-2">
+              <div class="control-group" style="width: 100%;">
+                <label>Effect</label>
+                <CustomSelect 
+                  v-model="modelValue.lightEffect" 
+                  :options="[
+                    { value: 'static', label: 'Static' },
+                    { value: 'breathing', label: 'Breathing' },
+                    { value: 'rainbow', label: 'Rainbow' }
+                  ]"
+                />
+              </div>
+            </div>
           </div>
-          <div class="control-group half">
-            <label>Color</label>
-            <ColorPicker v-model="modelValue.lightColor" />
-          </div>
-        </div>
         </Transition>
       </div>
     </div>
@@ -98,6 +113,7 @@ import CustomCheckbox from './CustomCheckbox.vue'
 import IconPicker from './IconPicker.vue'
 import NumberStepper from './NumberStepper.vue'
 import CustomInput from './CustomInput.vue'
+import CustomSlider from './CustomSlider.vue'
 
 const isEmoji = (str) => {
   if (!str) return false
@@ -146,9 +162,11 @@ const useCustomLight = computed({
     if (val) {
       props.modelValue.lightColor = '#10b981'
       props.modelValue.lightBrightness = 80
+      props.modelValue.lightEffect = 'static'
     } else {
       props.modelValue.lightColor = null
       props.modelValue.lightBrightness = null
+      props.modelValue.lightEffect = null
     }
   }
 })
