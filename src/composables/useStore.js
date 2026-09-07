@@ -2,8 +2,20 @@ import { ref, computed, watch, nextTick } from 'vue'
 
 const labelWidth = ref(14)
 const labelHeight = ref(14)
-const matrixWidth = ref(6)
-const matrixHeight = ref(4)
+const decks = ref([
+  { id: 'default', name: 'Main Deck', width: 6, height: 4, slots: {} }
+])
+const activeDeckId = ref('default')
+
+const activeDeck = computed(() => decks.value.find(d => d.id === activeDeckId.value) || decks.value[0])
+const matrixWidth = computed({
+  get: () => activeDeck.value.width,
+  set: (v) => activeDeck.value.width = v
+})
+const matrixHeight = computed({
+  get: () => activeDeck.value.height,
+  set: (v) => activeDeck.value.height = v
+})
 const totalMatrixSlots = computed(() => matrixWidth.value * matrixHeight.value)
 const labelMaterial = ref('transparent')
 const globalLightColor = ref('#10b981')

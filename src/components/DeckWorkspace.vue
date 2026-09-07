@@ -174,6 +174,13 @@ import LabelPreview from './LabelPreview.vue'
 import ColorPicker from './ColorPicker.vue'
 import CustomSelect from './CustomSelect.vue'
 
+const store = useStore()
+const {
+  decks,
+  activeDeckId,
+  activeDeck,
+} = store
+
 const addDeck = () => {
   const name = prompt("Enter a name for the new LocalDeck configuration:", "New Deck")
   if (!name) return
@@ -223,7 +230,7 @@ const {
   onDragEnd,
   onDropDeckSlot,
   onDropLibrary
-} = useStore()
+} = store
 
 import { onMounted, onUnmounted } from 'vue'
 
