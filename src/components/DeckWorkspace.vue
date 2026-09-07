@@ -102,7 +102,7 @@
       
       <div class="search-box" style="margin-left: 1rem; position: relative;">
         <Icon icon="mdi:magnify" style="position: absolute; left: 8px; top: 50%; transform: translateY(-50%); color: var(--text-muted);" />
-        <input type="text" v-model="librarySearch" placeholder="Search labels..." style="padding-left: 28px; padding-right: 8px; background: rgba(0,0,0,0.2); border: 1px solid var(--card-border); color: white; border-radius: 4px; padding-top: 0.3rem; padding-bottom: 0.3rem; font-size: 0.9rem;" />
+        <input type="text" v-model="librarySearch" @keydown.esc="librarySearch = ''" placeholder="Search labels..." style="padding-left: 28px; padding-right: 8px; background: rgba(0,0,0,0.2); border: 1px solid var(--card-border); color: white; border-radius: 4px; padding-top: 0.3rem; padding-bottom: 0.3rem; font-size: 0.9rem;" />
       </div>
       
       <button @click="fillMatrix" class="fill-btn" title="Fill empty deck slots with defaults">
