@@ -3,8 +3,11 @@
     <header class="app-header">
       <div class="header-content">
         <div class="logo-area">
-          <h1>LocalDeck Label Studio</h1>
-          <p class="subtitle">Design perfect keycap labels</p>
+          <img src="/favicon.svg" alt="LocalDeck Logo" class="app-logo" />
+          <div class="logo-text">
+            <h1>LocalDeck Label Studio</h1>
+            <p class="subtitle">Design perfect keycap labels</p>
+          </div>
         </div>
         <div class="settings">
           <div class="setting-group">
@@ -133,7 +136,26 @@ onMounted(() => {
   align-items: center;
 }
 
+.logo-area {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.app-logo {
+  width: 42px;
+  height: 42px;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+}
+
+.logo-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
 .logo-area h1 {
+  margin: 0;
   font-size: 1.5rem;
   background: linear-gradient(to right, var(--primary), var(--blue-500));
   -webkit-background-clip: text;
