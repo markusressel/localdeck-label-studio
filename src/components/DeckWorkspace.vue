@@ -174,7 +174,7 @@ import LabelPreview from './LabelPreview.vue'
 import ColorPicker from './ColorPicker.vue'
 import CustomSelect from './CustomSelect.vue'
 
-const store = useStore(); console.log("STORE DECKS:", store.decks)
+const store = useStore()
 const {
   decks,
   activeDeckId,
@@ -185,7 +185,7 @@ const addDeck = () => {
   const name = prompt("Enter a name for the new LocalDeck configuration:", "New Deck")
   if (!name) return
   const id = Date.now().toString()
-  decks.value.push({ id, name, width: 4, height: 4, slots: {} })
+  decks.value.push({ id, name, width: 6, height: 4, slots: {} })
   activeDeckId.value = id
 }
 
