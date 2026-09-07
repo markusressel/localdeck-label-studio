@@ -78,7 +78,7 @@
             <div class="control-row mt-2">
               <div class="control-group half">
                 <label>Brightness</label>
-                <CustomSlider v-model="modelValue.lightBrightness" :min="0" :max="100" />
+                <CustomSlider v-model="modelValue.lightBrightness" :min="0" :max="100" showValue />
               </div>
               <div class="control-group half">
                 <label>Color</label>

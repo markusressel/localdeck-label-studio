@@ -35,7 +35,7 @@
         <Icon icon="mdi:led-on" style="color: var(--text-muted); font-size: 1.2rem;" />
         <div class="light-controls">
           <ColorPicker v-model="globalLightColor" title="Global LED Color" />
-          <div style="width: 80px;" title="Global Brightness"><CustomSlider v-model="globalLightBrightness" :min="0" :max="100" /></div>
+          <div style="width: 80px;" title="Global Brightness"><CustomSlider v-model="globalLightBrightness" :min="0" :max="100" showValue /></div>
           <CustomSelect 
             v-model="globalLightEffect" 
             :options="[
