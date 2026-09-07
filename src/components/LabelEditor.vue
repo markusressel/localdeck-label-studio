@@ -83,6 +83,7 @@
             <ColorPicker v-model="modelValue.lightColor" />
           </div>
         </div>
+        </Transition>
       </div>
     </div>
   </div>
@@ -303,8 +304,7 @@ const clearImage = () => {
   color: var(--primary);
   background: var(--primary-transparent);
 }
-</style>
-
 .slide-down-enter-active, .slide-down-leave-active { transition: all 0.3s ease; overflow: hidden; }
 .slide-down-enter-from, .slide-down-leave-to { opacity: 0; max-height: 0; padding-top: 0; padding-bottom: 0; margin-top: 0; }
 .slide-down-enter-to, .slide-down-leave-from { opacity: 1; max-height: 200px; }
+</style>
