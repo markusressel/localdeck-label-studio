@@ -46,7 +46,7 @@
 
     <div class="control-group">
       <label>Label Text</label>
-      <textarea v-model="modelValue.text" placeholder="Press Enter for new lines..." rows="2" class="text-input-area"></textarea>
+      <CustomInput v-model="modelValue.text" multiline placeholder="Press Enter for new lines..." rows="2" />
     </div>
     
     <div class="control-row">
@@ -97,6 +97,7 @@ import ColorPicker from './ColorPicker.vue'
 import CustomCheckbox from './CustomCheckbox.vue'
 import IconPicker from './IconPicker.vue'
 import NumberStepper from './NumberStepper.vue'
+import CustomInput from './CustomInput.vue'
 
 const isEmoji = (str) => {
   if (!str) return false

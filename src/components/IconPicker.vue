@@ -1,15 +1,11 @@
 <template>
   <div class="icon-picker-container" ref="pickerRef">
-    <div class="input-wrapper">
-      <input 
-        type="text" 
-        v-model="searchQuery" 
-        @focus="isOpen = true"
-        placeholder="e.g. mdi:home or 🚀" 
-        class="icon-search-input"
-        style="padding-right: 12px !important;"
-      />
-    </div>
+    <CustomInput 
+      v-model="searchQuery" 
+      @focus="isOpen = true"
+      placeholder="Search icon (e.g. mdi:home or 🚀)" 
+      icon="mdi:magnify"
+    />
 
     <div class="picker-dropdown" v-if="isOpen">
       <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--card-border); background: rgba(0,0,0,0.2);">
@@ -58,6 +54,7 @@
 
 <script setup>
 import { Icon } from '@iconify/vue'
+import CustomInput from './CustomInput.vue'
 import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import * as emoji from 'node-emoji'
 
