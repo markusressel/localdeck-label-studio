@@ -111,7 +111,7 @@
         class="grid-item-wrapper"
         :class="{ 
           'is-selected': selectedId === label.id,
-          'is-in-preview': label.deckSlot !== null,
+          'is-in-preview': label.deckSlot !== null && label.deckSlot < totalMatrixSlots,
           'is-drag-over': dragOverTarget === 'lib-' + label.id
         }"
         @click="selectedId = label.id"
