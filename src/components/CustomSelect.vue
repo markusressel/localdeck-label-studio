@@ -23,7 +23,7 @@ import { Icon } from '@iconify/vue'
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 
 const props = defineProps({
-  modelValue: { type: String, required: true },
+  modelValue: { required: false },
   options: { type: Array, required: true }
 })
 const emit = defineEmits(['update:modelValue'])
