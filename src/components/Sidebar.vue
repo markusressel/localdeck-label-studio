@@ -33,7 +33,7 @@
         <h2>Edit Label</h2>
         <div class="panel-actions">
           <button class="icon-btn" @click="duplicateSelected" title="Duplicate Label">
-            <span class="iconify" data-icon="mdi:content-copy"></span>
+            <Icon icon="mdi:content-copy" />
           </button>
         </div>
       </div>
@@ -43,20 +43,21 @@
         
         <div style="margin-top: 1.5rem;">
           <button class="primary" style="width: 100%; background: var(--danger); border-color: var(--danger); display: flex; align-items: center; justify-content: center; gap: 0.5rem;" @click="removeSelected">
-            <span class="iconify" data-icon="mdi:trash-can-outline"></span> Delete Label
+            <Icon icon="mdi:trash-can-outline" /> Delete Label
           </button>
         </div>
       </div>
     </div>
     
     <div class="empty-state detail-panel" v-else>
-      <span class="iconify empty-icon" data-icon="mdi:cursor-default-click-outline"></span>
+      <Icon icon="mdi:cursor-default-click-outline" />
       <p>Select a label to edit its properties.</p>
     </div>
   </aside>
 </template>
 
 <script setup>
+import { Icon } from '@iconify/vue'
 import { useStore } from '../composables/useStore.js'
 import ColorPicker from './ColorPicker.vue'
 import LabelEditor from './LabelEditor.vue'

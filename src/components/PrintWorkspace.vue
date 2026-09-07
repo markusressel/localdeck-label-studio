@@ -25,7 +25,7 @@
         <div class="labels-checklist" style="overflow-y: auto; flex: 1; border: 1px solid var(--card-border); padding: 0.5rem; border-radius: 4px;">
           <div v-for="label in labels" :key="label.id" class="checklist-item" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
             <CustomCheckbox :value="label.id" v-model="selectedPrintIds">
-              <span v-if="label.icon && !isEmoji(label.icon)" class="iconify" :data-icon="label.icon" style="margin-right: 4px; vertical-align: middle;"></span>
+              <Icon v-if="label.icon && !isEmoji(label.icon)" :icon="label.icon" style="margin-right: 4px; vertical-align: middle;" />
               <span v-else-if="label.icon && isEmoji(label.icon)" style="margin-right: 4px; vertical-align: middle;">{{ label.icon }}</span>
               {{ label.text || 'Unnamed' }}
             </CustomCheckbox>
@@ -38,7 +38,7 @@
           Please ensure your browser's print dialog is manually set to <strong>{{ printFormat }}</strong> to match your preview.
         </AlertBox>
         <button @click="printLabels" class="primary print-now-btn" style="width: 100%;">
-          <span class="iconify" data-icon="mdi:printer"></span> Print
+          <Icon icon="mdi:printer" /> Print
         </button>
         <button @click="previewMode = false" class="secondary exit-preview-btn" style="width: 100%;">
           Cancel
@@ -126,6 +126,7 @@
 </template>
 
 <script setup>
+import { Icon } from '@iconify/vue'
 import { useStore } from '../composables/useStore.js'
 import LabelPreview from './LabelPreview.vue'
 import CustomSelect from './CustomSelect.vue'

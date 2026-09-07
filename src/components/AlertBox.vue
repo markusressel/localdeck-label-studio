@@ -1,7 +1,7 @@
 <template>
   <div class="alert-box" :class="`alert-${type}`">
     <div class="alert-icon">
-      <span class="iconify" :data-icon="iconName"></span>
+      <Icon :icon="iconName" />
     </div>
     <div class="alert-content">
       <slot></slot>
@@ -10,6 +10,7 @@
 </template>
 
 <script setup>
+import { Icon } from '@iconify/vue'
 import { computed } from 'vue'
 
 const props = defineProps({

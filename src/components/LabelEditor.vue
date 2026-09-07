@@ -31,7 +31,7 @@
       <div class="file-upload-wrapper mt-2">
         <input type="file" accept="image/*" @change="handleFileUpload" id="image-upload" class="file-input" />
         <label for="image-upload" class="file-label">
-          <span class="iconify" data-icon="mdi:upload"></span> Or upload custom image
+          <Icon icon="mdi:upload" /> Or upload custom image
         </label>
       </div>
       <div v-if="modelValue.image" class="mt-2 text-sm text-center" style="color: var(--text-muted);">
@@ -90,6 +90,7 @@
 </template>
 
 <script setup>
+import { Icon } from '@iconify/vue'
 import { computed, watch } from 'vue'
 import ColorPicker from './ColorPicker.vue'
 import CustomCheckbox from './CustomCheckbox.vue'
@@ -108,45 +109,39 @@ watch(() => props.modelValue, (newVal) => { console.log("LabelEditor modelValue 
 const useCustomText = computed({
   get: () => props.modelValue.textSize !== null && props.modelValue.textSize !== undefined,
   set: (val) => {
-    const updated = { ...props.modelValue }
     if (val) {
-      updated.textSize = 10
-      updated.textColor = '#000000'
+      props.modelValue.textSize = 10
+      props.modelValue.textColor = '#000000'
     } else {
-      updated.textSize = null
-      updated.textColor = null
+      props.modelValue.textSize = null
+      props.modelValue.textColor = null
     }
-    emit('update:modelValue', updated)
   }
 })
 
 const useCustomIcon = computed({
   get: () => props.modelValue.iconSize !== null && props.modelValue.iconSize !== undefined,
   set: (val) => {
-    const updated = { ...props.modelValue }
     if (val) {
-      updated.iconSize = 24
-      updated.iconColor = '#000000'
+      props.modelValue.iconSize = 24
+      props.modelValue.iconColor = '#000000'
     } else {
-      updated.iconSize = null
-      updated.iconColor = null
+      props.modelValue.iconSize = null
+      props.modelValue.iconColor = null
     }
-    emit('update:modelValue', updated)
   }
 })
 
 const useCustomLight = computed({
   get: () => props.modelValue.lightColor !== null && props.modelValue.lightColor !== undefined,
   set: (val) => {
-    const updated = { ...props.modelValue }
     if (val) {
-      updated.lightColor = '#10b981'
-      updated.lightBrightness = 80
+      props.modelValue.lightColor = '#10b981'
+      props.modelValue.lightBrightness = 80
     } else {
-      updated.lightColor = null
-      updated.lightBrightness = null
+      props.modelValue.lightColor = null
+      props.modelValue.lightBrightness = null
     }
-    emit('update:modelValue', updated)
   }
 })
 

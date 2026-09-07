@@ -2,7 +2,7 @@
   <div class="custom-select-wrapper">
     <div class="custom-select-trigger" @click.stop="toggle">
       <span class="trigger-label">{{ currentLabel }}</span>
-      <span class="iconify chevron" data-icon="mdi:chevron-down" :class="{ 'is-open': isOpen }"></span>
+      <Icon icon="mdi:chevron-down" :class="{ 'is-open': isOpen }" />
     </div>
     <div class="custom-select-dropdown" v-if="isOpen">
       <div 
@@ -19,6 +19,7 @@
 </template>
 
 <script setup>
+import { Icon } from '@iconify/vue'
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 
 const props = defineProps({

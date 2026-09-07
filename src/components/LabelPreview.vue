@@ -30,11 +30,11 @@
             :key="label.icon"
             :style="{ fontSize: effectiveIconSize + 'px', color: effectiveIconColor }"
           >
-            <span 
+            <Icon 
               v-if="!isEmoji(label.icon)"
-              class="iconify" 
-              :data-icon="label.icon"
-            ></span>
+               
+              :icon="label.icon"
+            />
             <span v-else>
               {{ label.icon }}
             </span>
@@ -53,6 +53,7 @@
 </template>
 
 <script setup>
+import { Icon } from '@iconify/vue'
 import { computed, ref, onMounted, onUpdated, nextTick } from 'vue'
 import * as emoji from 'node-emoji'
 
@@ -109,17 +110,10 @@ const formattedLabelText = computed(() => {
     .replace(/'/g, '&#039;');
     
   text = emoji.emojify(text);
-  return text.replace(/:([a-zA-Z0-9\-:]+):/g, '<span class="iconify" data-icon="$1"></span>')
+  return text.replace(/:([a-zA-Z0-9\-:]+):/g, '<Icon icon="$1" />')
 })
 
 const previewRef = ref(null)
-const scanIcons = () => {
-  if (window.Iconify && previewRef.value) {
-    window.Iconify.scan(previewRef.value)
-  }
-}
-onMounted(() => nextTick(scanIcons))
-onUpdated(() => nextTick(scanIcons))
 
 const wrapperStyle = computed(() => {
   if (props.printMode) {

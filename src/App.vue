@@ -18,16 +18,16 @@
 
           <input type="file" ref="fileInput" @change="importData" accept=".json" style="display: none" />
           <button @click="triggerImport" class="secondary import-btn">
-            <span class="iconify" data-icon="mdi:import"></span> Import
+            <Icon icon="mdi:import" /> Import
           </button>
           <button @click="exportData" class="secondary export-btn">
-            <span class="iconify" data-icon="mdi:export"></span> Export
+            <Icon icon="mdi:export" /> Export
           </button>
           <button @click="previewMode = true" class="secondary preview-toggle-btn">
-            <span class="iconify" data-icon="mdi:eye-outline"></span> Preview
+            <Icon icon="mdi:eye-outline" /> Preview
           </button>
           <button @click="printLabels" class="primary print-btn">
-            <span class="iconify" data-icon="mdi:printer"></span> Print
+            <Icon icon="mdi:printer" /> Print
           </button>
         </div>
       </div>
@@ -46,7 +46,7 @@
     <div style="position: absolute; top: -2000px; left: -2000px; pointer-events: none;">
       <div id="drag-ghost" style="background: rgba(16, 185, 129, 0.85); padding: 0.4rem 0.8rem; border-radius: 20px; color: white; display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; box-shadow: 0 4px 12px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.3); font-weight: 500; white-space: nowrap;">
 
-        <span class="iconify" data-icon="mdi:cursor-move"></span>
+        <Icon icon="mdi:cursor-move" />
         <span id="drag-ghost-text">Label</span>
       </div>
     </div>
@@ -54,6 +54,7 @@
 </template>
 
 <script setup>
+import { Icon } from '@iconify/vue'
 import { onMounted } from 'vue'
 import { useStore } from './composables/useStore.js'
 import DeckWorkspace from './components/DeckWorkspace.vue'
@@ -337,7 +338,7 @@ onMounted(() => {
   border: 1px solid var(--card-border);
 }
 
-.zoom-controls .iconify {
+.zoom-controls svg {
   color: var(--text-muted);
   font-size: 1.1rem;
 }
@@ -423,7 +424,7 @@ onMounted(() => {
   color: var(--primary);
   background: rgba(16, 185, 129, 0.05);
 }
-.add-grid-item .iconify {
+.add-grid-item svg {
   font-size: 1.5rem;
 }
 

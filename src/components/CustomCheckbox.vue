@@ -1,7 +1,7 @@
 <template>
   <div class="custom-checkbox-wrapper" tabindex="0" @keydown.space.prevent="toggleCheckbox" @click.prevent="toggleCheckbox" :class="{ 'is-checked': isChecked }">
     <div class="checkbox-box">
-      <span class="iconify check-icon" data-icon="mdi:check" v-if="isChecked"></span>
+      <div v-show="isChecked" class="icon-wrapper"><Icon icon="mdi:check" /></div>
     </div>
     <span class="checkbox-label" v-if="$slots.default">
       <slot></slot>
@@ -10,6 +10,7 @@
 </template>
 
 <script setup>
+import { Icon } from '@iconify/vue'
 import { computed } from 'vue'
 
 const props = defineProps({
@@ -112,4 +113,5 @@ const toggleCheckbox = () => {
   0% { transform: scale(0); }
   100% { transform: scale(1); }
 }
+.icon-wrapper { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
 </style>

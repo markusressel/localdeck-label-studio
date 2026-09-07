@@ -10,7 +10,7 @@
       />
       <div class="icon-preview-box" v-if="modelValue">
         <span v-if="isEmoji(modelValue)" class="emoji-preview">{{ modelValue }}</span>
-        <span v-else class="iconify" :data-icon="modelValue"></span>
+        <Icon :icon="modelValue" v-else />
       </div>
     </div>
 
@@ -18,7 +18,7 @@
       <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--card-border); background: rgba(0,0,0,0.2);">
         <span style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: var(--text-muted);">Icon Library</span>
         <button class="icon-btn" @click.prevent="isOpen = false" style="padding: 2px; color: var(--text-muted); cursor: pointer; background: transparent; border: none;">
-          <span class="iconify" data-icon="mdi:close" style="font-size: 1rem;"></span>
+          <Icon icon="mdi:close" style="font-size: 1rem;" />
         </button>
       </div>
       <div class="dropdown-content">
@@ -49,7 +49,7 @@
             :title="icon"
             @click.prevent="selectIcon(icon)"
           >
-            <span class="iconify" :data-icon="icon"></span>
+            <Icon :icon="icon" />
           </div>
         </div>
       </div>
@@ -58,6 +58,7 @@
 </template>
 
 <script setup>
+import { Icon } from '@iconify/vue'
 import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import * as emoji from 'node-emoji'
 
@@ -166,9 +167,7 @@ const searchIconify = async (query) => {
     iconifyResults.value = data.icons || []
     
     // Force Iconify to render new results
-    nextTick(() => {
-      if (window.Iconify) window.Iconify.scan(pickerRef.value)
-    })
+    
   } catch (e) {
     console.error('Failed to search icons', e)
   } finally {
