@@ -69,15 +69,6 @@
     <div class="divider"></div>
 
     <div class="control-group">
-      <label>Print Settings</label>
-      <div class="light-override">
-        <CustomCheckbox v-model="modelValue.print">Include this label when printing</CustomCheckbox>
-      </div>
-    </div>
-    
-    <div class="divider"></div>
-
-    <div class="control-group">
       <label>LED Backlight Override</label>
       <div class="light-override">
         <CustomCheckbox v-model="useCustomLight">Custom LED for this key</CustomCheckbox>
