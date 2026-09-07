@@ -24,17 +24,18 @@
           <div v-if="label.image" class="label-image-container">
             <img :src="label.image" alt="Custom icon" class="custom-image" />
           </div>
-          <div v-else-if="label.icon" class="label-icon-container" :key="label.icon">
+          <div 
+            v-else-if="label.icon" 
+            class="label-icon-container" 
+            :key="label.icon"
+            :style="{ fontSize: effectiveIconSize + 'px', color: effectiveIconColor }"
+          >
             <span 
               v-if="!isEmoji(label.icon)"
               class="iconify" 
               :data-icon="label.icon"
-              :style="{ fontSize: effectiveIconSize + 'px', color: effectiveIconColor }"
             ></span>
-            <span 
-              v-else
-              :style="{ fontSize: effectiveIconSize + 'px' }"
-            >
+            <span v-else>
               {{ label.icon }}
             </span>
           </div>

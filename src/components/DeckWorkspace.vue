@@ -31,11 +31,15 @@
         <div class="light-controls">
           <ColorPicker v-model="globalLightColor" title="Global LED Color" />
           <input type="range" v-model.number="globalLightBrightness" min="0" max="100" title="Global Brightness" style="width: 60px" />
-          <select v-model="globalLightEffect" title="Light Effect" style="width: auto; margin-left: 0.5rem; padding: 0.2rem; background: rgba(0,0,0,0.2); border: 1px solid var(--card-border); color: white; border-radius: 4px;">
-            <option value="static">Static</option>
-            <option value="breathing">Breathing</option>
-            <option value="rainbow">Rainbow</option>
-          </select>
+          <CustomSelect 
+            v-model="globalLightEffect" 
+            :options="[
+              { value: 'static', label: 'Static' },
+              { value: 'breathing', label: 'Breathing' },
+              { value: 'rainbow', label: 'Rainbow' }
+            ]"
+            style="min-width: 120px; margin-left: 0.5rem;"
+          />
         </div>
       </div>
     </div>
