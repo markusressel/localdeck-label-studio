@@ -295,16 +295,26 @@ const addLabel = (overrides = {}, slot = null) => {
 }
 
 const fillMatrix = () => {
+  const deck = activeDeck.value
+  if (!deck.slots) deck.slots = {}
+  
+  const usedLabelIds = new Set(Object.values(deck.slots))
+  const availableLabels = labels.value.filter(l => !usedLabelIds.has(l.id))
+  
+  let availableIdx = 0
+  
   for (let i = 0; i < totalMatrixSlots.value; i++) {
-    if (!getLabelAtSlot(i)) {
-      addLabel(getRandomDefault(), i)
+    if (!deck.slots[i]) {
+      if (availableIdx < availableLabels.length) {
+        deck.slots[i] = availableLabels[availableIdx].id
+        availableIdx++
+      } else {
+        break
+      }
     }
   }
 }
 
-watch([matrixWidth, matrixHeight], () => {
-  fillMatrix()
-})
 
 const duplicateSelected = () => {
   if (selectedItemIndex.value === null) return
