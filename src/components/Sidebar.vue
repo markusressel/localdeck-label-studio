@@ -35,14 +35,17 @@
           <button class="icon-btn" @click="duplicateSelected" title="Duplicate Label">
             <span class="iconify" data-icon="mdi:content-copy"></span>
           </button>
-          <button class="icon-btn danger-text" @click="removeSelected" title="Remove Label">
-            <span class="iconify" data-icon="mdi:trash-can-outline"></span>
-          </button>
         </div>
       </div>
       
       <div class="panel-content">
         <LabelEditor v-model="labels[selectedItemIndex]" />
+        
+        <div style="margin-top: 1.5rem;">
+          <button class="primary" style="width: 100%; background: var(--danger); border-color: var(--danger); display: flex; align-items: center; justify-content: center; gap: 0.5rem;" @click="removeSelected">
+            <span class="iconify" data-icon="mdi:trash-can-outline"></span> Delete Label
+          </button>
+        </div>
       </div>
     </div>
     
