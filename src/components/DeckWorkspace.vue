@@ -174,7 +174,7 @@ import LabelPreview from './LabelPreview.vue'
 import ColorPicker from './ColorPicker.vue'
 import CustomSelect from './CustomSelect.vue'
 
-const store = useStore()
+const store = useStore(); console.log("STORE DECKS:", store.decks)
 const {
   decks,
   activeDeckId,

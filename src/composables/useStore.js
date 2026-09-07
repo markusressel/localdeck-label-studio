@@ -204,27 +204,39 @@ const loadState = () => {
       if (data.globalIconSize !== undefined) globalIconSize.value = data.globalIconSize
       if (data.globalIconColor) globalIconColor.value = data.globalIconColor
       if (data.zoomLevel) zoomLevel.value = data.zoomLevel
+      if (data.decks) {
+        decks.value = data.decks
+      } else {
+        decks.value = [{
+          id: 'default',
+          name: 'Main Deck',
+          width: 6,
+          height: 4,
+          slots: {}
+        }]
+      }
+      if (data.activeDeckId) activeDeckId.value = data.activeDeckId
+      else activeDeckId.value = decks.value[0].id
       if (data.selectedId) selectedId.value = data.selectedId
       if (data.printFormat) printFormat.value = data.printFormat
       if (data.printZoom) printZoom.value = data.printZoom
       if (data.selectedPrintIds) selectedPrintIds.value = data.selectedPrintIds
       if (data.printGrid) printGrid.value = data.printGrid
       if (data.labels && data.labels.length > 0) {
-        let nextDeckSlot = 0;
         labels.value = data.labels.map((l, index) => {
           if (l.textSize === 10 && l.textColor === '#000000') { l.textSize = null; l.textColor = null; }
           if (l.iconSize === 24 && l.iconColor === '#000000') { l.iconSize = null; l.iconColor = null; }
           
-          if (l.deckSlot === undefined) {
-             if (l.print !== false && nextDeckSlot < totalMatrixSlots.value) {
-               l.deckSlot = nextDeckSlot;
-               nextDeckSlot++;
-             } else {
-               l.deckSlot = null;
-             }
-             delete l.print;
+          if (l.deckSlot !== undefined && l.deckSlot !== null) {
+            const deck = decks.value.find(d => d.id === activeDeckId.value)
+            if (deck) {
+              if (!deck.slots) deck.slots = {}
+              deck.slots[l.deckSlot] = l.id
+            }
           }
-          return l;
+          delete l.deckSlot
+          delete l.print
+          return l
         })
         loaded = true
       }
@@ -264,7 +276,6 @@ const addLabel = (overrides = {}, slot = null) => {
   const newId = generateId()
   labels.value.push({
     id: newId,
-    deckSlot: slot,
     text: newProps.text,
     textSize: null,
     textColor: null,
@@ -275,6 +286,11 @@ const addLabel = (overrides = {}, slot = null) => {
     lightColor: null,
     lightBrightness: null
   })
+  
+  if (slot !== null) {
+    if (!activeDeck.value.slots) activeDeck.value.slots = {}
+    activeDeck.value.slots[slot] = newId
+  }
   return newId
 }
 
