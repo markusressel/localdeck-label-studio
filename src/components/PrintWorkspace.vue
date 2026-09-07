@@ -169,6 +169,7 @@ const {
   selectNonePrint,
   selectDeckPrint,
   onPrintDragStart,
+  onDragEnd,
   onPrintDrop,
   getLabelById,
   printLabels,
