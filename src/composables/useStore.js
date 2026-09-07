@@ -58,7 +58,11 @@ const rows = computed(() => {
 const totalPrintSlots = computed(() => cols.value * rows.value)
 
 const getLabelAtSlot = (slotIndex) => {
-  return labels.value.find(l => l.deckSlot === slotIndex) || null
+  const deck = activeDeck.value
+  if (!deck.slots) deck.slots = {}
+  const labelId = deck.slots[slotIndex]
+  if (!labelId) return null
+  return labels.value.find(l => l.id === labelId) || null
 }
 
 const printedLabels = computed(() => {
@@ -221,6 +225,8 @@ const loadState = () => {
 
 const saveState = () => {
   localStorage.setItem('localdeck-labels', JSON.stringify({
+    decks: decks.value,
+    activeDeckId: activeDeckId.value,
     width: labelWidth.value,
     height: labelHeight.value,
     material: labelMaterial.value,
@@ -280,7 +286,7 @@ const duplicateSelected = () => {
   labels.value.splice(newIndex, 0, {
     ...toDuplicate,
     id: newId,
-    deckSlot: null // Duplicates always go to library to prevent deck overlap
+    // Duplicates go to library
   })
   selectedId.value = newId
 }
@@ -288,7 +294,15 @@ const duplicateSelected = () => {
 const removeSelected = () => {
   const idx = selectedItemIndex.value
   if (idx === null) return
+  const removedId = labels.value[idx].id
   labels.value.splice(idx, 1)
+  decks.value.forEach(d => {
+    if (d.slots) {
+      Object.keys(d.slots).forEach(key => {
+        if (d.slots[key] === removedId) delete d.slots[key]
+      })
+    }
+  })
   
   if (labels.value.length === 0) {
     selectedId.value = null
@@ -385,14 +399,23 @@ const onDropDeckSlot = (e, targetSlotIndex) => {
   
   const targetLabel = getLabelAtSlot(targetSlotIndex)
   
+  const deck = activeDeck.value
+  if (!deck.slots) deck.slots = {}
+  
+  // Find where draggedId currently is on this deck
+  const currentSlotStr = Object.keys(deck.slots).find(key => deck.slots[key] === draggedId)
+  
   if (targetLabel && targetLabel.id !== draggedId) {
-    // Physical Deck: We SWAP slots so spatial memory isn't broken
-    const tempSlot = draggedLabel.deckSlot
-    draggedLabel.deckSlot = targetSlotIndex
-    targetLabel.deckSlot = tempSlot
+    if (currentSlotStr !== undefined) {
+      const currentSlot = parseInt(currentSlotStr)
+      deck.slots[currentSlot] = targetLabel.id
+    }
+    deck.slots[targetSlotIndex] = draggedId
   } else if (!targetLabel) {
-    // Empty deck slot
-    draggedLabel.deckSlot = targetSlotIndex
+    if (currentSlotStr !== undefined) {
+      delete deck.slots[parseInt(currentSlotStr)]
+    }
+    deck.slots[targetSlotIndex] = draggedId
   }
 }
 
@@ -567,7 +590,7 @@ const printLabels = async () => {
   window.print()
 }
 
-watch([labelWidth, labelHeight, labelMaterial, globalLightColor, globalLightBrightness, globalLightEffect, globalTextSize, globalTextColor, globalIconSize, globalIconColor, zoomLevel, labels, selectedId, printFormat, printZoom, selectedPrintIds, printGrid], saveState, { deep: true })
+watch([decks, activeDeckId, labelWidth, labelHeight, labelMaterial, globalLightColor, globalLightBrightness, globalLightEffect, globalTextSize, globalTextColor, globalIconSize, globalIconColor, zoomLevel, labels, selectedId, printFormat, printZoom, selectedPrintIds, printGrid], saveState, { deep: true })
 
 export function useStore() {
   return {
@@ -613,6 +636,10 @@ export function useStore() {
     saveState,
     addLabel,
     fillMatrix,
+    matrixWidth,
+    decks,
+    activeDeckId,
+    activeDeck,
     matrixWidth,
     matrixHeight,
     totalMatrixSlots,

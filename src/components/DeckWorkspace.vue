@@ -2,7 +2,14 @@
   <div class="grid-section">
     <!-- LocalDeck Preview -->
     <div class="section-header device-header">
-      <h2>LocalDeck Preview</h2>
+      <select v-model="activeDeckId" style="background: rgba(0,0,0,0.2); border: 1px solid var(--card-border); color: white; padding: 0.4rem 0.5rem; border-radius: 4px; font-size: 1rem; font-weight: 600; cursor: pointer;">
+        <option v-for="deck in decks" :key="deck.id" :value="deck.id">{{ deck.name }}</option>
+      </select>
+      <div style="display: flex; gap: 0.25rem; margin-left: 0.5rem;">
+        <button class="icon-btn" @click="addDeck" title="Add New Deck"><Icon icon="mdi:plus" /></button>
+        <button class="icon-btn" @click="renameDeck" title="Rename Deck"><Icon icon="mdi:pencil" /></button>
+        <button class="icon-btn" @click="removeDeck" :disabled="decks.length <= 1" title="Delete Deck" :style="{ opacity: decks.length <= 1 ? 0.3 : 1 }"><Icon icon="mdi:trash-can-outline" /></button>
+      </div>
       <div class="matrix-inputs" style="display: flex; align-items: center; gap: 0.25rem; margin-left: 1rem; background: rgba(0,0,0,0.15); padding: 0.2rem 0.5rem; border-radius: 4px; border: 1px solid var(--card-border);">
         <Icon icon="mdi:grid" style="color: var(--text-muted); margin-right: 0.25rem;" />
         <input type="number" v-model.number="matrixWidth" min="1" max="24" style="width: 45px; padding: 0.1rem; text-align: center; background: transparent; border: none; color: white; font-weight: 500;" title="Columns" />
@@ -115,7 +122,7 @@
         class="grid-item-wrapper"
         :class="{ 
           'is-selected': selectedId === label.id,
-          'is-in-preview': label.deckSlot !== null && label.deckSlot < totalMatrixSlots,
+          'is-in-preview': activeDeck.slots && Object.keys(activeDeck.slots).find(k => activeDeck.slots[k] === label.id) !== undefined && Object.keys(activeDeck.slots).find(k => activeDeck.slots[k] === label.id) < totalMatrixSlots,
           'is-drag-over': dragOverTarget === 'lib-' + label.id
         }"
         @click="selectedId = label.id"
@@ -167,6 +174,29 @@ import LabelPreview from './LabelPreview.vue'
 import ColorPicker from './ColorPicker.vue'
 import CustomSelect from './CustomSelect.vue'
 
+const addDeck = () => {
+  const name = prompt("Enter a name for the new LocalDeck configuration:", "New Deck")
+  if (!name) return
+  const id = Date.now().toString()
+  decks.value.push({ id, name, width: 4, height: 4, slots: {} })
+  activeDeckId.value = id
+}
+
+const renameDeck = () => {
+  if (!activeDeck.value) return
+  const name = prompt("Enter a new name for this LocalDeck:", activeDeck.value.name)
+  if (name) activeDeck.value.name = name
+}
+
+const removeDeck = () => {
+  if (decks.value.length <= 1) return
+  if (confirm(`Are you sure you want to delete the configuration "${activeDeck.value.name}"?`)) {
+    const idx = decks.value.findIndex(d => d.id === activeDeckId.value)
+    decks.value.splice(idx, 1)
+    activeDeckId.value = decks.value[0].id
+  }
+}
+
 const {
   labelWidth,
   labelHeight,
@@ -201,9 +231,12 @@ const handleKeydown = (e) => {
   if (e.key === 'Delete' || e.key === 'Backspace') {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return
     if (!selectedId.value) return
-    const selected = labels.value.find(l => l.id === selectedId.value)
-    if (selected && selected.deckSlot !== null) {
-      selected.deckSlot = null
+    const deck = activeDeck.value
+    if (deck && deck.slots) {
+      const slotStr = Object.keys(deck.slots).find(key => deck.slots[key] === selectedId.value)
+      if (slotStr !== undefined) {
+        delete deck.slots[slotStr]
+      }
     }
   }
 }
