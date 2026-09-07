@@ -1,30 +1,6 @@
 <template>
   <div class="label-editor">
     <div class="control-group">
-      <label>Label Text</label>
-      <textarea v-model="modelValue.text" placeholder="Press Enter for new lines..." rows="2" class="text-input-area"></textarea>
-    </div>
-    
-    <div class="control-row">
-      <CustomCheckbox v-model="useCustomText" style="margin-bottom: 0.5rem;  color: var(--text-muted);">Override Global Text Style</CustomCheckbox>
-    </div>
-
-    <Transition name="slide-down">
-      <div class="control-row mt-2" v-if="useCustomText">
-      <div class="control-group half">
-        <label>Text Size (px)</label>
-        <input type="number" v-model.number="modelValue.textSize" min="6" max="32" />
-      </div>
-      <div class="control-group half">
-        <label>Text Color</label>
-        <ColorPicker v-model="modelValue.textColor" />
-      </div>
-    </div>
-    </Transition>
-    
-    <div class="divider"></div>
-
-    <div class="control-group">
       <label>Icon / Image</label>
       <IconPicker v-model="modelValue.icon" />
       
@@ -52,6 +28,30 @@
       <div class="control-group half">
         <label>Icon Color</label>
         <ColorPicker v-model="modelValue.iconColor" />
+      </div>
+    </div>
+    </Transition>
+    
+    <div class="divider"></div>
+
+    <div class="control-group">
+      <label>Label Text</label>
+      <textarea v-model="modelValue.text" placeholder="Press Enter for new lines..." rows="2" class="text-input-area"></textarea>
+    </div>
+    
+    <div class="control-row">
+      <CustomCheckbox v-model="useCustomText" style="margin-bottom: 0.5rem;  color: var(--text-muted);">Override Global Text Style</CustomCheckbox>
+    </div>
+
+    <Transition name="slide-down">
+      <div class="control-row mt-2" v-if="useCustomText">
+      <div class="control-group half">
+        <label>Text Size (px)</label>
+        <input type="number" v-model.number="modelValue.textSize" min="6" max="32" />
+      </div>
+      <div class="control-group half">
+        <label>Text Color</label>
+        <ColorPicker v-model="modelValue.textColor" />
       </div>
     </div>
     </Transition>
