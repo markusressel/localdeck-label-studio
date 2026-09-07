@@ -31,8 +31,9 @@ const emit = defineEmits(['update:modelValue'])
 const isOpen = ref(false)
 
 const currentLabel = computed(() => {
-  const opt = props.options.find(o => o.value === props.modelValue)
-  return opt ? opt.label : props.modelValue
+  const val = props.modelValue === undefined ? null : props.modelValue
+  const opt = props.options.find(o => o.value === val)
+  return opt ? opt.label : (props.modelValue || 'Select...')
 })
 
 const toggle = () => {

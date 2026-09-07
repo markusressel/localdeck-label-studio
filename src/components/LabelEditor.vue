@@ -91,6 +91,7 @@
                 <CustomSelect 
                   v-model="modelValue.lightEffect" 
                   :options="[
+                    { value: null, label: 'Global Default' },
                     { value: 'static', label: 'Static' },
                     { value: 'breathing', label: 'Breathing' },
                     { value: 'rainbow', label: 'Rainbow' }
