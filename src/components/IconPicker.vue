@@ -55,6 +55,8 @@
 import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import * as emoji from 'node-emoji'
 
+import Fuse from 'fuse.js'
+
 const props = defineProps({
   modelValue: { type: String, default: '' }
 })
@@ -72,12 +74,24 @@ const popularIcons = [
 ]
 const iconifyResults = ref([...popularIcons])
 
+const popularIconsFuse = new Fuse(popularIcons, {
+  threshold: 0.4,
+  distance: 100
+})
+
 const popularEmojis = [
   '😀','😂','😊','😍','😎','😭','😡','🤔','👍','👎','👏','🙌','🤝','🔥','✨','🌟',
   '❤️','💔','💯','✅','❌','🛑','⚠️','🚀','🛸','🚗','🏠','💻','📱','⌨️','🖱️','🎧',
   '🎮','🎵','🍔','🍕','☕','🍺','🎉','🎁','📅','⏰','💡','🔋','⚙️','🔧','🔒','🔓'
 ]
 const displayedEmojis = ref([...popularEmojis])
+
+const allEmojis = emoji.search('')
+const emojiFuse = new Fuse(allEmojis, {
+  keys: ['name'],
+  threshold: 0.4,
+  distance: 100
+})
 
 // Simple check if string contains an emoji (non-ascii roughly)
 const isEmoji = (str) => {
@@ -126,11 +140,18 @@ watch(searchQuery, (newVal) => {
 const searchIconify = async (query) => {
   if (!query || query.length < 2 || isEmoji(query)) return
   
-  // Search emojis locally first (instant)
-  const emojiMatches = emoji.search(query).map(e => e.emoji)
+  // Fuzzy search ALL emojis locally
+  const fuseResults = emojiFuse.search(query)
+  const emojiMatches = fuseResults.map(result => result.item.emoji)
   displayedEmojis.value = emojiMatches.slice(0, 32)
   
   if (query.length < 3) return // Iconify requires at least 3 chars
+  
+  // Instantly show local fuzzy matches for popular icons while waiting for API
+  const localIconMatches = popularIconsFuse.search(query).map(r => r.item)
+  if (localIconMatches.length > 0) {
+    iconifyResults.value = localIconMatches
+  }
   
   isSearching.value = true
   try {
