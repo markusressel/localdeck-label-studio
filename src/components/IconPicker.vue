@@ -1,5 +1,14 @@
 <template>
   <div class="icon-picker-container" ref="pickerRef">
+    <div class="large-icon-preview">
+      <template v-if="modelValue">
+        <span v-if="isEmoji(modelValue)" class="emoji-large">{{ modelValue }}</span>
+        <Icon :icon="modelValue" v-else class="svg-large" />
+      </template>
+      <div v-else class="placeholder-icon">
+        <Icon icon="mdi:image-outline" />
+      </div>
+    </div>
     <div class="input-wrapper">
       <input 
         type="text" 
@@ -7,11 +16,8 @@
         @focus="isOpen = true"
         placeholder="e.g. mdi:home or 🚀" 
         class="icon-search-input"
+        style="padding-right: 12px !important;"
       />
-      <div class="icon-preview-box" v-if="modelValue">
-        <span v-if="isEmoji(modelValue)" class="emoji-preview">{{ modelValue }}</span>
-        <Icon :icon="modelValue" v-else />
-      </div>
     </div>
 
     <div class="picker-dropdown" v-if="isOpen">
@@ -213,18 +219,29 @@ onUnmounted(() => document.removeEventListener('click', handleClickOutside))
   padding-right: 40px !important;
 }
 
-.icon-preview-box {
-  position: absolute;
-  right: 6px;
-  width: 26px;
-  height: 26px;
-  background: rgba(255,255,255,0.1);
-  border-radius: 4px;
+.large-icon-preview {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 0.75rem auto;
+  background: rgba(0,0,0,0.15);
+  border: 1px dashed var(--card-border);
+  border-radius: 8px;
+  margin-bottom: 0.75rem;
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 1.1rem;
-  pointer-events: none;
+}
+
+.emoji-large, .svg-large {
+  font-size: 3.5rem;
+  color: var(--text-main);
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+}
+
+.placeholder-icon {
+  font-size: 2.5rem;
+  color: var(--text-muted);
+  opacity: 0.5;
 }
 
 .picker-dropdown {
