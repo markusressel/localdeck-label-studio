@@ -16,7 +16,10 @@
 
     <div class="picker-dropdown" v-if="isOpen">
       <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--card-border); background: rgba(0,0,0,0.2);">
-        <span style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: var(--text-muted);">Icon Library</span>
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <span style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: var(--text-muted);">Icon Library</span>
+          <Icon v-if="isSearching" icon="mdi:loading" class="spin-animation" style="color: var(--primary); font-size: 0.9rem;" />
+        </div>
         <button class="icon-btn" @click.prevent="isOpen = false" style="padding: 2px; color: var(--text-muted); cursor: pointer; background: transparent; border: none;">
           <Icon icon="mdi:close" style="font-size: 1rem;" />
         </button>
@@ -37,8 +40,7 @@
         </div>
 
         <div class="section-headline mt-3">Iconify Icons</div>
-        <div v-if="isSearching" class="loading">Searching...</div>
-        <div v-else-if="iconifyResults.length === 0" class="empty-state">
+        <div v-if="iconifyResults.length === 0 && !isSearching" class="empty-state">
           Type to search icons (e.g. 'home', 'arrow', 'user')...
         </div>
         <div v-else class="icon-grid">
@@ -229,7 +231,7 @@ onUnmounted(() => document.removeEventListener('click', handleClickOutside))
   position: absolute;
   top: calc(100% + 4px);
   left: 0;
-  width: 250px;
+  width: 360px;
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: 8px;
@@ -256,22 +258,22 @@ onUnmounted(() => document.removeEventListener('click', handleClickOutside))
 
 .dropdown-content {
   padding: 0.75rem;
-  max-height: 250px;
+  max-height: 400px;
   overflow-y: auto;
 }
 
 .icon-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(36px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(54px, 1fr));
   gap: 4px;
 }
 
 .icon-cell {
-  height: 36px;
+  height: 54px;
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 1.5rem;
+  font-size: 2.5rem;
   border-radius: 6px;
   cursor: pointer;
   transition: background 0.1s;
@@ -283,7 +285,7 @@ onUnmounted(() => document.removeEventListener('click', handleClickOutside))
 }
 
 .emoji-cell {
-  font-size: 1.25rem;
+  font-size: 2rem;
 }
 
 .loading, .empty-state {
@@ -292,4 +294,6 @@ onUnmounted(() => document.removeEventListener('click', handleClickOutside))
   font-size: 0.85rem;
   padding: 1rem 0;
 }
+.spin-animation { animation: spin 1s linear infinite; }
+@keyframes spin { 100% { transform: rotate(360deg); } }
 </style>
