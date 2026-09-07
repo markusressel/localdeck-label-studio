@@ -6,9 +6,7 @@
     </div>
     
     <div class="control-row">
-      <label class="checkbox-label" style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem; display: block;">
-        <input type="checkbox" v-model="useCustomText" /> Override Global Text Style
-      </label>
+      <CustomCheckbox v-model="useCustomText" style="margin-bottom: 0.5rem; display: block; color: var(--text-muted);">Override Global Text Style</CustomCheckbox>
     </div>
 
     <div class="control-row mt-2" v-if="useCustomText">
@@ -40,9 +38,7 @@
     </div>
     
     <div class="control-row mt-2">
-      <label class="checkbox-label" style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem; display: block;">
-        <input type="checkbox" v-model="useCustomIcon" /> Override Global Icon Style
-      </label>
+      <CustomCheckbox v-model="useCustomIcon" style="margin-bottom: 0.5rem; display: block; color: var(--text-muted);">Override Global Icon Style</CustomCheckbox>
     </div>
 
     <div class="control-row mt-2" v-if="useCustomIcon">
@@ -61,9 +57,7 @@
     <div class="control-group">
       <label>Print Settings</label>
       <div class="light-override">
-        <label class="checkbox-label">
-          <input type="checkbox" v-model="modelValue.print" /> Include this label when printing
-        </label>
+        <CustomCheckbox v-model="modelValue.print">Include this label when printing</CustomCheckbox>
       </div>
     </div>
     
@@ -72,9 +66,7 @@
     <div class="control-group">
       <label>LED Backlight Override</label>
       <div class="light-override">
-        <label class="checkbox-label">
-          <input type="checkbox" v-model="useCustomLight" /> Custom LED for this key
-        </label>
+        <CustomCheckbox v-model="useCustomLight">Custom LED for this key</CustomCheckbox>
         
         <div class="control-row mt-2" v-if="useCustomLight">
           <div class="control-group half">
@@ -94,6 +86,7 @@
 <script setup>
 import { computed } from 'vue'
 import ColorPicker from './ColorPicker.vue'
+import CustomCheckbox from './CustomCheckbox.vue'
 import IconPicker from './IconPicker.vue'
 
 const props = defineProps({

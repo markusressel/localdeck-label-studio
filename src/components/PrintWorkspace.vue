@@ -24,11 +24,11 @@
         </div>
         <div class="labels-checklist" style="overflow-y: auto; flex: 1; border: 1px solid var(--card-border); padding: 0.5rem; border-radius: 4px;">
           <div v-for="label in labels" :key="label.id" class="checklist-item" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
-            <input type="checkbox" :id="'chk-'+label.id" :value="label.id" v-model="selectedPrintIds" />
-            <label :for="'chk-'+label.id" style="font-size: 0.85rem; margin: 0; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-              <span v-if="label.icon" class="iconify" :data-icon="label.icon" style="margin-right: 4px; vertical-align: middle;"></span>
+            <CustomCheckbox :value="label.id" v-model="selectedPrintIds">
+              <span v-if="label.icon && !isEmoji(label.icon)" class="iconify" :data-icon="label.icon" style="margin-right: 4px; vertical-align: middle;"></span>
+              <span v-else-if="label.icon && isEmoji(label.icon)" style="margin-right: 4px; vertical-align: middle;">{{ label.icon }}</span>
               {{ label.text || 'Unnamed' }}
-            </label>
+            </CustomCheckbox>
           </div>
         </div>
       </div>
@@ -129,8 +129,14 @@
 import { useStore } from '../composables/useStore.js'
 import LabelPreview from './LabelPreview.vue'
 import CustomSelect from './CustomSelect.vue'
+import CustomCheckbox from './CustomCheckbox.vue'
 import AlertBox from './AlertBox.vue'
 import { computed } from 'vue'
+
+const isEmoji = (str) => {
+  if (!str) return false
+  return /[\u{1F300}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F900}-\u{1F9FF}\u{1F018}-\u{1F270}]/u.test(str)
+}
 
 const {
   previewMode,
