@@ -6,10 +6,11 @@
     </div>
     
     <div class="control-row">
-      <CustomCheckbox v-model="useCustomText" style="margin-bottom: 0.5rem; display: block; color: var(--text-muted);">Override Global Text Style</CustomCheckbox>
+      <CustomCheckbox v-model="useCustomText" style="margin-bottom: 0.5rem;  color: var(--text-muted);">Override Global Text Style</CustomCheckbox>
     </div>
 
-    <div class="control-row mt-2" v-if="useCustomText">
+    <Transition name="slide-down">
+      <div class="control-row mt-2" v-if="useCustomText">
       <div class="control-group half">
         <label>Text Size (px)</label>
         <input type="number" v-model.number="modelValue.textSize" min="6" max="32" />
@@ -19,6 +20,7 @@
         <ColorPicker v-model="modelValue.textColor" />
       </div>
     </div>
+    </Transition>
     
     <div class="divider"></div>
 
@@ -38,9 +40,10 @@
     </div>
     
     <div class="control-row mt-2">
-      <CustomCheckbox v-model="useCustomIcon" style="margin-bottom: 0.5rem; display: block; color: var(--text-muted);">Override Global Icon Style</CustomCheckbox>
+      <CustomCheckbox v-model="useCustomIcon" style="margin-bottom: 0.5rem;  color: var(--text-muted);">Override Global Icon Style</CustomCheckbox>
     </div>
 
+    <Transition name="slide-down">
     <div class="control-row mt-2" v-if="useCustomIcon">
       <div class="control-group half">
         <label>Icon Size (px)</label>
@@ -51,6 +54,7 @@
         <ColorPicker v-model="modelValue.iconColor" />
       </div>
     </div>
+    </Transition>
     
     <div class="divider"></div>
 
@@ -68,6 +72,7 @@
       <div class="light-override">
         <CustomCheckbox v-model="useCustomLight">Custom LED for this key</CustomCheckbox>
         
+        <Transition name="slide-down">
         <div class="control-row mt-2" v-if="useCustomLight">
           <div class="control-group half">
             <label>Brightness</label>
@@ -299,3 +304,7 @@ const clearImage = () => {
   background: var(--primary-transparent);
 }
 </style>
+
+.slide-down-enter-active, .slide-down-leave-active { transition: all 0.3s ease; overflow: hidden; }
+.slide-down-enter-from, .slide-down-leave-to { opacity: 0; max-height: 0; padding-top: 0; padding-bottom: 0; margin-top: 0; }
+.slide-down-enter-to, .slide-down-leave-from { opacity: 1; max-height: 200px; }
