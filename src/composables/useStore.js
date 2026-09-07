@@ -2,6 +2,9 @@ import { ref, computed, watch, nextTick } from 'vue'
 
 const labelWidth = ref(14)
 const labelHeight = ref(14)
+const matrixWidth = ref(6)
+const matrixHeight = ref(4)
+const totalMatrixSlots = computed(() => matrixWidth.value * matrixHeight.value)
 const labelMaterial = ref('transparent')
 const globalLightColor = ref('#10b981')
 const globalLightBrightness = ref(80)
@@ -197,7 +200,7 @@ const loadState = () => {
           if (l.iconSize === 24 && l.iconColor === '#000000') { l.iconSize = null; l.iconColor = null; }
           
           if (l.deckSlot === undefined) {
-             if (l.print !== false && nextDeckSlot < 24) {
+             if (l.print !== false && nextDeckSlot < totalMatrixSlots.value) {
                l.deckSlot = nextDeckSlot;
                nextDeckSlot++;
              } else {
@@ -257,13 +260,17 @@ const addLabel = (overrides = {}, slot = null) => {
   return newId
 }
 
-const fillTo24 = () => {
-  for (let i = 0; i < 24; i++) {
+const fillMatrix = () => {
+  for (let i = 0; i < totalMatrixSlots.value; i++) {
     if (!getLabelAtSlot(i)) {
       addLabel(getRandomDefault(), i)
     }
   }
 }
+
+watch([matrixWidth, matrixHeight], () => {
+  fillMatrix()
+})
 
 const duplicateSelected = () => {
   if (selectedItemIndex.value === null) return
@@ -605,7 +612,10 @@ export function useStore() {
     loadState,
     saveState,
     addLabel,
-    fillTo24,
+    fillMatrix,
+    matrixWidth,
+    matrixHeight,
+    totalMatrixSlots,
     duplicateSelected,
     removeSelected,
     exportData,

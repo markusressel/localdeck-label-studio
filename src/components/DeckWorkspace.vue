@@ -3,7 +3,12 @@
     <!-- LocalDeck Preview -->
     <div class="section-header device-header">
       <h2>LocalDeck Preview</h2>
-      <span class="badge">Physical Layout (Max 24)</span>
+      <div class="matrix-inputs" style="display: flex; align-items: center; gap: 0.25rem; margin-left: 1rem; background: rgba(0,0,0,0.15); padding: 0.2rem 0.5rem; border-radius: 4px; border: 1px solid var(--card-border);">
+        <span class="iconify" data-icon="mdi:grid" style="color: var(--text-muted); margin-right: 0.25rem;"></span>
+        <input type="number" v-model.number="matrixWidth" min="1" max="24" style="width: 45px; padding: 0.1rem; text-align: center; background: transparent; border: none; color: white; font-weight: 500;" title="Columns" />
+        <span style="color: var(--text-muted); font-size: 0.8rem;">×</span>
+        <input type="number" v-model.number="matrixHeight" min="1" max="24" style="width: 45px; padding: 0.1rem; text-align: center; background: transparent; border: none; color: white; font-weight: 500;" title="Rows" />
+      </div>
       <div class="spacer"></div>
       
       <div class="setting-group" style="margin-right: 1rem; cursor: pointer;" @click="darkRoom = !darkRoom" title="Toggle Room Lighting">
@@ -36,9 +41,9 @@
     </div>
     <div class="device-preview-container">
       <div class="localdeck-device">
-        <div class="device-grid">
+        <div class="device-grid" :style="{ gridTemplateColumns: `repeat(${matrixWidth}, max-content)` }">
           <div 
-            v-for="i in 24"
+            v-for="i in totalMatrixSlots"
             :key="'deck-slot-' + (i - 1)"
             class="device-slot"
             :class="{ 
@@ -86,7 +91,7 @@
       <h2>Label Library</h2>
       <span class="badge">{{ labels.length }} items</span>
       
-      <button @click="fillTo24" class="fill-btn" title="Fill empty deck slots with defaults">
+      <button @click="fillMatrix" class="fill-btn" title="Fill empty deck slots with defaults">
         <span class="iconify" data-icon="mdi:playlist-plus"></span> Fill Empty Deck Slots
       </button>
       
@@ -174,7 +179,10 @@ const {
   dragOverTarget,
   selectedId,
   getLabelAtSlot,
-  fillTo24,
+  fillMatrix,
+  matrixWidth,
+  matrixHeight,
+  totalMatrixSlots,
   addLabel,
   onDragStart,
   onDragEnd,
