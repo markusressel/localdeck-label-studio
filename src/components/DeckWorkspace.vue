@@ -2,9 +2,7 @@
   <div class="grid-section">
     <!-- LocalDeck Preview -->
     <div class="section-header device-header">
-      <select v-model="activeDeckId" style="background: rgba(0,0,0,0.2); border: 1px solid var(--card-border); color: white; padding: 0.4rem 0.5rem; border-radius: 4px; font-size: 1rem; font-weight: 600; cursor: pointer;">
-        <option v-for="deck in decks" :key="deck.id" :value="deck.id">{{ deck.name }}</option>
-      </select>
+      <CustomSelect v-model="activeDeckId" :options="deckOptions" style="width: 200px; font-weight: 600;" />
       <div style="display: flex; gap: 0.25rem; margin-left: 0.5rem;">
         <button class="icon-btn" @click="addDeck" title="Add New Deck"><Icon icon="mdi:plus" /></button>
         <button class="icon-btn" @click="renameDeck" title="Rename Deck"><Icon icon="mdi:pencil" /></button>
@@ -170,6 +168,7 @@
 <script setup>
 import { Icon } from '@iconify/vue'
 import { useStore } from '../composables/useStore.js'
+import { computed } from 'vue'
 import LabelPreview from './LabelPreview.vue'
 import ColorPicker from './ColorPicker.vue'
 import CustomSelect from './CustomSelect.vue'
@@ -188,6 +187,8 @@ const addDeck = () => {
   decks.value.push({ id, name, width: 6, height: 4, slots: {} })
   activeDeckId.value = id
 }
+
+const deckOptions = computed(() => decks.value.map(d => ({ value: d.id, label: d.name })))
 
 const renameDeck = () => {
   if (!activeDeck.value) return
