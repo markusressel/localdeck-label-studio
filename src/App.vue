@@ -23,11 +23,8 @@
           <button @click="exportData" class="secondary export-btn">
             <Icon icon="mdi:export" /> Export
           </button>
-          <button @click="previewMode = true" class="secondary preview-toggle-btn">
-            <Icon icon="mdi:eye-outline" /> Preview
-          </button>
-          <button @click="printLabels" class="primary print-btn">
-            <Icon icon="mdi:printer" /> Print
+          <button @click="previewMode = !previewMode" class="primary print-btn" :class="{ 'active': previewMode }">
+            <Icon icon="mdi:printer" /> {{ previewMode ? 'Close Print' : 'Print' }}
           </button>
         </div>
       </div>
@@ -560,28 +557,39 @@ onMounted(() => {
   align-content: flex-start;
 }
 
-#print-area {
-  display: none;
-}
+/* #print-area display moved to handle slide animation */
 
 /* Make preview-mode NOT flashbang with white background */
 .preview-mode {
   background-color: var(--bg);
 }
 
-.preview-mode .app-header, 
 .preview-mode .app-main {
-  display: none !important;
+  opacity: 0.2;
+  pointer-events: none;
+  transition: opacity 0.4s;
+}
+
+.app-main {
+  transition: opacity 0.4s;
+}
+
+#print-area {
+  display: flex !important;
+  position: fixed;
+  top: 76px;
+  left: 0;
+  width: 100%;
+  height: calc(100vh - 76px);
+  background: rgba(15, 23, 42, 0.98);
+  z-index: 40;
+  transform: translateY(-120%);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
 }
 
 .preview-mode #print-area {
-  display: flex !important;
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100vh;
-  background: rgba(15, 23, 42, 0.95);
+  transform: translateY(0);
 }
 
 .print-preview-sidebar {
@@ -751,6 +759,9 @@ onMounted(() => {
     display: block !important;
     padding: 0;
     background: transparent;
+    top: 0 !important;
+    transform: none !important;
+    height: auto !important;
   }
   .print-preview-content {
     display: block;
