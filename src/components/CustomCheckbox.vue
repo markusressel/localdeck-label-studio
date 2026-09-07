@@ -1,19 +1,12 @@
 <template>
-  <label class="custom-checkbox-wrapper" :class="{ 'is-checked': isChecked }">
-    <input 
-      type="checkbox" 
-      class="hidden-checkbox" 
-      :checked="isChecked"
-      :value="value"
-      @change="onChange"
-    />
+  <div class="custom-checkbox-wrapper" tabindex="0" @keydown.space.prevent="toggleCheckbox" @click.prevent="toggleCheckbox" :class="{ 'is-checked': isChecked }">
     <div class="checkbox-box">
       <span class="iconify check-icon" data-icon="mdi:check" v-if="isChecked"></span>
     </div>
     <span class="checkbox-label" v-if="$slots.default">
       <slot></slot>
     </span>
-  </label>
+  </div>
 </template>
 
 <script setup>
@@ -39,8 +32,8 @@ const isChecked = computed(() => {
   return !!props.modelValue
 })
 
-const onChange = (e) => {
-  const checked = e.target.checked
+const toggleCheckbox = () => {
+  const checked = !isChecked.value
   if (Array.isArray(props.modelValue)) {
     const newVal = [...props.modelValue]
     if (checked) {
@@ -110,7 +103,7 @@ const onChange = (e) => {
   line-height: 1.2;
 }
 
-.hidden-checkbox:focus-visible + .checkbox-box {
+.custom-checkbox-wrapper:focus-visible .checkbox-box {
   box-shadow: 0 0 0 3px var(--primary-transparent);
   border-color: var(--primary);
 }

@@ -90,7 +90,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 import ColorPicker from './ColorPicker.vue'
 import CustomCheckbox from './CustomCheckbox.vue'
 import IconPicker from './IconPicker.vue'
@@ -103,6 +103,7 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:modelValue'])
+watch(() => props.modelValue, (newVal) => { console.log("LabelEditor modelValue updated:", newVal) }, { deep: true })
 
 const useCustomText = computed({
   get: () => props.modelValue.textSize !== null && props.modelValue.textSize !== undefined,
