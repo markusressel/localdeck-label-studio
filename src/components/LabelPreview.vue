@@ -77,7 +77,13 @@ const props = defineProps({
   darkRoom: { type: Boolean, default: false }
 })
 
+const effectiveLightEffect = computed(() => {
+  return props.label.lightEffect !== null && props.label.lightEffect !== undefined
+    ? props.label.lightEffect : props.globalLightEffect
+})
+
 const effectiveLightColor = computed(() => {
+  if (effectiveLightEffect.value === 'rainbow') return '#ff0000'
   return props.label.lightColor !== null && props.label.lightColor !== undefined 
     ? props.label.lightColor : props.globalLightColor
 })
@@ -86,11 +92,6 @@ const effectiveLightBrightness = computed(() => {
   const b = props.label.lightBrightness !== null && props.label.lightBrightness !== undefined
     ? props.label.lightBrightness : props.globalLightBrightness
   return b / 100 
-})
-
-const effectiveLightEffect = computed(() => {
-  return props.label.lightEffect !== null && props.label.lightEffect !== undefined
-    ? props.label.lightEffect : props.globalLightEffect
 })
 
 const effectiveTextSize = computed(() => props.label.textSize ?? props.globalTextSize)

@@ -62,7 +62,7 @@
               :key="color"
               class="swatch"
               :style="{ backgroundColor: color }"
-              :class="{ 'is-active': modelValue.toLowerCase() === color.toLowerCase() }"
+              :class="{ 'is-active': modelValue && modelValue.toLowerCase() === color.toLowerCase() }"
               @click="selectColor(color)"
             ></div>
           </div>
@@ -105,6 +105,7 @@ const hsv = reactive({ h: 0, s: 0, v: 0 })
 // Converters
 const hexToRgb = (hex) => {
   let r = 0, g = 0, b = 0
+  if (!hex) return { r, g, b }
   if (hex.length === 4) {
     r = parseInt(hex[1] + hex[1], 16) * 17
     g = parseInt(hex[2] + hex[2], 16) * 17

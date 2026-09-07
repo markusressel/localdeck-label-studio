@@ -39,7 +39,7 @@
       </div>
       
       <div class="panel-content">
-        <LabelEditor v-model="labels[selectedItemIndex]" />
+        <LabelEditor v-model="labels[selectedItemIndex]" :key="labels[selectedItemIndex].id" />
         
         <div style="margin-top: 1.5rem;">
           <button class="primary" style="width: 100%; background: var(--danger); border-color: var(--danger); display: flex; align-items: center; justify-content: center; gap: 0.5rem;" @click="removeSelected">

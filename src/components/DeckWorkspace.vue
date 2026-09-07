@@ -193,4 +193,20 @@ const {
   onDropDeckSlot,
   onDropLibrary
 } = useStore()
+
+import { onMounted, onUnmounted } from 'vue'
+
+const handleKeydown = (e) => {
+  if (e.key === 'Delete' || e.key === 'Backspace') {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return
+    if (!selectedId.value) return
+    const selected = labels.value.find(l => l.id === selectedId.value)
+    if (selected && selected.deckSlot !== null) {
+      selected.deckSlot = null
+    }
+  }
+}
+
+onMounted(() => window.addEventListener('keydown', handleKeydown))
+onUnmounted(() => window.removeEventListener('keydown', handleKeydown))
 </script>

@@ -15,6 +15,12 @@
     </div>
 
     <div class="picker-dropdown" v-if="isOpen">
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--card-border); background: rgba(0,0,0,0.2);">
+        <span style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: var(--text-muted);">Icon Library</span>
+        <button class="icon-btn" @click.prevent="isOpen = false" style="padding: 2px; color: var(--text-muted); cursor: pointer; background: transparent; border: none;">
+          <span class="iconify" data-icon="mdi:close" style="font-size: 1rem;"></span>
+        </button>
+      </div>
       <div class="dropdown-content">
         <div v-if="displayedEmojis.length > 0">
           <div class="section-headline">{{ searchQuery && searchQuery.length > 1 ? 'Matching Emojis' : 'Emojis' }}</div>
@@ -23,7 +29,7 @@
               v-for="emoji in displayedEmojis" 
               :key="emoji" 
               class="icon-cell emoji-cell" 
-              @mousedown.prevent="selectIcon(emoji)"
+              @click.prevent="selectIcon(emoji)"
             >
               {{ emoji }}
             </div>
@@ -41,7 +47,7 @@
             :key="icon" 
             class="icon-cell" 
             :title="icon"
-            @mousedown.prevent="selectIcon(icon)"
+            @click.prevent="selectIcon(icon)"
           >
             <span class="iconify" :data-icon="icon"></span>
           </div>
