@@ -231,6 +231,7 @@ const loadState = () => {
       if (data.selectedId) selectedId.value = data.selectedId
       if (data.printFormat) printFormat.value = data.printFormat
       if (data.printZoom) printZoom.value = data.printZoom
+      if (data.printOffsetY !== undefined) printOffsetY.value = data.printOffsetY
       if (data.selectedPrintIds) selectedPrintIds.value = data.selectedPrintIds
       if (data.printGrid) printGrid.value = data.printGrid
       if (data.labels && data.labels.length > 0) {
