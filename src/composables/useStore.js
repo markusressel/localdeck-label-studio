@@ -142,6 +142,16 @@ watch(previewMode, async (newVal) => {
   }
 })
 
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('beforeprint', () => {
+    if (previewContentRef.value) {
+      previewContentRef.value.scrollTop = 0
+      previewContentRef.value.scrollLeft = 0
+    }
+  })
+}
+
 const selectAllPrint = () => { selectedPrintIds.value = labels.value.map(l => l.id) }
 const selectNonePrint = () => { selectedPrintIds.value = [] }
 const selectDeckPrint = () => { selectedPrintIds.value = printedLabels.value.map(l => l.id) }
