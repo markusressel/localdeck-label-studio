@@ -410,9 +410,10 @@ const importData = (event) => {
 }
 
 // Drag and Drop Logic
-const onDragStart = (e, label) => {
+const onDragStart = (e, label, source = 'library') => {
   isDragging.value = true
   e.dataTransfer.setData('text/plain', label.id)
+  e.dataTransfer.setData('source', source)
   e.dataTransfer.effectAllowed = 'move'
   
   const ghost = document.getElementById('drag-ghost')
@@ -431,6 +432,7 @@ const onDragEnd = () => {
 const onDropDeckSlot = (e, targetSlotIndex) => {
   dragOverTarget.value = null
   const draggedId = e.dataTransfer.getData('text/plain')
+  const source = e.dataTransfer.getData('source')
   if (!draggedId) return
   
   const draggedLabel = labels.value.find(l => l.id === draggedId)
@@ -441,20 +443,17 @@ const onDropDeckSlot = (e, targetSlotIndex) => {
   const deck = activeDeck.value
   if (!deck.slots) deck.slots = {}
   
-  // Find where draggedId currently is on this deck
-  const currentSlotStr = Object.keys(deck.slots).find(key => deck.slots[key] === draggedId)
-  
-  if (targetLabel && targetLabel.id !== draggedId) {
-    if (currentSlotStr !== undefined) {
-      const currentSlot = parseInt(currentSlotStr)
+  if (source === 'library') {
+    deck.slots[targetSlotIndex] = draggedId
+  } else {
+    const currentSlot = parseInt(source)
+    if (targetLabel && targetLabel.id !== draggedId) {
       deck.slots[currentSlot] = targetLabel.id
+      deck.slots[targetSlotIndex] = draggedId
+    } else if (!targetLabel) {
+      delete deck.slots[currentSlot]
+      deck.slots[targetSlotIndex] = draggedId
     }
-    deck.slots[targetSlotIndex] = draggedId
-  } else if (!targetLabel) {
-    if (currentSlotStr !== undefined) {
-      delete deck.slots[parseInt(currentSlotStr)]
-    }
-    deck.slots[targetSlotIndex] = draggedId
   }
 }
 

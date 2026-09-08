@@ -62,7 +62,7 @@
             }"
             @click="getLabelAtSlot(i - 1) ? selectedId = getLabelAtSlot(i - 1).id : null"
             :draggable="!!getLabelAtSlot(i - 1)"
-            @dragstart="getLabelAtSlot(i - 1) && onDragStart($event, getLabelAtSlot(i - 1))"
+            @dragstart="getLabelAtSlot(i - 1) && onDragStart($event, getLabelAtSlot(i - 1), String(i - 1))"
             @dragenter.prevent="dragOverTarget = 'deck-' + (i - 1)"
             @dragleave.prevent="dragOverTarget = null"
             @dragend="onDragEnd"
