@@ -97,10 +97,7 @@ const emojiFuse = new Fuse(allEmojis, {
 })
 
 // Simple check if string contains an emoji (non-ascii roughly)
-const isEmoji = (str) => {
-  if (!str) return false
-  return /\p{Extended_Pictographic}/u.test(str) || emoji.has(str)
-}
+import { isEmoji } from '../utils/emojiUtils.js'
 
 watch(() => props.modelValue, (newVal) => {
   if (newVal !== searchQuery.value) {

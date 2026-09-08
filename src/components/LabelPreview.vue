@@ -57,10 +57,7 @@ import { Icon } from '@iconify/vue'
 import { computed, ref, onMounted, onUpdated, nextTick } from 'vue'
 import * as emoji from 'node-emoji'
 
-const isEmoji = (str) => {
-  if (!str) return false
-  return /\p{Extended_Pictographic}/u.test(str) || emoji.has(str)
-}
+import { isEmoji } from '../utils/emojiUtils.js'
 
 const props = defineProps({
   label: { type: Object, required: true },
