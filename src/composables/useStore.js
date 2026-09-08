@@ -664,6 +664,7 @@ export function useStore() {
     previewMode,
     printFormat,
     printZoom,
+    printOffsetY,
     selectedPrintIds,
     printGrid,
     printDragTarget,
