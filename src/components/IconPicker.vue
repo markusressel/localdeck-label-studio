@@ -99,7 +99,7 @@ const emojiFuse = new Fuse(allEmojis, {
 // Simple check if string contains an emoji (non-ascii roughly)
 const isEmoji = (str) => {
   if (!str) return false
-  return /[\u{1F300}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F900}-\u{1F9FF}\u{1F018}-\u{1F270}]/u.test(str)
+  return /\p{Extended_Pictographic}/u.test(str) || emoji.has(str)
 }
 
 watch(() => props.modelValue, (newVal) => {
