@@ -20,3 +20,5 @@ typecheck:
 # Run tests (if configured)
 test:
     npm run test:unit
+coverage:
+    npm run test:coverage

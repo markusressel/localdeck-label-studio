@@ -79,7 +79,8 @@ const getLabelAtSlot = (slotIndex) => {
 }
 
 const printedLabels = computed(() => {
-  return labels.value.filter(l => l.deckSlot !== null).sort((a, b) => a.deckSlot - b.deckSlot)
+  const slotVals = Object.values(activeDeck.value.slots || {})
+  return labels.value.filter(l => slotVals.includes(l.id))
 })
 
 const explicitlyPrintedLabels = computed(() => {
