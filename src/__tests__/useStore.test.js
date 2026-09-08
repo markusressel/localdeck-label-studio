@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useStore } from '../composables/useStore.js'
+import { nextTick } from 'vue'
 
 describe('useStore', () => {
   let store
@@ -39,7 +40,9 @@ describe('useStore', () => {
     const newId = store.addLabel({ text: 'Delete Me' }, 2)
     expect(store.activeDeck.value.slots[2]).toBe(newId)
     
-    store.deleteLabel(newId)
+    store.selectedId.value = newId
+    store.removeSelected()
+    
     expect(store.labels.value.length).toBe(0)
     expect(store.activeDeck.value.slots[2]).toBeUndefined()
   })
