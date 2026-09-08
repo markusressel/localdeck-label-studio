@@ -1,5 +1,6 @@
 <template>
   <div id="print-area">
+    <div v-html="`<style>@media print { @page { margin: 0; size: ${printFormat === 'A4' ? 'A4 portrait' : printFormat === 'A4-L' ? 'A4 landscape' : 'Letter portrait'}; } }</style>`"></div>
     <div class="print-preview-sidebar no-print" v-if="previewMode">
       <h2>Print Settings</h2>
       
@@ -136,6 +137,7 @@ import { Icon } from '@iconify/vue'
 import { useStore } from '../composables/useStore.js'
 import LabelPreview from './LabelPreview.vue'
 import CustomSelect from './CustomSelect.vue'
+import NumberStepper from './NumberStepper.vue'
 import CustomCheckbox from './CustomCheckbox.vue'
 import AlertBox from './AlertBox.vue'
 import { computed } from 'vue'

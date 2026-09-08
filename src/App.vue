@@ -788,8 +788,9 @@ onMounted(() => {
   .print-preview-content {
     display: block;
     padding: 0;
-    overflow: hidden !important;
-    max-height: 100vh !important;
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
   }
   .paper-sheet {
     box-shadow: none !important;

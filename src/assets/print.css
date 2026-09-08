@@ -39,7 +39,7 @@
   /* Remove default browser margins */
   @page {
     margin: 0;
-    size: auto; 
+    /* size is now injected dynamically by PrintWorkspace.vue */ 
   }
 
   /* Reset body styles that interfere with print */
@@ -79,5 +79,8 @@
     left: 0 !important;
     position: relative !important;
     background: transparent !important;
+    min-height: auto !important;
+    height: auto !important;
+    page-break-inside: auto !important;
   }
 }
