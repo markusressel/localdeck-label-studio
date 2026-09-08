@@ -14,6 +14,12 @@
           ]"
         />
       </div>
+      
+      <div class="setting-group-vertical mt-3">
+        <label>Printer Hardware Top Margin (mm)</label>
+        <small style="color: var(--text-muted); font-size: 0.75rem; margin-bottom: 0.25rem;">Shift labels down if your printer cuts them off.</small>
+        <NumberStepper v-model="printOffsetY" :min="0" :max="50" :defaultVal="0" />
+      </div>
 
       <div class="setting-group-vertical" style="flex: 1; overflow: hidden; display: flex; flex-direction: column;">
         <label>Labels to Print</label>
@@ -85,7 +91,7 @@
               }"
             ></div>
             
-            <div class="label-grid">
+            <div class="label-grid" :style="{ paddingTop: printOffsetY + 'mm' }">
               <div 
                 v-for="(labelId, index) in printGrid.slice(0, totalPrintSlots)"
                 :key="'slot-' + index"
@@ -144,6 +150,7 @@ const {
   previewMode,
   printFormat,
   printZoom,
+  printOffsetY,
   selectedPrintIds,
   printGrid,
   printDraggedSlot,

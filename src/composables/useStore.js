@@ -35,6 +35,7 @@ const previewMode = ref(false)
 
 const printFormat = ref('A4')
 const printZoom = ref(1)
+const printOffsetY = ref(0)
 const selectedPrintIds = ref([])
 const printGrid = ref([])
 const printDragTarget = ref(null)
@@ -275,6 +276,7 @@ const saveState = () => {
     selectedId: selectedId.value,
     printFormat: printFormat.value,
     printZoom: printZoom.value,
+        printOffsetY: printOffsetY.value,
     selectedPrintIds: selectedPrintIds.value,
     printGrid: printGrid.value,
     labels: labels.value
@@ -638,7 +640,8 @@ const printLabels = async () => {
   window.print()
 }
 
-watch([decks, activeDeckId, labelWidth, labelHeight, labelMaterial, globalLightColor, globalLightBrightness, globalLightEffect, globalTextSize, globalTextColor, globalIconSize, globalIconColor, zoomLevel, labels, selectedId, printFormat, printZoom, selectedPrintIds, printGrid], saveState, { deep: true })
+watch([decks, activeDeckId, labelWidth, labelHeight, labelMaterial, globalLightColor, globalLightBrightness, globalLightEffect, globalTextSize, globalTextColor, globalIconSize, globalIconColor, zoomLevel, labels, selectedId, printFormat, printZoom,
+    printOffsetY, selectedPrintIds, printGrid], saveState, { deep: true })
 
 export function useStore() {
   return {
