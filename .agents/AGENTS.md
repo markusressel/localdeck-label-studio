@@ -42,3 +42,13 @@ The application's core reactive state is centralized in `src/composables/useStor
 ### 3. Multiple Decks Architecture
 - Labels no longer contain hardcoded `deckSlot` coordinates.
 - Spatial layout is handled exclusively by the `decks` array in `useStore.js`, where each deck has a `slots: { [slotIndex]: labelId }` map.
+
+### 4. Emoji Detection
+NEVER use legacy unicode block ranges (e.g., `/[\u{1F300}-\u{1F6FF}]/u`) to detect emojis, as they silently fail on emojis that utilize Variation Selectors (like `▶️` or `⚙️`). 
+Always use the modern ES2018 native property escape: `/\p{Extended_Pictographic}/u.test(str)`.
+
+### 5. Drag and Drop Architecture
+The application features a distinct Drag and Drop engine between the Label Library and the Deck Workspace.
+- When initiating a drag event, you MUST inject a `source` string into the `dataTransfer` payload (`e.dataTransfer.setData('source', 'library' | slotIndex)`).
+- **Library Stamping:** If a label is dragged from the `library`, dropping it onto a deck slot MUST duplicate/stamp the label ID onto the new slot without removing it from its previous slots.
+- **Deck Moving:** If a label is dragged from an existing deck slot, dropping it onto a new deck slot MUST move/swap the label and clear the old slot.
