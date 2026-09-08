@@ -116,6 +116,7 @@ import IconPicker from './IconPicker.vue'
 import NumberStepper from './NumberStepper.vue'
 import CustomInput from './CustomInput.vue'
 import CustomSlider from './CustomSlider.vue'
+import * as emoji from 'node-emoji'
 
 const isEmoji = (str) => {
   if (!str) return false

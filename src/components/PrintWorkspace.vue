@@ -133,6 +133,7 @@ import CustomSelect from './CustomSelect.vue'
 import CustomCheckbox from './CustomCheckbox.vue'
 import AlertBox from './AlertBox.vue'
 import { computed } from 'vue'
+import * as emoji from 'node-emoji'
 
 const isEmoji = (str) => {
   if (!str) return false
