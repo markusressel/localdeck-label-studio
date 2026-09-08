@@ -694,7 +694,6 @@ export function useStore() {
     decks,
     activeDeckId,
     activeDeck,
-    matrixWidth,
     matrixHeight,
     totalMatrixSlots,
     duplicateSelected,
