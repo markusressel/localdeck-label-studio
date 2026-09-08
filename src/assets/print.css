@@ -50,3 +50,36 @@
     min-height: auto;
   }
 }
+
+@media print {
+  /* Flatten the infinite canvas for printing */
+  .canvas-infinite-space {
+    padding: 0 !important;
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-width: auto !important;
+    min-height: auto !important;
+  }
+
+  .print-preview-content {
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  .paper-zoom-wrapper {
+    width: auto !important;
+    height: auto !important;
+    transform: none !important;
+  }
+
+  .paper-sheet {
+    transform: none !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    top: 0 !important;
+    left: 0 !important;
+    position: relative !important;
+    background: transparent !important;
+  }
+}
