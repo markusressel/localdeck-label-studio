@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
 import LabelPreview from '../LabelPreview.vue'
+import { Icon } from '@iconify/vue'
 
 describe('LabelPreview.vue', () => {
   const defaultLabel = {
@@ -35,9 +36,9 @@ describe('LabelPreview.vue', () => {
     // Should render the text
     expect(wrapper.text()).toContain('Test Label')
     // Should render an iconify span
-    const icon = wrapper.find('.iconify')
+    const icon = wrapper.findComponent(Icon)
     expect(icon.exists()).toBe(true)
-    expect(icon.attributes('data-icon')).toBe('mdi:home')
+    expect(icon.props('icon')).toBe('mdi:home')
   })
 
   it('applies dark mode classes when darkRoom is true and not in print mode', () => {
