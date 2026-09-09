@@ -232,6 +232,7 @@ const loadState = () => {
       if (data.selectedId) selectedId.value = data.selectedId
       if (data.printFormat) printFormat.value = data.printFormat
       if (data.printZoom) printZoom.value = data.printZoom
+      if (data.darkRoom !== undefined) darkRoom.value = data.darkRoom
       if (data.printOffsetY !== undefined) printOffsetY.value = data.printOffsetY
       if (data.selectedPrintIds) selectedPrintIds.value = data.selectedPrintIds
       if (data.printGrid) printGrid.value = data.printGrid
@@ -278,6 +279,7 @@ const saveState = () => {
     selectedId: selectedId.value,
     printFormat: printFormat.value,
     printZoom: printZoom.value,
+    darkRoom: darkRoom.value,
         printOffsetY: printOffsetY.value,
     selectedPrintIds: selectedPrintIds.value,
     printGrid: printGrid.value,
@@ -643,7 +645,7 @@ const printLabels = async () => {
 }
 
 watch([decks, activeDeckId, labelWidth, labelHeight, labelMaterial, globalLightColor, globalLightBrightness, globalLightEffect, globalTextSize, globalTextColor, globalIconSize, globalIconColor, zoomLevel, labels, selectedId, printFormat, printZoom,
-    printOffsetY, selectedPrintIds, printGrid], saveState, { deep: true })
+    printOffsetY, darkRoom, selectedPrintIds, printGrid], saveState, { deep: true })
 
 export function useStore() {
   return {
