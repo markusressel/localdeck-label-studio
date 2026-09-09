@@ -13,7 +13,7 @@
       </div>
       <div class="control-group">
         <div style="display: flex; gap: 0.75rem; align-items: stretch; margin-bottom: 0.5rem;">
-          <div class="large-icon-preview">
+          <div class="large-icon-preview" :style="{ color: effectiveIconColor }">
             <template v-if="modelValue.icon">
               <span v-if="isEmoji(modelValue.icon)" class="emoji-large">{{ modelValue.icon }}</span>
               <Icon :icon="modelValue.icon" v-else class="svg-large" />
@@ -171,6 +171,7 @@ import NumberStepper from './NumberStepper.vue'
 import CustomInput from './CustomInput.vue'
 import CustomSlider from './CustomSlider.vue'
 import * as emoji from 'node-emoji'
+import { useStore } from '../composables/useStore'
 
 const isEmoji = (str) => {
   if (!str) return false
@@ -185,6 +186,9 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:modelValue'])
+const { globalIconColor } = useStore()
+
+const effectiveIconColor = computed(() => props.modelValue.iconColor ?? globalIconColor.value)
 watch(() => props.modelValue, (newVal) => { console.log("LabelEditor modelValue updated:", newVal) }, { deep: true })
 
 const useCustomText = computed({
@@ -459,7 +463,6 @@ const clearImage = () => {
 }
 .emoji-large, .svg-large {
   font-size: 3.5rem;
-  color: var(--text-main);
   filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
 }
 .placeholder-icon {

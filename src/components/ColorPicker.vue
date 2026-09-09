@@ -32,6 +32,15 @@
           </div>
         </div>
 
+        <!-- Alpha Slider -->
+        <div class="slider-container mt-2">
+          <div class="alpha-slider" ref="alphaRef" @mousedown="onAlphaMouseDown">
+            <div class="alpha-bg"></div>
+            <div class="alpha-color" :style="{ background: `linear-gradient(to right, transparent, rgb(${rgbInput.r}, ${rgbInput.g}, ${rgbInput.b}))` }"></div>
+            <div class="slider-pointer" :style="{ left: (alpha * 100) + '%' }"></div>
+          </div>
+        </div>
+
         <!-- Inputs: HEX and RGB -->
         <div class="inputs-grid">
           <div class="input-group">
