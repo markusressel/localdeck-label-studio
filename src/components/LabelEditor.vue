@@ -118,7 +118,12 @@
       </div>
       <div class="control-group">
         <div class="light-override">
-          <CustomCheckbox v-model="useCustomLight">Custom LED for this key</CustomCheckbox>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <CustomCheckbox v-model="useCustomLight">Custom LED for this key</CustomCheckbox>
+            <button v-if="useCustomLight" @click="resetLight" class="icon-btn danger-text" title="Reset to default LED" style="border: 1px dashed var(--card-border); border-radius: 8px; width: 32px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.15); height: 28px;">
+              <Icon icon="mdi:restore" style="font-size: 1.1rem;" />
+            </button>
+          </div>
           
           <Transition name="slide-down">
             <div v-if="useCustomLight">
@@ -157,7 +162,7 @@
 
 <script setup>
 import { Icon } from '@iconify/vue'
-import { computed, watch } from 'vue'
+import { computed, watch, ref } from 'vue'
 import ColorPicker from './ColorPicker.vue'
 import CustomCheckbox from './CustomCheckbox.vue'
 import CustomSelect from './CustomSelect.vue'
@@ -253,20 +258,35 @@ const setBlackLabel = () => {
   emit('update:modelValue', updated)
 }
 
+const cachedLightColor = ref('#10b981')
+const cachedLightBrightness = ref(80)
+const cachedLightEffect = ref('static')
+
 const useCustomLight = computed({
   get: () => props.modelValue.lightColor !== null && props.modelValue.lightColor !== undefined,
   set: (val) => {
     if (val) {
-      props.modelValue.lightColor = '#10b981'
-      props.modelValue.lightBrightness = 80
-      props.modelValue.lightEffect = 'static'
+      props.modelValue.lightColor = cachedLightColor.value
+      props.modelValue.lightBrightness = cachedLightBrightness.value
+      props.modelValue.lightEffect = cachedLightEffect.value
     } else {
+      if (props.modelValue.lightColor !== null) {
+        cachedLightColor.value = props.modelValue.lightColor
+        cachedLightBrightness.value = props.modelValue.lightBrightness
+        cachedLightEffect.value = props.modelValue.lightEffect
+      }
       props.modelValue.lightColor = null
       props.modelValue.lightBrightness = null
       props.modelValue.lightEffect = null
     }
   }
 })
+
+const resetLight = () => {
+  props.modelValue.lightColor = '#10b981'
+  props.modelValue.lightBrightness = 80
+  props.modelValue.lightEffect = 'static'
+}
 
 const handleFileUpload = (event) => {
   const file = event.target.files[0]

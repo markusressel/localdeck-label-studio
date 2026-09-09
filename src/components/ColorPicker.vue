@@ -100,6 +100,8 @@ const pickerRef = ref(null)
 const areaRef = ref(null)
 const hueRef = ref(null)
 const dropdownRef = ref(null)
+const alphaRef = ref(null)
+const alpha = ref(1)
 const isOpen = ref(false)
 const dropdownStyle = reactive({ top: '0px', left: '0px', transform: 'translateX(-50%)' })
 
@@ -115,22 +117,37 @@ const hsv = reactive({ h: 0, s: 0, v: 0 })
 
 // Converters
 const hexToRgb = (hex) => {
-  let r = 0, g = 0, b = 0
-  if (!hex) return { r, g, b }
+  let r = 0, g = 0, b = 0, a = 1
+  if (!hex) return { r, g, b, a }
   if (hex.length === 4) {
     r = parseInt(hex[1] + hex[1], 16) * 17
     g = parseInt(hex[2] + hex[2], 16) * 17
     b = parseInt(hex[3] + hex[3], 16) * 17
+  } else if (hex.length === 5) {
+    r = parseInt(hex[1] + hex[1], 16) * 17
+    g = parseInt(hex[2] + hex[2], 16) * 17
+    b = parseInt(hex[3] + hex[3], 16) * 17
+    a = (parseInt(hex[4] + hex[4], 16) * 17) / 255
   } else if (hex.length === 7) {
     r = parseInt(hex.substring(1, 3), 16)
     g = parseInt(hex.substring(3, 5), 16)
     b = parseInt(hex.substring(5, 7), 16)
+  } else if (hex.length === 9) {
+    r = parseInt(hex.substring(1, 3), 16)
+    g = parseInt(hex.substring(3, 5), 16)
+    b = parseInt(hex.substring(5, 7), 16)
+    a = parseInt(hex.substring(7, 9), 16) / 255
   }
-  return { r, g, b }
+  return { r, g, b, a }
 }
 
-const rgbToHex = (r, g, b) => {
-  return "#" + (1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1)
+const rgbToHex = (r, g, b, a = 1) => {
+  const toHex = (n) => Math.round(n).toString(16).padStart(2, '0')
+  const hex = "#" + toHex(r) + toHex(g) + toHex(b)
+  if (a < 1) {
+    return hex + toHex(a * 255)
+  }
+  return hex
 }
 
 const rgbToHsv = (r, g, b) => {
@@ -176,8 +193,9 @@ const updateFromHex = (hex) => {
     hexInput.value = 'transparent'
     return
   }
-  const { r, g, b } = hexToRgb(hex)
+  const { r, g, b, a } = hexToRgb(hex)
   rgbInput.r = r; rgbInput.g = g; rgbInput.b = b
+  alpha.value = a
   const { h, s, v } = rgbToHsv(r, g, b)
   hsv.h = h; hsv.s = s; hsv.v = v
 }
@@ -194,7 +212,7 @@ watch(() => props.modelValue, (newVal) => {
 const triggerUpdate = () => {
   const { r, g, b } = hsvToRgb(hsv.h, hsv.s, hsv.v)
   rgbInput.r = r; rgbInput.g = g; rgbInput.b = b
-  const hex = rgbToHex(r, g, b)
+  const hex = rgbToHex(r, g, b, alpha.value)
   hexInput.value = hex
   emit('update:modelValue', hex)
 }
@@ -202,14 +220,14 @@ const triggerUpdate = () => {
 const onHexChange = () => {
   let val = hexInput.value
   if (!val.startsWith('#')) val = '#' + val
-  if (/^#[0-9A-Fa-f]{6}$/.test(val)) {
+  if (/^#([0-9A-Fa-f]{3,4}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$/.test(val)) {
     emit('update:modelValue', val)
     updateFromHex(val)
   }
 }
 
 const onRgbChange = () => {
-  const hex = rgbToHex(rgbInput.r, rgbInput.g, rgbInput.b)
+  const hex = rgbToHex(rgbInput.r, rgbInput.g, rgbInput.b, alpha.value)
   hexInput.value = hex
   emit('update:modelValue', hex)
   updateFromHex(hex)
@@ -263,6 +281,30 @@ const updateArea = (e) => {
   let y = Math.max(0, Math.min(e.clientY - rect.top, rect.height))
   hsv.s = (x / rect.width) * 100
   hsv.v = 100 - (y / rect.height) * 100
+  triggerUpdate()
+}
+
+// Mouse dragging logic for Alpha
+let isDraggingAlpha = false
+const onAlphaMouseDown = (e) => {
+  isDraggingAlpha = true
+  updateAlpha(e)
+  document.addEventListener('mousemove', onAlphaMouseMove)
+  document.addEventListener('mouseup', onAlphaMouseUp)
+}
+const onAlphaMouseMove = (e) => {
+  if (isDraggingAlpha) updateAlpha(e)
+}
+const onAlphaMouseUp = () => {
+  isDraggingAlpha = false
+  document.removeEventListener('mousemove', onAlphaMouseMove)
+  document.removeEventListener('mouseup', onAlphaMouseUp)
+}
+const updateAlpha = (e) => {
+  if (!alphaRef.value) return
+  const rect = alphaRef.value.getBoundingClientRect()
+  let x = Math.max(0, Math.min(e.clientX - rect.left, rect.width))
+  alpha.value = x / rect.width
   triggerUpdate()
 }
 
@@ -404,6 +446,32 @@ onUnmounted(() => document.removeEventListener('mousedown', handleClickOutside))
   padding: 0 4px;
 }
 
+.mt-2 { margin-top: 0.5rem; }
+.alpha-slider {
+  width: 100%;
+  height: 12px;
+  border-radius: 6px;
+  position: relative;
+  cursor: pointer;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
+  }
+.alpha-bg {
+  border-radius: 6px;
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(45deg, #ccc 25%, transparent 25%), 
+                    linear-gradient(-45deg, #ccc 25%, transparent 25%), 
+                    linear-gradient(45deg, transparent 75%, #ccc 75%), 
+                    linear-gradient(-45deg, transparent 75%, #ccc 75%);
+  background-size: 8px 8px;
+  background-position: 0 0, 0 4px, 4px -4px, -4px 0px;
+  background-color: white;
+}
+.alpha-color {
+  border-radius: 6px;
+  position: absolute;
+  inset: 0;
+}
 .hue-slider {
   width: 100%;
   height: 12px;
