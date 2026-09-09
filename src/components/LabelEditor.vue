@@ -118,6 +118,9 @@
       </div>
       <div class="control-group">
         <div class="light-override">
+          <div style="margin-bottom: 0.5rem;">
+            <CustomSwitch v-model="lightEnabled" style="color: var(--text-main); font-weight: 600;">LED Backlight Enabled</CustomSwitch>
+          </div>
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <CustomCheckbox v-model="useCustomLight">Custom LED for this key</CustomCheckbox>
             <button v-if="useCustomLight" @click="resetLight" class="icon-btn danger-text" title="Reset to default LED" style="border: 1px dashed var(--card-border); border-radius: 8px; width: 32px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.15); height: 28px;">
@@ -165,6 +168,7 @@ import { Icon } from '@iconify/vue'
 import { computed, watch, ref } from 'vue'
 import ColorPicker from './ColorPicker.vue'
 import CustomCheckbox from './CustomCheckbox.vue'
+import CustomSwitch from './CustomSwitch.vue'
 import CustomSelect from './CustomSelect.vue'
 import IconPicker from './IconPicker.vue'
 import NumberStepper from './NumberStepper.vue'
@@ -265,6 +269,11 @@ const setBlackLabel = () => {
 const cachedLightColor = ref('#10b981')
 const cachedLightBrightness = ref(80)
 const cachedLightEffect = ref('static')
+
+const lightEnabled = computed({
+  get: () => props.modelValue.lightEnabled !== false,
+  set: (val) => { props.modelValue.lightEnabled = val }
+})
 
 const useCustomLight = computed({
   get: () => props.modelValue.lightColor !== null && props.modelValue.lightColor !== undefined,
