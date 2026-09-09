@@ -25,6 +25,7 @@ const globalTextSize = ref(10)
 const globalTextColor = ref('#000000')
 const globalIconSize = ref(24)
 const globalIconColor = ref('#000000')
+const globalBackgroundColor = ref('transparent')
 const zoomLevel = ref(2)
 const darkRoom = ref(true)
 const labels = ref([])
@@ -215,6 +216,7 @@ const loadState = () => {
       if (data.globalTextColor) globalTextColor.value = data.globalTextColor
       if (data.globalIconSize !== undefined) globalIconSize.value = data.globalIconSize
       if (data.globalIconColor) globalIconColor.value = data.globalIconColor
+      if (data.globalBackgroundColor) globalBackgroundColor.value = data.globalBackgroundColor
       if (data.zoomLevel) zoomLevel.value = data.zoomLevel
       if (data.decks) {
         decks.value = data.decks
@@ -275,6 +277,7 @@ const saveState = () => {
     globalTextColor: globalTextColor.value,
     globalIconSize: globalIconSize.value,
     globalIconColor: globalIconColor.value,
+    globalBackgroundColor: globalBackgroundColor.value,
     zoomLevel: zoomLevel.value,
     selectedId: selectedId.value,
     printFormat: printFormat.value,
@@ -644,7 +647,8 @@ const printLabels = async () => {
   window.print()
 }
 
-watch([decks, activeDeckId, labelWidth, labelHeight, labelMaterial, globalLightColor, globalLightBrightness, globalLightEffect, globalTextSize, globalTextColor, globalIconSize, globalIconColor, zoomLevel, labels, selectedId, printFormat, printZoom,
+watch([decks, activeDeckId, labelWidth, labelHeight, labelMaterial, globalLightColor, globalLightBrightness, globalLightEffect, globalTextSize, globalTextColor, globalIconSize, globalIconColor,
+    globalBackgroundColor, zoomLevel, labels, selectedId, printFormat, printZoom,
     printOffsetY, darkRoom, selectedPrintIds, printGrid], saveState, { deep: true })
 
 export function useStore() {
@@ -659,6 +663,7 @@ export function useStore() {
     globalTextColor,
     globalIconSize,
     globalIconColor,
+    globalBackgroundColor,
     zoomLevel,
     darkRoom,
     labels,

@@ -20,7 +20,7 @@
         <div class="material-layer" v-if="!printMode"></div>
         <div class="diffused-led-glow" v-if="!printMode"></div>
         
-        <div class="label-content">
+        <div class="label-content" :style="{ backgroundColor: effectiveBackgroundColor }">
           <div v-if="label.image" class="label-image-container">
             <img :src="label.image" alt="Custom icon" class="custom-image" />
           </div>
@@ -84,6 +84,7 @@ const props = defineProps({
   globalTextColor: { type: String, default: '#000000' },
   globalIconSize: { type: Number, default: 24 },
   globalIconColor: { type: String, default: '#000000' },
+  globalBackgroundColor: { type: String, default: 'transparent' },
   printMode: { type: Boolean, default: false },
   darkRoom: { type: Boolean, default: false }
 })
@@ -109,6 +110,7 @@ const effectiveTextSize = computed(() => props.label.textSize ?? props.globalTex
 const effectiveTextColor = computed(() => props.label.textColor ?? props.globalTextColor)
 const effectiveIconSize = computed(() => props.label.iconSize ?? props.globalIconSize)
 const effectiveIconColor = computed(() => props.label.iconColor ?? props.globalIconColor)
+const effectiveBackgroundColor = computed(() => props.label.backgroundColor ?? props.globalBackgroundColor)
 
 const formattedLabelText = computed(() => {
   if (!props.label.text) return ''

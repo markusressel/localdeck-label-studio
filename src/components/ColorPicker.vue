@@ -1,6 +1,7 @@
 <template>
   <div class="color-picker-container" ref="pickerRef">
-    <div class="color-picker-wrapper" :style="{ '--selected-color': modelValue }" @click="toggleDropdown"></div>
+    <div class="color-picker-wrapper" :style="{ '--selected-color': modelValue === 'transparent' ? 'transparent' : modelValue }"
+      :class="{ 'is-transparent': modelValue === 'transparent' }" @click="toggleDropdown"></div>
 
     <Teleport to="body">
     <Transition name="fade-scale">
@@ -57,6 +58,12 @@
         <div class="swatches-section">
           <div class="dropdown-header">Presets</div>
           <div class="swatches-grid">
+        <div v-if="transparent"
+          class="swatch is-transparent-swatch" 
+          :class="{ 'is-active': modelValue === 'transparent' }"
+          @click="selectColor('transparent')"
+          title="Transparent"
+        ></div>
             <div 
               v-for="color in swatches" 
               :key="color"
@@ -80,6 +87,10 @@ const props = defineProps({
   modelValue: {
     type: String,
     default: '#10b981'
+  },
+  transparent: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -161,6 +172,10 @@ const hsvToRgb = (h, s, v) => {
 }
 
 const updateFromHex = (hex) => {
+  if (hex === 'transparent') {
+    hexInput.value = 'transparent'
+    return
+  }
   const { r, g, b } = hexToRgb(hex)
   rgbInput.r = r; rgbInput.g = g; rgbInput.b = b
   const { h, s, v } = rgbToHsv(r, g, b)
@@ -291,6 +306,16 @@ onUnmounted(() => document.removeEventListener('mousedown', handleClickOutside))
 <style scoped>
 .color-picker-container {
   display: inline-block;
+}
+
+.color-picker-wrapper.is-transparent, .swatch.is-transparent-swatch {
+  background-image: linear-gradient(45deg, #ccc 25%, transparent 25%), 
+                    linear-gradient(-45deg, #ccc 25%, transparent 25%), 
+                    linear-gradient(45deg, transparent 75%, #ccc 75%), 
+                    linear-gradient(-45deg, transparent 75%, #ccc 75%);
+  background-size: 8px 8px;
+  background-position: 0 0, 0 4px, 4px -4px, -4px 0px;
+  background-color: white !important;
 }
 
 .color-picker-wrapper {

@@ -24,6 +24,19 @@
 
         <div class="style-group bordered-top">
           <div class="style-group-header">
+            <Icon icon="mdi:palette-outline" class="header-icon" />
+            <span>Default Background</span>
+          </div>
+          <div class="control-row">
+            <div class="control-group">
+              <label>Color</label>
+              <ColorPicker v-model="globalBackgroundColor" :transparent="true" />
+            </div>
+          </div>
+        </div>
+
+        <div class="style-group bordered-top">
+          <div class="style-group-header">
             <Icon icon="mdi:star-outline" class="header-icon" />
             <span>Default Icon Style</span>
           </div>
@@ -80,6 +93,7 @@ const {
   globalTextColor,
   globalIconSize,
   globalIconColor,
+  globalBackgroundColor,
   selectedItemIndex,
   duplicateSelected,
   removeSelected,

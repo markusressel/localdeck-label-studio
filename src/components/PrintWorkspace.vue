@@ -117,6 +117,7 @@
                   :globalTextColor="globalTextColor"
                   :globalIconSize="globalIconSize"
                   :globalIconColor="globalIconColor"
+              :globalBackgroundColor="globalBackgroundColor"
                   :printMode="true"
                   :darkRoom="darkRoom"
                   draggable="true"

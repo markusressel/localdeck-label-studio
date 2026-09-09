@@ -85,6 +85,7 @@
               :globalTextColor="globalTextColor"
               :globalIconSize="globalIconSize"
               :globalIconColor="globalIconColor"
+              :globalBackgroundColor="globalBackgroundColor"
               :printMode="false"
               :darkRoom="darkRoom"
             />
@@ -244,6 +245,7 @@ const {
   globalTextColor,
   globalIconSize,
   globalIconColor,
+  globalBackgroundColor,
   zoomLevel,
   darkRoom,
   labels,

@@ -87,6 +87,32 @@
 
     <div class="style-group bordered-top">
       <div class="style-group-header">
+        <Icon icon="mdi:palette-outline" class="header-icon" />
+        <span>Background</span>
+      </div>
+      <div class="control-row">
+        <CustomCheckbox v-model="useCustomBg" style="margin-bottom: 0.5rem;  color: var(--text-muted);">Override Global Background</CustomCheckbox>
+      </div>
+      <Transition name="slide-down">
+        <div class="control-row mt-2" v-if="useCustomBg">
+          <div class="control-group">
+            <label>Background Color</label>
+            <ColorPicker v-model="modelValue.backgroundColor" :transparent="true" />
+          </div>
+          <div class="control-group" style="flex: 1;">
+            <label>Quick Presets</label>
+            <div style="display: flex; gap: 0.5rem;">
+               <button @click="setBlackLabel" class="icon-btn" style="flex: 1; border: 1px solid var(--card-border); border-radius: 6px; font-size: 0.75rem; background: var(--input-bg);">
+                 Invert (Black)
+               </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </div>
+
+    <div class="style-group bordered-top">
+      <div class="style-group-header">
         <Icon icon="mdi:lightbulb-outline" class="header-icon" />
         <span>LED Backlight Override</span>
       </div>
@@ -203,6 +229,27 @@ const resetTextPositioning = () => {
   const updated = { ...props.modelValue }
   updated.textOffsetX = 0
   updated.textOffsetY = 0
+  emit('update:modelValue', updated)
+}
+
+const useCustomBg = computed({
+  get: () => props.modelValue.backgroundColor !== null && props.modelValue.backgroundColor !== undefined,
+  set: (val) => {
+    if (val) {
+      props.modelValue.backgroundColor = '#000000'
+    } else {
+      props.modelValue.backgroundColor = null
+    }
+  }
+})
+
+const setBlackLabel = () => {
+  const updated = { ...props.modelValue }
+  updated.backgroundColor = '#000000'
+  updated.iconColor = '#ffffff'
+  updated.iconSize = updated.iconSize || 24
+  updated.textColor = '#ffffff'
+  updated.textSize = updated.textSize || 10
   emit('update:modelValue', updated)
 }
 
