@@ -39,21 +39,21 @@
             <input type="text" v-model="hexInput" @change="onHexChange" @blur="onHexChange" />
           </div>
           <div class="rgb-inputs">
-            <div class="input-group">
-              <label>R</label>
-              <input type="number" min="0" max="255" v-model.number="rgbInput.r" @change="onRgbChange" />
+            <div class="input-group" style="padding: 0.1rem;">
+              <label style="border-right: none; background: transparent;">R</label>
+              <NumberStepper v-model="rgbInput.r" :min="0" :max="255" :defaultVal="0" @update:modelValue="onRgbChange" style="border: none; background: transparent; width: 100%; box-shadow: none;" />
             </div>
-            <div class="input-group">
-              <label>G</label>
-              <input type="number" min="0" max="255" v-model.number="rgbInput.g" @change="onRgbChange" />
+            <div class="input-group" style="padding: 0.1rem;">
+              <label style="border-right: none; background: transparent;">G</label>
+              <NumberStepper v-model="rgbInput.g" :min="0" :max="255" :defaultVal="0" @update:modelValue="onRgbChange" style="border: none; background: transparent; width: 100%; box-shadow: none;" />
             </div>
-            <div class="input-group">
-              <label>B</label>
-              <input type="number" min="0" max="255" v-model.number="rgbInput.b" @change="onRgbChange" />
+            <div class="input-group" style="padding: 0.1rem;">
+              <label style="border-right: none; background: transparent;">B</label>
+              <NumberStepper v-model="rgbInput.b" :min="0" :max="255" :defaultVal="0" @update:modelValue="onRgbChange" style="border: none; background: transparent; width: 100%; box-shadow: none;" />
             </div>
-            <div class="input-group">
-              <label>A</label>
-              <input type="number" min="0" max="100" v-model.number="alphaInt" @change="onAlphaIntChange" />
+            <div class="input-group" style="padding: 0.1rem;">
+              <label style="border-right: none; background: transparent;">A</label>
+              <NumberStepper v-model="alphaInt" :min="0" :max="100" :defaultVal="100" @update:modelValue="onAlphaIntChange" style="border: none; background: transparent; width: 100%; box-shadow: none;" />
             </div>
           </div>
         </div>
@@ -85,6 +85,7 @@
 
 <script setup>
 import { ref, watch, onMounted, onUnmounted, reactive, computed } from 'vue'
+import NumberStepper from './NumberStepper.vue'
 
 const props = defineProps({
   modelValue: {

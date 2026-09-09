@@ -1,7 +1,13 @@
 <template>
-  <div class="number-stepper">
+  <div class="number-stepper" @wheel.prevent="handleWheel">
     <button class="stepper-btn" @click.prevent="increment"><Icon icon="mdi:chevron-up" /></button>
-    <div class="stepper-value">{{ modelValue === null || modelValue === undefined ? defaultVal : modelValue }}</div>
+    <input 
+      class="stepper-value" 
+      type="number" 
+      :value="modelValue === null || modelValue === undefined ? defaultVal : modelValue"
+      @input="onInput"
+      @blur="onBlur"
+    />
     <button class="stepper-btn" @click.prevent="decrement"><Icon icon="mdi:chevron-down" /></button>
   </div>
 </template>
@@ -23,6 +29,31 @@ const increment = () => {
   if (val < props.max) {
     emit('update:modelValue', val + 1)
   }
+}
+
+const handleWheel = (e) => {
+  if (e.deltaY < 0) increment()
+  else if (e.deltaY > 0) decrement()
+}
+
+const onInput = (e) => {
+  let val = parseInt(e.target.value, 10)
+  if (isNaN(val)) return
+  // Don't clamp on input so they can type freely, or clamp?
+  // Let's emit directly to allow typing
+  emit('update:modelValue', val)
+}
+
+const onBlur = (e) => {
+  let val = parseInt(e.target.value, 10)
+  if (isNaN(val)) {
+    emit('update:modelValue', props.defaultVal)
+    return
+  }
+  if (val < props.min) val = props.min
+  if (val > props.max) val = props.max
+  emit('update:modelValue', val)
+  e.target.value = val
 }
 
 const decrement = () => {
@@ -75,6 +106,15 @@ const decrement = () => {
   color: var(--text-main);
   text-align: center;
   width: 100%;
-  user-select: none;
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  -moz-appearance: textfield;
+}
+.stepper-value:focus { outline: none; }
+.stepper-value::-webkit-inner-spin-button, 
+.stepper-value::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 </style>
