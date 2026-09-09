@@ -294,6 +294,23 @@ onMounted(() => {
 .device-slot:active, .grid-item-wrapper:active {
   cursor: grabbing;
 }
+.slot-hardware-index {
+  position: absolute;
+  top: -12px;
+  left: -8px;
+  background: var(--card-bg);
+  color: var(--text-muted);
+  font-size: 0.65rem;
+  font-weight: bold;
+  font-family: monospace;
+  padding: 1px 4px;
+  border-radius: 4px;
+  border: 1px solid var(--card-border);
+  z-index: 5;
+  pointer-events: none;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
 .device-slot.is-selected {
   outline: 2px solid var(--primary);
   outline-offset: 2px;

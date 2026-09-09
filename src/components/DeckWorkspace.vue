@@ -70,6 +70,7 @@
             @drop="onDropDeckSlot($event, i - 1)"
             :style="!getLabelAtSlot(i - 1) ? { width: `calc((${labelWidth + 4}mm) * 1.5)`, height: `calc((${labelHeight + 4}mm) * 1.5)` } : {}"
           >
+            <div class="slot-hardware-index">{{ getButtonIndex(i - 1) }}</div>
             <LabelPreview 
               v-if="getLabelAtSlot(i - 1)"
               :label="getLabelAtSlot(i - 1)" 
@@ -208,6 +209,14 @@ const filteredLabels = computed(() => {
     return textMatch || iconMatch
   })
 })
+
+const getButtonIndex = (slotIndex) => {
+  const w = matrixWidth.value
+  const h = matrixHeight.value
+  const row = Math.floor(slotIndex / w)
+  const col = slotIndex % w
+  return ((h - 1 - row) * w) + col + 1
+}
 
 const renameDeck = () => {
   if (!activeDeck.value) return
