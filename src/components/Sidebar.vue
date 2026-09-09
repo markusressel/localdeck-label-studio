@@ -5,24 +5,37 @@
         <h2>Global Styles</h2>
       </div>
       <div class="panel-content">
-        <div class="control-row">
-          <div class="control-group half">
-            <label>Text Size (px)</label>
-            <input type="number" v-model.number="globalTextSize" min="6" max="32" />
+        <div class="style-group">
+          <div class="style-group-header">
+            <Icon icon="mdi:format-text" class="header-icon" />
+            <span>Default Text Style</span>
           </div>
-          <div class="control-group half">
-            <label>Text Color</label>
-            <ColorPicker v-model="globalTextColor" />
+          <div class="control-row">
+            <div class="control-group half">
+              <label>Size (px)</label>
+              <input type="number" v-model.number="globalTextSize" min="6" max="32" />
+            </div>
+            <div class="control-group half">
+              <label>Color</label>
+              <ColorPicker v-model="globalTextColor" />
+            </div>
           </div>
         </div>
-        <div class="control-row mt-2">
-          <div class="control-group half">
-            <label>Icon Size (px)</label>
-            <input type="number" v-model.number="globalIconSize" min="10" max="64" />
+
+        <div class="style-group mt-3">
+          <div class="style-group-header">
+            <Icon icon="mdi:star-outline" class="header-icon" />
+            <span>Default Icon Style</span>
           </div>
-          <div class="control-group half">
-            <label>Icon Color</label>
-            <ColorPicker v-model="globalIconColor" />
+          <div class="control-row">
+            <div class="control-group half">
+              <label>Size (px)</label>
+              <input type="number" v-model.number="globalIconSize" min="10" max="64" />
+            </div>
+            <div class="control-group half">
+              <label>Color</label>
+              <ColorPicker v-model="globalIconColor" />
+            </div>
           </div>
         </div>
       </div>
@@ -73,3 +86,30 @@ const {
   labels
 } = useStore()
 </script>
+
+<style scoped>
+.style-group {
+  margin-bottom: 0.5rem;
+}
+.style-group-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  margin-bottom: 0.75rem;
+  
+}
+.header-icon {
+  font-size: 1rem;
+  color: var(--primary);
+}
+.mt-3 {
+  padding-top: 1rem;
+  border-top: 1px solid var(--card-border);
+  margin-top: 1rem;
+}
+</style>
