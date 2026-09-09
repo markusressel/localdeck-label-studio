@@ -39,21 +39,21 @@
             <input type="text" v-model="hexInput" @change="onHexChange" @blur="onHexChange" />
           </div>
           <div class="rgb-inputs">
-            <div class="input-group" style="padding: 0.1rem;">
-              <label style="border-right: none; background: transparent;">R</label>
-              <NumberStepper v-model="rgbInput.r" :min="0" :max="255" :defaultVal="0" @update:modelValue="onRgbChange" style="border: none; background: transparent; width: 100%; box-shadow: none;" />
+            <div class="input-col">
+              <label>R</label>
+              <NumberStepper v-model="rgbInput.r" :min="0" :max="255" :defaultVal="0" @update:modelValue="onRgbChange" style="width: 100%;" />
             </div>
-            <div class="input-group" style="padding: 0.1rem;">
-              <label style="border-right: none; background: transparent;">G</label>
-              <NumberStepper v-model="rgbInput.g" :min="0" :max="255" :defaultVal="0" @update:modelValue="onRgbChange" style="border: none; background: transparent; width: 100%; box-shadow: none;" />
+            <div class="input-col">
+              <label>G</label>
+              <NumberStepper v-model="rgbInput.g" :min="0" :max="255" :defaultVal="0" @update:modelValue="onRgbChange" style="width: 100%;" />
             </div>
-            <div class="input-group" style="padding: 0.1rem;">
-              <label style="border-right: none; background: transparent;">B</label>
-              <NumberStepper v-model="rgbInput.b" :min="0" :max="255" :defaultVal="0" @update:modelValue="onRgbChange" style="border: none; background: transparent; width: 100%; box-shadow: none;" />
+            <div class="input-col">
+              <label>B</label>
+              <NumberStepper v-model="rgbInput.b" :min="0" :max="255" :defaultVal="0" @update:modelValue="onRgbChange" style="width: 100%;" />
             </div>
-            <div class="input-group" style="padding: 0.1rem;">
-              <label style="border-right: none; background: transparent;">A</label>
-              <NumberStepper v-model="alphaInt" :min="0" :max="100" :defaultVal="100" @update:modelValue="onAlphaIntChange" style="border: none; background: transparent; width: 100%; box-shadow: none;" />
+            <div class="input-col">
+              <label>A</label>
+              <NumberStepper v-model="alphaInt" :min="0" :max="100" :defaultVal="100" @update:modelValue="onAlphaIntChange" style="width: 100%;" />
             </div>
           </div>
         </div>
@@ -525,9 +525,25 @@ onUnmounted(() => document.removeEventListener('mousedown', handleClickOutside))
 }
 
 .rgb-inputs {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
   gap: 0.5rem;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.input-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  gap: 0.2rem;
+}
+
+.input-col label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
 }
 
 .input-group {
