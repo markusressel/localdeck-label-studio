@@ -145,3 +145,28 @@ label {
 ::-webkit-scrollbar-thumb:hover {
   background: #475569; 
 }
+
+/* Unified Style Groups */
+.style-group {
+  margin-bottom: 0.5rem;
+}
+.style-group-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  margin-bottom: 0.75rem;
+}
+.header-icon {
+  font-size: 1rem;
+  color: var(--primary);
+}
+.style-group.bordered-top {
+  padding-top: 1rem;
+  border-top: 1px solid var(--card-border);
+  margin-top: 1rem;
+}

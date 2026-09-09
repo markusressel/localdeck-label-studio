@@ -1,113 +1,131 @@
 <template>
   <div class="label-editor">
-    <div class="control-group">
-      <label>Icon / Image</label>
-      <div style="display: flex; gap: 0.75rem; align-items: stretch; margin-bottom: 0.5rem;">
-        <div class="large-icon-preview">
-          <template v-if="modelValue.icon">
-            <span v-if="isEmoji(modelValue.icon)" class="emoji-large">{{ modelValue.icon }}</span>
-            <Icon :icon="modelValue.icon" v-else class="svg-large" />
-          </template>
-          <div v-else class="placeholder-icon">
-            <Icon icon="mdi:image-outline" />
-          </div>
+    
+    <div class="style-group">
+      <div class="style-group-header" style="display: flex; justify-content: space-between;">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <Icon icon="mdi:star-outline" class="header-icon" />
+          <span>Icon / Image</span>
         </div>
-        
-        <div class="icon-overrides" v-if="useCustomIcon" style="display: flex; gap: 0.5rem; flex: 1;">
-          <NumberStepper v-model="modelValue.iconSize" :min="10" :max="64" :defaultVal="24" title="Icon Size" />
-          <ColorPicker v-model="modelValue.iconColor" style="flex: 1; height: 100%; border-radius: 8px;" title="Icon Color" />
-          <button @click="useCustomIcon = false" class="icon-btn danger-text" title="Reset Overrides" style="border: 1px dashed var(--card-border); border-radius: 8px; width: 42px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.15);">
-             <Icon icon="mdi:close" style="font-size: 1.2rem;" />
-          </button>
-        </div>
-        
-        <div v-else class="icon-overrides-enable" @click="useCustomIcon = true" style="flex: 1; display: flex; align-items: center; justify-content: center; border: 1px dashed var(--card-border); border-radius: 8px; cursor: pointer; color: var(--text-muted); font-size: 0.8rem; background: rgba(255,255,255,0.02); transition: all 0.2s;">
-          <div style="display: flex; flex-direction: column; align-items: center; gap: 0.25rem;">
-            <Icon icon="mdi:pencil-outline" style="font-size: 1.25rem;" />
-            Override Size/Color
-          </div>
-        </div>
+        <span v-if="hasIconPositioning" @click="resetIconPositioning" title="Reset icon position" style="cursor: pointer; display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px; font-size: 0.65rem; font-weight: 600; text-transform: uppercase; color: var(--primary); background: var(--primary-transparent); border-radius: 4px;">
+          <Icon icon="mdi:restore" /> Reset Pos
+        </span>
       </div>
+      <div class="control-group">
+        <div style="display: flex; gap: 0.75rem; align-items: stretch; margin-bottom: 0.5rem;">
+          <div class="large-icon-preview">
+            <template v-if="modelValue.icon">
+              <span v-if="isEmoji(modelValue.icon)" class="emoji-large">{{ modelValue.icon }}</span>
+              <Icon :icon="modelValue.icon" v-else class="svg-large" />
+            </template>
+            <div v-else class="placeholder-icon">
+              <Icon icon="mdi:image-outline" />
+            </div>
+          </div>
+          
+          <div class="icon-overrides" v-if="useCustomIcon" style="display: flex; gap: 0.5rem; flex: 1;">
+            <NumberStepper v-model="modelValue.iconSize" :min="10" :max="64" :defaultVal="24" title="Icon Size" />
+            <ColorPicker v-model="modelValue.iconColor" style="flex: 1; height: 100%; border-radius: 8px;" title="Icon Color" />
+            <button @click="useCustomIcon = false" class="icon-btn danger-text" title="Reset Overrides" style="border: 1px dashed var(--card-border); border-radius: 8px; width: 42px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.15);">
+               <Icon icon="mdi:close" style="font-size: 1.2rem;" />
+            </button>
+          </div>
+          
+          <div v-else class="icon-overrides-enable" @click="useCustomIcon = true" style="flex: 1; display: flex; align-items: center; justify-content: center; border: 1px dashed var(--card-border); border-radius: 8px; cursor: pointer; color: var(--text-muted); font-size: 0.8rem; background: rgba(255,255,255,0.02); transition: all 0.2s;">
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 0.25rem;">
+              <Icon icon="mdi:pencil-outline" style="font-size: 1.25rem;" />
+              Override Size/Color
+            </div>
+          </div>
+        </div>
 
-      <IconPicker v-model="modelValue.icon" />
-      
-      <div class="file-upload-wrapper mt-2">
-        <input type="file" accept="image/*" @change="handleFileUpload" id="image-upload" class="file-input" />
-        <label for="image-upload" class="file-label">
-          <Icon icon="mdi:upload" /> Or upload custom image
-        </label>
-      </div>
-      <div v-if="modelValue.image" class="mt-2 text-sm text-center" style="color: var(--text-muted);">
-        Custom image loaded. <a href="#" @click.prevent="clearImage" class="danger-text">Remove</a>
+        <IconPicker v-model="modelValue.icon" />
+        
+        <div class="file-upload-wrapper mt-2">
+          <input type="file" accept="image/*" @change="handleFileUpload" id="image-upload" class="file-input" />
+          <label for="image-upload" class="file-label">
+            <Icon icon="mdi:upload" /> Or upload custom image
+          </label>
+        </div>
+        <div v-if="modelValue.image" class="mt-2 text-sm text-center" style="color: var(--text-muted);">
+          Custom image loaded. <a href="#" @click.prevent="clearImage" class="danger-text">Remove</a>
+        </div>
       </div>
     </div>
-    
-    <div class="divider"></div>
 
-    <div class="control-group">
-      <label style="display: flex; justify-content: space-between; align-items: center;">
-        Label Text
+    <div class="style-group bordered-top">
+      <div class="style-group-header" style="display: flex; justify-content: space-between;">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <Icon icon="mdi:format-text" class="header-icon" />
+          <span>Label Text</span>
+        </div>
         <span v-if="hasTextPositioning" @click="resetTextPositioning" title="Reset text position" style="cursor: pointer; display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px; font-size: 0.65rem; font-weight: 600; text-transform: uppercase; color: var(--primary); background: var(--primary-transparent); border-radius: 4px;">
           <Icon icon="mdi:restore" /> Reset Pos
         </span>
-      </label>
-      <CustomInput v-model="modelValue.text" multiline placeholder="Press Enter for new lines..." rows="2" />
-    </div>
-    
-    <div class="control-row">
-      <CustomCheckbox v-model="useCustomText" style="margin-bottom: 0.5rem;  color: var(--text-muted);">Override Global Text Style</CustomCheckbox>
-    </div>
-
-    <Transition name="slide-down">
-      <div class="control-row mt-2" v-if="useCustomText">
-      <div class="control-group half">
-        <label>Text Size (px)</label>
-        <input type="number" v-model.number="modelValue.textSize" min="6" max="32" />
       </div>
-      <div class="control-group half">
-        <label>Text Color</label>
-        <ColorPicker v-model="modelValue.textColor" />
+      <div class="control-group">
+        <CustomInput v-model="modelValue.text" multiline placeholder="Press Enter for new lines..." rows="2" />
       </div>
-    </div>
-    </Transition>
-    
-    <div class="divider"></div>
+      
+      <div class="control-row">
+        <CustomCheckbox v-model="useCustomText" style="margin-bottom: 0.5rem;  color: var(--text-muted);">Override Global Text Style</CustomCheckbox>
+      </div>
 
-    <div class="control-group">
-      <label>LED Backlight Override</label>
-      <div class="light-override">
-        <CustomCheckbox v-model="useCustomLight">Custom LED for this key</CustomCheckbox>
-        
-        <Transition name="slide-down">
-          <div v-if="useCustomLight">
-            <div class="control-row mt-2">
-              <div class="control-group half">
-                <label>Brightness</label>
-                <CustomSlider v-model="modelValue.lightBrightness" :min="0" :max="100" showValue />
-              </div>
-              <div class="control-group half">
-                <label>Color</label>
-                <ColorPicker v-model="modelValue.lightColor" />
-              </div>
-            </div>
-            <div class="control-row mt-2">
-              <div class="control-group" style="width: 100%;">
-                <label>Effect</label>
-                <CustomSelect 
-                  v-model="modelValue.lightEffect" 
-                  :options="[
-                    { value: null, label: 'Global Default' },
-                    { value: 'static', label: 'Static' },
-                    { value: 'breathing', label: 'Breathing' },
-                    { value: 'rainbow', label: 'Rainbow' }
-                  ]"
-                />
-              </div>
-            </div>
+      <Transition name="slide-down">
+        <div class="control-row mt-2" v-if="useCustomText">
+          <div class="control-group half">
+            <label>Text Size (px)</label>
+            <input type="number" v-model.number="modelValue.textSize" min="6" max="32" />
           </div>
-        </Transition>
+          <div class="control-group half">
+            <label>Text Color</label>
+            <ColorPicker v-model="modelValue.textColor" />
+          </div>
+        </div>
+      </Transition>
+    </div>
+
+    <div class="style-group bordered-top">
+      <div class="style-group-header">
+        <Icon icon="mdi:lightbulb-outline" class="header-icon" />
+        <span>LED Backlight Override</span>
+      </div>
+      <div class="control-group">
+        <div class="light-override">
+          <CustomCheckbox v-model="useCustomLight">Custom LED for this key</CustomCheckbox>
+          
+          <Transition name="slide-down">
+            <div v-if="useCustomLight">
+              <div class="control-row mt-2">
+                <div class="control-group half">
+                  <label>Brightness</label>
+                  <CustomSlider v-model="modelValue.lightBrightness" :min="0" :max="100" showValue />
+                </div>
+                <div class="control-group half">
+                  <label>Color</label>
+                  <ColorPicker v-model="modelValue.lightColor" />
+                </div>
+              </div>
+              <div class="control-row mt-2">
+                <div class="control-group" style="width: 100%;">
+                  <label>Effect</label>
+                  <CustomSelect 
+                    v-model="modelValue.lightEffect" 
+                    :options="[
+                      { value: null, label: 'Global Default' },
+                      { value: 'static', label: 'Static' },
+                      { value: 'breathing', label: 'Breathing' },
+                      { value: 'rainbow', label: 'Rainbow' }
+                    ]"
+                  />
+                </div>
+              </div>
+            </div>
+          </Transition>
+        </div>
       </div>
     </div>
+    
   </div>
 </template>
 

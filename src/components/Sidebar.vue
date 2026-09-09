@@ -22,7 +22,7 @@
           </div>
         </div>
 
-        <div class="style-group mt-3">
+        <div class="style-group bordered-top">
           <div class="style-group-header">
             <Icon icon="mdi:star-outline" class="header-icon" />
             <span>Default Icon Style</span>
@@ -87,29 +87,4 @@ const {
 } = useStore()
 </script>
 
-<style scoped>
-.style-group {
-  margin-bottom: 0.5rem;
-}
-.style-group-header {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--text-muted);
-  margin-bottom: 0.75rem;
-  
-}
-.header-icon {
-  font-size: 1rem;
-  color: var(--primary);
-}
-.mt-3 {
-  padding-top: 1rem;
-  border-top: 1px solid var(--card-border);
-  margin-top: 1rem;
-}
-</style>
+
