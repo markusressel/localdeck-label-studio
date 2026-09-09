@@ -97,7 +97,7 @@
         <div class="control-row mt-2" v-if="useCustomBg">
           <div class="control-group">
             <label>Background Color</label>
-            <ColorPicker v-model="modelValue.backgroundColor" :transparent="true" />
+            <ColorPicker v-model="modelValue.backgroundColor" />
           </div>
           <div class="control-group" style="flex: 1;">
             <label>Quick Presets</label>

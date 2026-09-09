@@ -30,7 +30,7 @@
           <div class="control-row">
             <div class="control-group">
               <label>Color</label>
-              <ColorPicker v-model="globalBackgroundColor" :transparent="true" />
+              <ColorPicker v-model="globalBackgroundColor" />
             </div>
           </div>
         </div>

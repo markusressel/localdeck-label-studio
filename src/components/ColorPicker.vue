@@ -67,8 +67,7 @@
         <div class="swatches-section">
           <div class="dropdown-header">Presets</div>
           <div class="swatches-grid">
-        <div v-if="transparent"
-          class="swatch is-transparent-swatch" 
+        <div class="swatch is-transparent-swatch" 
           :class="{ 'is-active': modelValue === 'transparent' }"
           @click="selectColor('transparent')"
           title="Transparent"
@@ -96,10 +95,6 @@ const props = defineProps({
   modelValue: {
     type: String,
     default: '#10b981'
-  },
-  transparent: {
-    type: Boolean,
-    default: false
   }
 })
 

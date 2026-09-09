@@ -170,6 +170,7 @@ const {
   globalTextColor,
   globalIconSize,
   globalIconColor,
+  globalBackgroundColor,
   darkRoom,
   paperDimensions,
   totalPrintSlots,
