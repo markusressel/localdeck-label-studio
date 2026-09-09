@@ -426,7 +426,7 @@ const innerStyle = computed(() => {
   outline: 1px dashed var(--primary);
   outline-offset: 2px;
   background: rgba(16, 185, 129, 0.1);
-  border-radius: 4px;
+  border-radius: 0;
 }
 
 .draggable-content.is-draggable {
