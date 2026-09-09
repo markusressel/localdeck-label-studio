@@ -21,13 +21,15 @@
         <div class="diffused-led-glow" v-if="!printMode"></div>
         
         <div class="label-content">
+          <div class="snap-line snap-x" v-if="currentlyDragging && snappedX"></div>
+          <div class="snap-line snap-y" v-if="currentlyDragging && snappedY"></div>
           <div v-if="label.image" class="label-image-container">
             <img :src="label.image" alt="Custom icon" class="custom-image" />
           </div>
           <div 
             v-else-if="label.icon" 
             class="label-icon-container draggable-content" 
-            :class="{ 'is-draggable': isCtrlPressed }"
+            :class="{ 'is-draggable': isCtrlPressed, 'is-dragging': currentlyDragging === 'icon' }"
             :key="label.icon"
             @mousedown.stop="onMouseDown($event, 'icon')"
             :style="{ 
@@ -48,7 +50,7 @@
           <div 
             v-if="label.text" 
             class="label-text draggable-content"
-            :class="{ 'is-draggable': isCtrlPressed }"
+            :class="{ 'is-draggable': isCtrlPressed, 'is-dragging': currentlyDragging === 'text' }"
             @mousedown.stop="onMouseDown($event, 'text')"
             :style="{ 
               fontSize: effectiveTextSize + 'px', 
@@ -126,6 +128,9 @@ const formattedLabelText = computed(() => {
 const previewRef = ref(null)
 
 const isCtrlPressed = ref(false)
+const currentlyDragging = ref(null)
+const snappedX = ref(false)
+const snappedY = ref(false)
 
 const handleKeyDown = (e) => { if (e.key === 'Control' || e.key === 'Meta') isCtrlPressed.value = true }
 const handleKeyUp = (e) => { if (e.key === 'Control' || e.key === 'Meta') isCtrlPressed.value = false }
@@ -148,6 +153,10 @@ const onMouseDown = (e, target) => {
   const startY = e.clientY
   const startOffsetX = props.label[target + 'OffsetX'] || 0
   const startOffsetY = props.label[target + 'OffsetY'] || 0
+  
+  currentlyDragging.value = target
+  snappedX.value = startOffsetX === 0
+  snappedY.value = startOffsetY === 0
 
   const onMouseMove = (moveEvent) => {
     // scale determines how many screen pixels map to one mm.
@@ -160,14 +169,17 @@ const onMouseDown = (e, target) => {
     let newY = startOffsetY + deltaY
 
     // Snapping to center (0, 0)
-    if (Math.abs(newX) < 2) newX = 0
-    if (Math.abs(newY) < 2) newY = 0
+    if (Math.abs(newX) < 2) { newX = 0; snappedX.value = true } else snappedX.value = false
+    if (Math.abs(newY) < 2) { newY = 0; snappedY.value = true } else snappedY.value = false
 
     props.label[target + 'OffsetX'] = newX
     props.label[target + 'OffsetY'] = newY
   }
 
   const onMouseUp = () => {
+    currentlyDragging.value = null
+    snappedX.value = false
+    snappedY.value = false
     window.removeEventListener('mousemove', onMouseMove)
     window.removeEventListener('mouseup', onMouseUp)
   }
@@ -384,6 +396,39 @@ const innerStyle = computed(() => {
   object-fit: contain;
 }
 
+.snap-line {
+  position: absolute;
+  background: var(--primary);
+  opacity: 0.6;
+  z-index: 10;
+  pointer-events: none;
+}
+.snap-x {
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+  transform: translateX(-50%);
+  border-left: 1px dashed var(--primary);
+  background: transparent;
+}
+.snap-y {
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  transform: translateY(-50%);
+  border-top: 1px dashed var(--primary);
+  background: transparent;
+}
+
+.draggable-content.is-dragging {
+  outline: 1px dashed var(--primary);
+  outline-offset: 2px;
+  background: rgba(16, 185, 129, 0.1);
+  border-radius: 4px;
+}
+
 .draggable-content.is-draggable {
   cursor: grab;
 }
@@ -421,7 +466,7 @@ const innerStyle = computed(() => {
 
 @media print {
   /* Failsafe to ensure normal UI elements are hidden */
-  .no-print {
+  .no-print, .snap-line {
     display: none !important;
   }
 }

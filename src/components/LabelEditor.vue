@@ -45,7 +45,12 @@
     <div class="divider"></div>
 
     <div class="control-group">
-      <label>Label Text</label>
+      <label style="display: flex; justify-content: space-between; align-items: center;">
+        Label Text
+        <span v-if="hasTextPositioning" @click="resetTextPositioning" title="Reset text position" style="cursor: pointer; display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px; font-size: 0.65rem; font-weight: 600; text-transform: uppercase; color: var(--primary); background: var(--primary-transparent); border-radius: 4px;">
+          <Icon icon="mdi:restore" /> Reset Pos
+        </span>
+      </label>
       <CustomInput v-model="modelValue.text" multiline placeholder="Press Enter for new lines..." rows="2" />
     </div>
     
@@ -66,13 +71,6 @@
     </div>
     </Transition>
     
-    <div class="divider" v-if="hasCustomPositioning"></div>
-    <div class="control-row" v-if="hasCustomPositioning">
-      <button class="icon-btn" @click="resetPositioning" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
-        <Icon icon="mdi:restore" /> Reset Manual Positioning (X/Y)
-      </button>
-    </div>
-
     <div class="divider"></div>
 
     <div class="control-group">
@@ -166,20 +164,27 @@ const useCustomIcon = computed({
   }
 })
 
-const hasCustomPositioning = computed(() => {
+const hasIconPositioning = computed(() => {
   const l = props.modelValue
-  return (l.textOffsetX && l.textOffsetX !== 0) || 
-         (l.textOffsetY && l.textOffsetY !== 0) || 
-         (l.iconOffsetX && l.iconOffsetX !== 0) || 
-         (l.iconOffsetY && l.iconOffsetY !== 0)
+  return (l.iconOffsetX && l.iconOffsetX !== 0) || (l.iconOffsetY && l.iconOffsetY !== 0)
 })
 
-const resetPositioning = () => {
+const hasTextPositioning = computed(() => {
+  const l = props.modelValue
+  return (l.textOffsetX && l.textOffsetX !== 0) || (l.textOffsetY && l.textOffsetY !== 0)
+})
+
+const resetIconPositioning = () => {
+  const updated = { ...props.modelValue }
+  updated.iconOffsetX = 0
+  updated.iconOffsetY = 0
+  emit('update:modelValue', updated)
+}
+
+const resetTextPositioning = () => {
   const updated = { ...props.modelValue }
   updated.textOffsetX = 0
   updated.textOffsetY = 0
-  updated.iconOffsetX = 0
-  updated.iconOffsetY = 0
   emit('update:modelValue', updated)
 }
 
