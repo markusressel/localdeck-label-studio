@@ -53,7 +53,7 @@
             </div>
             <div class="input-col">
               <label>A</label>
-              <NumberStepper v-model="alphaInt" :min="0" :max="100" :defaultVal="100" @update:modelValue="onAlphaIntChange" style="width: 100%;" />
+              <NumberStepper v-model="alphaInt" :min="0" :max="255" :defaultVal="255" @update:modelValue="onAlphaIntChange" style="width: 100%;" />
             </div>
           </div>
         </div>
@@ -233,9 +233,9 @@ const onHexChange = () => {
 }
 
 const alphaInt = computed({
-  get: () => Math.round(alpha.value * 100),
+  get: () => Math.round(alpha.value * 255),
   set: (val) => {
-    alpha.value = Math.max(0, Math.min(100, val)) / 100
+    alpha.value = Math.max(0, Math.min(255, val)) / 255
   }
 })
 
