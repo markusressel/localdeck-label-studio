@@ -26,9 +26,15 @@
           </div>
           <div 
             v-else-if="label.icon" 
-            class="label-icon-container" 
+            class="label-icon-container draggable-content" 
+            :class="{ 'is-draggable': isCtrlPressed }"
             :key="label.icon"
-            :style="{ fontSize: effectiveIconSize + 'px', color: effectiveIconColor }"
+            @mousedown.stop="onMouseDown($event, 'icon')"
+            :style="{ 
+              fontSize: effectiveIconSize + 'px', 
+              color: effectiveIconColor,
+              transform: `translate(${label.iconOffsetX || 0}px, ${label.iconOffsetY || 0}px)`
+            }"
           >
             <Icon 
               v-if="!isEmoji(label.icon)"
@@ -41,8 +47,14 @@
           </div>
           <div 
             v-if="label.text" 
-            class="label-text"
-            :style="{ fontSize: effectiveTextSize + 'px', color: effectiveTextColor }"
+            class="label-text draggable-content"
+            :class="{ 'is-draggable': isCtrlPressed }"
+            @mousedown.stop="onMouseDown($event, 'text')"
+            :style="{ 
+              fontSize: effectiveTextSize + 'px', 
+              color: effectiveTextColor,
+              transform: `translate(${label.textOffsetX || 0}px, ${label.textOffsetY || 0}px)`
+            }"
             v-html="formattedLabelText"
           >
           </div>
@@ -54,7 +66,7 @@
 
 <script setup>
 import { Icon } from '@iconify/vue'
-import { computed, ref, onMounted, onUpdated, nextTick } from 'vue'
+import { computed, ref, onMounted, onUpdated, nextTick, onUnmounted } from 'vue'
 import * as emoji from 'node-emoji'
 
 import { isEmoji } from '../utils/emojiUtils.js'
@@ -112,6 +124,57 @@ const formattedLabelText = computed(() => {
 })
 
 const previewRef = ref(null)
+
+const isCtrlPressed = ref(false)
+
+const handleKeyDown = (e) => { if (e.key === 'Control' || e.key === 'Meta') isCtrlPressed.value = true }
+const handleKeyUp = (e) => { if (e.key === 'Control' || e.key === 'Meta') isCtrlPressed.value = false }
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeyDown)
+  window.removeEventListener('keyup', handleKeyUp)
+})
+
+onMounted(() => {
+  window.addEventListener('keydown', handleKeyDown)
+  window.addEventListener('keyup', handleKeyUp)
+})
+
+const onMouseDown = (e, target) => {
+  if (!e.ctrlKey && !e.metaKey) return
+  e.preventDefault()
+
+  const startX = e.clientX
+  const startY = e.clientY
+  const startOffsetX = props.label[target + 'OffsetX'] || 0
+  const startOffsetY = props.label[target + 'OffsetY'] || 0
+
+  const onMouseMove = (moveEvent) => {
+    // scale determines how many screen pixels map to one mm.
+    // Wait, the label CSS is sized in mm, but transform: translate(px) uses px.
+    // It's scaled by props.scale!
+    const deltaX = (moveEvent.clientX - startX) / props.scale
+    const deltaY = (moveEvent.clientY - startY) / props.scale
+
+    let newX = startOffsetX + deltaX
+    let newY = startOffsetY + deltaY
+
+    // Snapping to center (0, 0)
+    if (Math.abs(newX) < 2) newX = 0
+    if (Math.abs(newY) < 2) newY = 0
+
+    props.label[target + 'OffsetX'] = newX
+    props.label[target + 'OffsetY'] = newY
+  }
+
+  const onMouseUp = () => {
+    window.removeEventListener('mousemove', onMouseMove)
+    window.removeEventListener('mouseup', onMouseUp)
+  }
+
+  window.addEventListener('mousemove', onMouseMove)
+  window.addEventListener('mouseup', onMouseUp)
+}
 
 const wrapperStyle = computed(() => {
   if (props.printMode) {
@@ -321,6 +384,12 @@ const innerStyle = computed(() => {
   object-fit: contain;
 }
 
+.draggable-content.is-draggable {
+  cursor: grab;
+}
+.draggable-content.is-draggable:active {
+  cursor: grabbing;
+}
 .label-text {
   text-align: center;
   white-space: pre-wrap;

@@ -66,6 +66,13 @@
     </div>
     </Transition>
     
+    <div class="divider" v-if="hasCustomPositioning"></div>
+    <div class="control-row" v-if="hasCustomPositioning">
+      <button class="icon-btn" @click="resetPositioning" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+        <Icon icon="mdi:restore" /> Reset Manual Positioning (X/Y)
+      </button>
+    </div>
+
     <div class="divider"></div>
 
     <div class="control-group">
@@ -158,6 +165,23 @@ const useCustomIcon = computed({
     }
   }
 })
+
+const hasCustomPositioning = computed(() => {
+  const l = props.modelValue
+  return (l.textOffsetX && l.textOffsetX !== 0) || 
+         (l.textOffsetY && l.textOffsetY !== 0) || 
+         (l.iconOffsetX && l.iconOffsetX !== 0) || 
+         (l.iconOffsetY && l.iconOffsetY !== 0)
+})
+
+const resetPositioning = () => {
+  const updated = { ...props.modelValue }
+  updated.textOffsetX = 0
+  updated.textOffsetY = 0
+  updated.iconOffsetX = 0
+  updated.iconOffsetY = 0
+  emit('update:modelValue', updated)
+}
 
 const useCustomLight = computed({
   get: () => props.modelValue.lightColor !== null && props.modelValue.lightColor !== undefined,
