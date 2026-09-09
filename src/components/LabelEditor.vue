@@ -112,17 +112,17 @@
     </div>
 
     <div class="style-group bordered-top">
-      <div class="style-group-header">
-        <Icon icon="mdi:lightbulb-outline" class="header-icon" />
-        <span>LED Backlight Override</span>
+      <div class="style-group-header" style="justify-content: space-between;">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <Icon icon="mdi:lightbulb-outline" class="header-icon" />
+          <span>LED Backlight</span>
+        </div>
+        <CustomSwitch v-model="lightEnabled" title="Enable/Disable LED for this key" />
       </div>
-      <div class="control-group">
+      <div class="control-group" :style="{ opacity: lightEnabled ? 1 : 0.4, pointerEvents: lightEnabled ? 'auto' : 'none' }">
         <div class="light-override">
-          <div style="margin-bottom: 0.5rem;">
-            <CustomSwitch v-model="lightEnabled" style="color: var(--text-main); font-weight: 600;">LED Backlight Enabled</CustomSwitch>
-          </div>
           <div style="display: flex; justify-content: space-between; align-items: center;">
-            <CustomCheckbox v-model="useCustomLight">Custom LED for this key</CustomCheckbox>
+            <CustomCheckbox v-model="useCustomLight">Custom Override LED</CustomCheckbox>
             <button v-if="useCustomLight" @click="resetLight" class="icon-btn danger-text" title="Reset to default LED" style="border: 1px dashed var(--card-border); border-radius: 8px; width: 32px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.15); height: 28px;">
               <Icon icon="mdi:restore" style="font-size: 1.1rem;" />
             </button>

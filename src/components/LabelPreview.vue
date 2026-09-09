@@ -101,6 +101,7 @@ const effectiveLightColor = computed(() => {
 })
 
 const effectiveLightBrightness = computed(() => {
+  if (props.label.lightEnabled === false) return 0
   const b = props.label.lightBrightness !== null && props.label.lightBrightness !== undefined
     ? props.label.lightBrightness : props.globalLightBrightness
   return b / 100 
