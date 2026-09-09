@@ -277,29 +277,33 @@ const toggleDropdown = () => {
   }
 }
 
-// Mouse dragging logic for Area
-let isDraggingArea = false
-const onAreaMouseDown = (e) => {
-  isDraggingArea = true
-  updateArea(e)
-  document.addEventListener('mousemove', onAreaMouseMove)
-  document.addEventListener('mouseup', onAreaMouseUp)
+// Mouse dragging logic for Circle
+let isDraggingCircle = false
+const onCircleMouseDown = (e) => {
+  isDraggingCircle = true
+  updateCircle(e)
+  document.addEventListener('mousemove', onCircleMouseMove)
+  document.addEventListener('mouseup', onCircleMouseUp)
 }
-const onAreaMouseMove = (e) => {
-  if (isDraggingArea) updateArea(e)
+const onCircleMouseMove = (e) => {
+  if (isDraggingCircle) updateCircle(e)
 }
-const onAreaMouseUp = () => {
-  isDraggingArea = false
-  document.removeEventListener('mousemove', onAreaMouseMove)
-  document.removeEventListener('mouseup', onAreaMouseUp)
+const onCircleMouseUp = () => {
+  isDraggingCircle = false
+  document.removeEventListener('mousemove', onCircleMouseMove)
+  document.removeEventListener('mouseup', onCircleMouseUp)
 }
-const updateArea = (e) => {
-  if (!areaRef.value) return
-  const rect = areaRef.value.getBoundingClientRect()
-  let x = Math.max(0, Math.min(e.clientX - rect.left, rect.width))
-  let y = Math.max(0, Math.min(e.clientY - rect.top, rect.height))
-  hsv.s = (x / rect.width) * 100
-  hsv.v = 100 - (y / rect.height) * 100
+const updateCircle = (e) => {
+  if (!circleRef.value) return
+  const rect = circleRef.value.getBoundingClientRect()
+  const x = e.clientX - rect.left - rect.width / 2
+  const y = e.clientY - rect.top - rect.height / 2
+  const radius = Math.min(1, Math.sqrt(x*x + y*y) / (rect.width / 2))
+  let angle = Math.atan2(y, x) * (180 / Math.PI)
+  let hue = (angle + 90) % 360
+  if (hue < 0) hue += 360
+  hsv.h = hue
+  hsv.s = radius * 100
   triggerUpdate()
 }
 
@@ -327,27 +331,27 @@ const updateAlpha = (e) => {
   triggerUpdate()
 }
 
-// Mouse dragging logic for Hue
-let isDraggingHue = false
-const onHueMouseDown = (e) => {
-  isDraggingHue = true
-  updateHue(e)
-  document.addEventListener('mousemove', onHueMouseMove)
-  document.addEventListener('mouseup', onHueMouseUp)
+// Mouse dragging logic for Value
+let isDraggingValue = false
+const onValueMouseDown = (e) => {
+  isDraggingValue = true
+  updateValue(e)
+  document.addEventListener('mousemove', onValueMouseMove)
+  document.addEventListener('mouseup', onValueMouseUp)
 }
-const onHueMouseMove = (e) => {
-  if (isDraggingHue) updateHue(e)
+const onValueMouseMove = (e) => {
+  if (isDraggingValue) updateValue(e)
 }
-const onHueMouseUp = () => {
-  isDraggingHue = false
-  document.removeEventListener('mousemove', onHueMouseMove)
-  document.removeEventListener('mouseup', onHueMouseUp)
+const onValueMouseUp = () => {
+  isDraggingValue = false
+  document.removeEventListener('mousemove', onValueMouseMove)
+  document.removeEventListener('mouseup', onValueMouseUp)
 }
-const updateHue = (e) => {
-  if (!hueRef.value) return
-  const rect = hueRef.value.getBoundingClientRect()
+const updateValue = (e) => {
+  if (!valueRef.value) return
+  const rect = valueRef.value.getBoundingClientRect()
   let x = Math.max(0, Math.min(e.clientX - rect.left, rect.width))
-  hsv.h = (x / rect.width) * 360
+  hsv.v = (x / rect.width) * 100
   triggerUpdate()
 }
 
@@ -404,7 +408,7 @@ onUnmounted(() => document.removeEventListener('mousedown', handleClickOutside))
 
 .picker-dropdown {
   position: fixed;
-  width: 240px;
+  width: 280px;
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: 12px;
@@ -520,7 +524,8 @@ onUnmounted(() => document.removeEventListener('mousedown', handleClickOutside))
 }
 
 .rgb-inputs {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 0.5rem;
 }
 
@@ -561,6 +566,15 @@ onUnmounted(() => document.removeEventListener('mousedown', handleClickOutside))
 
 .input-group input:focus {
   outline: none;
+}
+
+.input-group input[type="number"]::-webkit-inner-spin-button,
+.input-group input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.input-group input[type="number"] {
+  -moz-appearance: textfield;
 }
 
 .dropdown-header {
