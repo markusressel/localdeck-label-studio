@@ -152,11 +152,7 @@ const hexToRgb = (hex) => {
 
 const rgbToHex = (r, g, b, a = 1) => {
   const toHex = (n) => Math.round(n).toString(16).padStart(2, '0')
-  const hex = "#" + toHex(r) + toHex(g) + toHex(b)
-  if (a < 1) {
-    return hex + toHex(a * 255)
-  }
-  return hex
+  return "#" + toHex(r) + toHex(g) + toHex(b) + toHex(a * 255)
 }
 
 const rgbToHsv = (r, g, b) => {
@@ -207,6 +203,7 @@ const updateFromHex = (hex) => {
   alpha.value = a
   const { h, s, v } = rgbToHsv(r, g, b)
   hsv.h = h; hsv.s = s; hsv.v = v
+  hexInput.value = rgbToHex(r, g, b, a)
 }
 
 updateFromHex(props.modelValue)
