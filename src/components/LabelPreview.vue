@@ -21,15 +21,13 @@
         <div class="diffused-led-glow" v-if="!printMode"></div>
         
         <div class="label-content">
-          <div class="snap-line snap-x" v-if="currentlyDragging && snappedX"></div>
-          <div class="snap-line snap-y" v-if="currentlyDragging && snappedY"></div>
           <div v-if="label.image" class="label-image-container">
             <img :src="label.image" alt="Custom icon" class="custom-image" />
           </div>
           <div 
             v-else-if="label.icon" 
             class="label-icon-container draggable-content" 
-            :class="{ 'is-draggable': isCtrlPressed, 'is-dragging': currentlyDragging === 'icon' }"
+            :class="{ 'is-draggable': isCtrlPressed, 'is-dragging': currentlyDragging === 'icon', 'snapped-x': currentlyDragging === 'icon' && snappedX, 'snapped-y': currentlyDragging === 'icon' && snappedY }"
             :key="label.icon"
             @mousedown.stop="onMouseDown($event, 'icon')"
             :style="{ 
@@ -50,7 +48,7 @@
           <div 
             v-if="label.text" 
             class="label-text draggable-content"
-            :class="{ 'is-draggable': isCtrlPressed, 'is-dragging': currentlyDragging === 'text' }"
+            :class="{ 'is-draggable': isCtrlPressed, 'is-dragging': currentlyDragging === 'text', 'snapped-x': currentlyDragging === 'text' && snappedX, 'snapped-y': currentlyDragging === 'text' && snappedY }"
             @mousedown.stop="onMouseDown($event, 'text')"
             :style="{ 
               fontSize: effectiveTextSize + 'px', 
@@ -396,37 +394,39 @@ const innerStyle = computed(() => {
   object-fit: contain;
 }
 
-.snap-line {
-  position: absolute;
-  background: var(--primary);
-  opacity: 0.6;
-  z-index: 10;
-  pointer-events: none;
+.draggable-content {
+  position: relative;
 }
-.snap-x {
-  top: 0;
-  bottom: 0;
-  left: 50%;
-  width: 1px;
-  transform: translateX(-50%);
-  border-left: 1px dashed var(--primary);
-  background: transparent;
-}
-.snap-y {
-  left: 0;
-  right: 0;
-  top: 50%;
-  height: 1px;
-  transform: translateY(-50%);
-  border-top: 1px dashed var(--primary);
-  background: transparent;
-}
-
 .draggable-content.is-dragging {
   outline: 1px dashed var(--primary);
   outline-offset: 2px;
   background: rgba(16, 185, 129, 0.1);
   border-radius: 0;
+}
+
+.draggable-content.snapped-y::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: calc(var(--label-width) * 1.5);
+  height: 1px;
+  border-top: 1px dashed var(--primary);
+  pointer-events: none;
+  z-index: 10;
+}
+.draggable-content.snapped-x::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  height: calc(var(--label-height) * 1.5);
+  width: 1px;
+  border-left: 1px dashed var(--primary);
+  pointer-events: none;
+  z-index: 10;
 }
 
 .draggable-content.is-draggable {
