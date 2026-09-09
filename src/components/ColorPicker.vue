@@ -6,29 +6,20 @@
     <Teleport to="body">
     <Transition name="fade-scale">
       <div class="picker-dropdown" v-if="isOpen" :style="dropdownStyle" ref="dropdownRef">
-        <!-- Saturation/Value Area -->
-        <div 
-          class="color-area" 
-          ref="areaRef" 
-          @mousedown="onAreaMouseDown"
-          :style="{ backgroundColor: 'hsl(' + hsv.h + ', 100%, 50%)' }"
-        >
-          <div class="color-area-white"></div>
-          <div class="color-area-black"></div>
-          <div 
-            class="color-pointer" 
-            :style="{ 
-              left: hsv.s + '%', 
-              top: (100 - hsv.v) + '%',
-              backgroundColor: modelValue
-            }"
-          ></div>
+        <!-- Color Circle -->
+        <div class="color-circle-container" style="display: flex; justify-content: center; align-items: center; margin-bottom: 0.5rem;">
+          <div class="color-circle" ref="circleRef" @mousedown="onCircleMouseDown">
+            <div class="color-circle-saturation"></div>
+            <div class="color-circle-value" :style="{ opacity: 1 - (hsv.v / 100) }"></div>
+            <div class="circle-pointer" :style="circlePointerStyle"></div>
+          </div>
         </div>
 
-        <!-- Hue Slider -->
+        <!-- Value/Brightness Slider -->
         <div class="slider-container">
-          <div class="hue-slider" ref="hueRef" @mousedown="onHueMouseDown">
-            <div class="slider-pointer" :style="{ left: (hsv.h / 360 * 100) + '%', backgroundColor: 'hsl(' + hsv.h + ', 100%, 50%)' }"></div>
+          <div class="value-slider" ref="valueRef" @mousedown="onValueMouseDown">
+            <div class="value-bg" :style="{ background: `linear-gradient(to right, #000000, hsl(${hsv.h}, ${hsv.s}%, 50%))` }"></div>
+            <div class="slider-pointer" :style="{ left: hsv.v + '%' }"></div>
           </div>
         </div>
 
@@ -60,6 +51,10 @@
               <label>B</label>
               <input type="number" min="0" max="255" v-model.number="rgbInput.b" @change="onRgbChange" />
             </div>
+            <div class="input-group">
+              <label>A</label>
+              <input type="number" min="0" max="100" v-model.number="alphaInt" @change="onAlphaIntChange" />
+            </div>
           </div>
         </div>
 
@@ -89,7 +84,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onUnmounted, reactive } from 'vue'
+import { ref, watch, onMounted, onUnmounted, reactive, computed } from 'vue'
 
 const props = defineProps({
   modelValue: {
@@ -101,13 +96,22 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue'])
 
 const pickerRef = ref(null)
-const areaRef = ref(null)
-const hueRef = ref(null)
+const circleRef = ref(null)
+const valueRef = ref(null)
 const dropdownRef = ref(null)
 const alphaRef = ref(null)
 const alpha = ref(1)
 const isOpen = ref(false)
 const dropdownStyle = reactive({ top: '0px', left: '0px', transform: 'translateX(-50%)' })
+const circlePointerStyle = computed(() => {
+  const angle = (hsv.h - 90) * (Math.PI / 180)
+  const radiusPercent = hsv.s / 100 * 50
+  return {
+    left: (50 + radiusPercent * Math.cos(angle)) + '%',
+    top: (50 + radiusPercent * Math.sin(angle)) + '%',
+    backgroundColor: `hsl(${hsv.h}, ${hsv.s}%, 50%)`
+  }
+})
 
 const swatches = [
   '#ffffff', '#f8fafc', '#cbd5e1', '#64748b', '#334155', '#0f172a', '#000000',
@@ -228,6 +232,17 @@ const onHexChange = () => {
     emit('update:modelValue', val)
     updateFromHex(val)
   }
+}
+
+const alphaInt = computed({
+  get: () => Math.round(alpha.value * 100),
+  set: (val) => {
+    alpha.value = Math.max(0, Math.min(100, val)) / 100
+  }
+})
+
+const onAlphaIntChange = () => {
+  triggerUpdate()
 }
 
 const onRgbChange = () => {
@@ -414,55 +429,64 @@ onUnmounted(() => document.removeEventListener('mousedown', handleClickOutside))
   border-top: 1px solid var(--card-border);
 }
 
-.color-area {
-  width: 100%;
-  height: 140px;
+.color-circle {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
   position: relative;
-  border-radius: 6px;
-  overflow: hidden;
   cursor: crosshair;
+  background: conic-gradient(from 0deg, red, yellow, lime, cyan, blue, magenta, red);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
-
-.color-area-white {
+.color-circle-saturation {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to right, #fff, rgba(255,255,255,0));
+  border-radius: 50%;
+  background: radial-gradient(circle closest-side, #fff, transparent);
+  pointer-events: none;
 }
-
-.color-area-black {
+.color-circle-value {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, #000, rgba(0,0,0,0));
+  border-radius: 50%;
+  background: #000;
+  pointer-events: none;
 }
-
-.color-pointer {
+.circle-pointer {
   position: absolute;
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
   border: 2px solid white;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.5);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.6);
   transform: translate(-50%, -50%);
   pointer-events: none;
+  z-index: 2;
 }
 
 .slider-container {
   padding: 0 4px;
 }
-
 .mt-2 { margin-top: 0.5rem; }
-.alpha-slider {
+
+.value-slider, .alpha-slider {
   width: 100%;
-  height: 12px;
-  border-radius: 6px;
+  height: 14px;
+  border-radius: 7px;
   position: relative;
   cursor: pointer;
-  box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
-  }
-.alpha-bg {
-  border-radius: 6px;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
+  overflow: hidden;
+}
+.value-bg {
   position: absolute;
   inset: 0;
+  border-radius: 7px;
+}
+.alpha-bg {
+  position: absolute;
+  inset: 0;
+  border-radius: 7px;
   background-image: linear-gradient(45deg, #ccc 25%, transparent 25%), 
                     linear-gradient(-45deg, #ccc 25%, transparent 25%), 
                     linear-gradient(45deg, transparent 75%, #ccc 75%), 
@@ -472,18 +496,9 @@ onUnmounted(() => document.removeEventListener('mousedown', handleClickOutside))
   background-color: white;
 }
 .alpha-color {
-  border-radius: 6px;
   position: absolute;
   inset: 0;
-}
-.hue-slider {
-  width: 100%;
-  height: 12px;
-  border-radius: 6px;
-  background: linear-gradient(to right, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%);
-  position: relative;
-  cursor: pointer;
-  box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
+  border-radius: 7px;
 }
 
 .slider-pointer {
