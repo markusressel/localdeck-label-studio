@@ -90,6 +90,7 @@ const props = defineProps({
 })
 
 const effectiveLightEffect = computed(() => {
+  if (props.label.lightEnabled === false) return 'static'
   return props.label.lightEffect !== null && props.label.lightEffect !== undefined
     ? props.label.lightEffect : props.globalLightEffect
 })
