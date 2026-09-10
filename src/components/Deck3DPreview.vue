@@ -49,16 +49,26 @@ const loadModels = () => {
         }
       })
 
-      // Center the extracted switch meshes
+      // Rotate the entire group to fix CAD Z-up orientation
+      switchGLTF.rotation.x = -Math.PI / 2
+
+      // Force Three.js to update the world matrix so the bounding box calculates correctly after rotation
+      switchGLTF.updateMatrixWorld(true)
+
+      // Center the extracted switch meshes based on their new rotated bounds
       const box = new THREE.Box3().setFromObject(switchGLTF)
       const center = box.getCenter(new THREE.Vector3())
       
-      switchGLTF.children.forEach(c => {
-        c.position.x -= center.x
-        c.position.z -= center.z
-        // Align bottom to y=0
-        c.position.y -= box.min.y
-      })
+      // We wrap it in another group to act as the true pivot
+      const pivotGroup = new THREE.Group()
+      
+      // Offset the inner group so its visual center is at 0,0,0
+      switchGLTF.position.x -= center.x
+      switchGLTF.position.z -= center.z
+      switchGLTF.position.y -= box.min.y // bottom flush with 0
+      
+      pivotGroup.add(switchGLTF)
+      switchGLTF = pivotGroup
       
       resolve()
     }, undefined, (error) => {
@@ -166,7 +176,7 @@ const buildProceduralDeck = () => {
       if (switchGLTF) {
         const mxSwitch = switchGLTF.clone()
         mxSwitch.position.set(x, 1, z) // PCB sits at y=1
-        mxSwitch.scale.set(25, 25, 25) // Scaled up to match 14x14 procedural grid dimensions // Adjust scale based on typical GLTF sizes (may need tuning)
+        mxSwitch.scale.set(12.5, 12.5, 12.5) // Halved scale based on user feedback // Adjust scale based on typical GLTF sizes (may need tuning)
         scene.add(mxSwitch)
       } else {
         const switchMesh = new THREE.Mesh(new THREE.BoxGeometry(14, 8, 14), switchMat)
