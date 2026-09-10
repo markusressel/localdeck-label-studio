@@ -147,7 +147,7 @@ const buildProceduralDeck = () => {
       if (switchGLTF) {
         const mxSwitch = switchGLTF.clone()
         mxSwitch.position.set(x, 5, z)
-        mxSwitch.scale.set(10, 10, 10) // Adjust scale based on typical GLTF sizes (may need tuning)
+        mxSwitch.scale.set(25, 25, 25) // Scaled up to match 14x14 procedural grid dimensions // Adjust scale based on typical GLTF sizes (may need tuning)
         scene.add(mxSwitch)
       } else {
         const switchMesh = new THREE.Mesh(new THREE.BoxGeometry(14, 8, 14), switchMat)
