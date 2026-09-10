@@ -6,11 +6,6 @@ The "cutting line" looks unnecessarily thick. We want to design it in a way that
 full inner size of the cap is completely filled with the label. I am not 100% sure the 14x14mm size we currently have is the inner or the outter diameter of the transparent cap on
 the white keycap itself. EDIT: The 14x14 size fits perfectly on the switch, when cutting off the cutting line, so it is correct.
 
-## Configure multiple LocalDecks
-
-We should allow the user to configure multiple LocalDecks. We would need a "Deck Manager" which allows the user to add, remove and select a LocalDeck configuration.
-Each LocalDeck should have its own configuration, but utilize the same global Label library.
-
 ## 3D Rendering (Experimental)
 
 At this point I wonder if we should do a full 3D rendering of the hole keycaps using a library that allows this in the browser, with realistic lighting and all. The CSS hackery
