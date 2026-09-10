@@ -32,15 +32,34 @@ const loadModels = () => {
   return new Promise((resolve) => {
     const loader = new GLTFLoader()
     loader.load('/models/switch.glb', (gltf) => {
-      switchGLTF = gltf.scene
-      // Center and scale the switch correctly
-      // We will scale it in the build loop, but let's enable shadows
-      switchGLTF.traverse((child) => {
+      
+      const parts = ['Mid Switch PCB LED', 'Mid Top PCB LED', 'Mid Bottom PCB LED']
+      switchGLTF = new THREE.Group()
+
+      gltf.scene.traverse((child) => {
         if (child.isMesh) {
-          child.castShadow = true
-          child.receiveShadow = true
+          // Some importers replace spaces with underscores, let's check both
+          const name = child.name.replace(/_/g, ' ')
+          if (parts.some(p => name.includes(p))) {
+            const meshClone = child.clone()
+            meshClone.castShadow = true
+            meshClone.receiveShadow = true
+            switchGLTF.add(meshClone)
+          }
         }
       })
+
+      // Center the extracted switch meshes
+      const box = new THREE.Box3().setFromObject(switchGLTF)
+      const center = box.getCenter(new THREE.Vector3())
+      
+      switchGLTF.children.forEach(c => {
+        c.position.x -= center.x
+        c.position.z -= center.z
+        // Align bottom to y=0
+        c.position.y -= box.min.y
+      })
+      
       resolve()
     }, undefined, (error) => {
       console.error('Error loading switch GLTF:', error)
@@ -146,7 +165,7 @@ const buildProceduralDeck = () => {
       // Switch Base (Cherry MX GLTF)
       if (switchGLTF) {
         const mxSwitch = switchGLTF.clone()
-        mxSwitch.position.set(x, 5, z)
+        mxSwitch.position.set(x, 1, z) // PCB sits at y=1
         mxSwitch.scale.set(25, 25, 25) // Scaled up to match 14x14 procedural grid dimensions // Adjust scale based on typical GLTF sizes (may need tuning)
         scene.add(mxSwitch)
       } else {
