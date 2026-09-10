@@ -8,6 +8,7 @@
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { useStore } from '../composables/useStore'
 
 const containerRef = ref(null)
@@ -16,14 +17,37 @@ const isLoading = ref(true)
 const { matrixWidth, matrixHeight, labels, globalLightColor, globalLightBrightness, globalBackgroundColor, globalTextColor } = useStore()
 
 let scene, camera, renderer, controls
+let switchGLTF = null
 let animationFrameId
 
-onMounted(() => {
+onMounted(async () => {
   initThreeJS()
+  await loadModels()
   buildProceduralDeck()
   animate()
   isLoading.value = false
 })
+
+const loadModels = () => {
+  return new Promise((resolve) => {
+    const loader = new GLTFLoader()
+    loader.load('/models/cherry_mx/scene.gltf', (gltf) => {
+      switchGLTF = gltf.scene
+      // Center and scale the switch correctly
+      // We will scale it in the build loop, but let's enable shadows
+      switchGLTF.traverse((child) => {
+        if (child.isMesh) {
+          child.castShadow = true
+          child.receiveShadow = true
+        }
+      })
+      resolve()
+    }, undefined, (error) => {
+      console.error('Error loading switch GLTF:', error)
+      resolve() // resolve anyway to not break the app
+    })
+  })
+}
 
 onUnmounted(() => {
   if (animationFrameId) cancelAnimationFrame(animationFrameId)
@@ -119,16 +143,22 @@ const buildProceduralDeck = () => {
       const index = (r * matrixWidth.value) + c
       const label = labels.value[index] || {}
 
-      // Switch Base
-      const switchMesh = new THREE.Mesh(new THREE.BoxGeometry(14, 8, 14), switchMat)
-      switchMesh.position.set(x, 5, z)
-      switchMesh.castShadow = true
-      scene.add(switchMesh)
-
-      // Stem
-      const stemMesh = new THREE.Mesh(new THREE.BoxGeometry(4, 4, 4), stemMat)
-      stemMesh.position.set(x, 11, z)
-      scene.add(stemMesh)
+      // Switch Base (Cherry MX GLTF)
+      if (switchGLTF) {
+        const mxSwitch = switchGLTF.clone()
+        mxSwitch.position.set(x, 5, z)
+        mxSwitch.scale.set(10, 10, 10) // Adjust scale based on typical GLTF sizes (may need tuning)
+        scene.add(mxSwitch)
+      } else {
+        const switchMesh = new THREE.Mesh(new THREE.BoxGeometry(14, 8, 14), switchMat)
+        switchMesh.position.set(x, 5, z)
+        switchMesh.castShadow = true
+        scene.add(switchMesh)
+  
+        const stemMesh = new THREE.Mesh(new THREE.BoxGeometry(4, 4, 4), stemMat)
+        stemMesh.position.set(x, 11, z)
+        scene.add(stemMesh)
+      }
 
       // Keycap Geometry (Cylinder with 4 segments = Square frustum)
       // Radius is distance to corner. Width is radius * sqrt(2)
