@@ -1,21 +1,10 @@
 # TODO
 
-## Icon Selection
-
-Icon selection is horrendous, we need a full-fledged picker that allows manual input, search and browsing through the entire icon set. We should also not only show the mdi set but
-also the standard browser emoji set, and whatever other icon sets we can find. The user should be able to select an icon and then change its color, size and position on the label.
-
-## Label positioning
-
-The automatic positioning is great right now, but sometimes manual adjustment is needed. Ideally we have a label box and an icon box, which can be snapped to center lines, but
-freely adjusted when holding down "Ctrl" or something like that.
-We should take inspiration from Figma and other design tools for this.
-
 ## Print Preview
 
 The "cutting line" looks unnecessarily thick. We want to design it in a way that it is visible but not overly big. It should be spaced in a way that by cutting it off entirely the
 full inner size of the cap is completely filled with the label. I am not 100% sure the 14x14mm size we currently have is the inner or the outter diameter of the transparent cap on
-the white keycap itself.
+the white keycap itself. EDIT: The 14x14 size fits perfectly on the switch, when cutting off the cutting line, so it is correct.
 
 ## Configure multiple LocalDecks
 
