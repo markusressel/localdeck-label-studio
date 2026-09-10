@@ -34,13 +34,15 @@ const initThreeJS = () => {
   scene = new THREE.Scene()
   scene.background = new THREE.Color('#1e1e1e')
 
-  camera = new THREE.PerspectiveCamera(45, containerRef.value.clientWidth / containerRef.value.clientHeight, 0.1, 1000)
+  const w = containerRef.value.clientWidth || 800
+  const h = containerRef.value.clientHeight || 600
+  camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 1000)
   camera.position.set(0, 150, 200)
 
   renderer = new THREE.WebGLRenderer({ antialias: true })
-  renderer.setSize(containerRef.value.clientWidth, containerRef.value.clientHeight)
+  renderer.setSize(w, h)
   renderer.shadowMap.enabled = true
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap
+  renderer.shadowMap.type = THREE.PCFShadowMap
   renderer.toneMapping = THREE.ACESFilmicToneMapping
   renderer.toneMappingExposure = 1.0
 
@@ -135,7 +137,8 @@ const buildProceduralDeck = () => {
       // LED Light
       const isEnabled = label.lightEnabled !== false
       if (isEnabled) {
-        const color = label.lightColor || globalLightColor.value || '#10b981'
+        let color = label.lightColor || globalLightColor.value || '#10b981'
+        if (color.length === 9) color = color.substring(0, 7)
         const b = (label.lightBrightness ?? globalLightBrightness.value) / 100
         const pointLight = new THREE.PointLight(color, b * 20, 30) // intensity and distance
         pointLight.position.set(x, 7, z - 4) // Positioned near top of switch
@@ -160,6 +163,7 @@ const animate = () => {
 }
 
 // Watch for changes to rebuild deck
+console.log('3D preview refs:', { matrixWidth, matrixHeight, labels, globalLightColor, globalLightBrightness })
 watch([matrixWidth, matrixHeight, labels, globalLightColor, globalLightBrightness], () => {
   // Very crude rebuild: clear scene and rebuild
   while(scene.children.length > 0){ 
