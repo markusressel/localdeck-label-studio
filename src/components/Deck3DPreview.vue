@@ -32,14 +32,14 @@ onUnmounted(() => {
 
 const initThreeJS = () => {
   scene = new THREE.Scene()
-  scene.background = new THREE.Color('#1e1e1e')
+  // scene.background = new THREE.Color('#1e1e1e') // Removed to make it transparent
 
   const w = containerRef.value.clientWidth || 800
   const h = containerRef.value.clientHeight || 600
   camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 1000)
   camera.position.set(0, 150, 200)
 
-  renderer = new THREE.WebGLRenderer({ antialias: true })
+  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
   renderer.setSize(w, h)
   renderer.shadowMap.enabled = true
   renderer.shadowMap.type = THREE.PCFShadowMap
@@ -237,7 +237,7 @@ watch([matrixWidth, matrixHeight, labels, globalLightColor, globalLightBrightnes
   position: relative;
   overflow: hidden;
   border-radius: 8px;
-  background: #1e1e1e;
+  background: transparent;
 }
 .loading-overlay {
   position: absolute;
