@@ -13,7 +13,7 @@ import { useStore } from '../composables/useStore'
 const containerRef = ref(null)
 const isLoading = ref(true)
 
-const { deckWidth, deckHeight, labels, globalLightColor, globalLightBrightness } = useStore()
+const { matrixWidth, matrixHeight, labels, globalLightColor, globalLightBrightness } = useStore()
 
 let scene, camera, renderer, controls
 let animationFrameId
@@ -75,8 +75,8 @@ const buildProceduralDeck = () => {
   scene.add(dirLight)
 
   // PCB Base
-  const pcbWidth = deckWidth.value * 20
-  const pcbHeight = deckHeight.value * 20
+  const pcbWidth = matrixWidth.value * 20
+  const pcbHeight = matrixHeight.value * 20
   const pcbGeo = new THREE.BoxGeometry(pcbWidth, 2, pcbHeight)
   const pcbMat = new THREE.MeshStandardMaterial({ color: 0x113311, roughness: 0.8 })
   const pcbMesh = new THREE.Mesh(pcbGeo, pcbMat)
@@ -103,11 +103,11 @@ const buildProceduralDeck = () => {
   const startX = -pcbWidth / 2 + 10
   const startZ = -pcbHeight / 2 + 10
 
-  for (let r = 0; r < deckHeight.value; r++) {
-    for (let c = 0; c < deckWidth.value; c++) {
+  for (let r = 0; r < matrixHeight.value; r++) {
+    for (let c = 0; c < matrixWidth.value; c++) {
       const x = startX + c * 20
       const z = startZ + r * 20
-      const index = (r * deckWidth.value) + c
+      const index = (r * matrixWidth.value) + c
       const label = labels.value[index] || {}
 
       // Switch Base
@@ -160,7 +160,7 @@ const animate = () => {
 }
 
 // Watch for changes to rebuild deck
-watch([deckWidth, deckHeight, labels, globalLightColor, globalLightBrightness], () => {
+watch([matrixWidth, matrixHeight, labels, globalLightColor, globalLightBrightness], () => {
   // Very crude rebuild: clear scene and rebuild
   while(scene.children.length > 0){ 
     scene.remove(scene.children[0]) 
