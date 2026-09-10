@@ -16,6 +16,10 @@
       </div>
       <div class="spacer"></div>
       
+      <div class="setting-group" style="margin-right: 1rem; cursor: pointer;" @click="show3DPreview = !show3DPreview" :title="show3DPreview ? 'Back to 2D Editor' : 'Experimental 3D Preview'">
+        <Icon :key="show3DPreview ? '3d-on' : '3d-off'" :icon="show3DPreview ? 'mdi:view-dashboard-outline' : 'mdi:cube-outline'" style="font-size: 1.5rem; color: var(--text-muted);" :style="{ color: show3DPreview ? 'var(--primary)' : 'var(--text-muted)' }" />
+      </div>
+
       <div class="setting-group" style="margin-right: 1rem; cursor: pointer;" @click="darkRoom = !darkRoom" title="Toggle Room Lighting">
         <Icon :key="darkRoom ? 'night' : 'sunny'" :icon="darkRoom ? 'mdi:weather-night' : 'mdi:weather-sunny'" style="font-size: 1.5rem; color: var(--text-muted);" />
       </div>
@@ -49,7 +53,7 @@
       </div>
     </div>
     <div class="device-preview-container">
-      <div class="localdeck-device">
+      <div class="localdeck-device" v-if="!show3DPreview">
         <div class="device-grid" :style="{ gridTemplateColumns: `repeat(${matrixWidth}, max-content)` }">
           <div 
             v-for="i in totalMatrixSlots"
@@ -95,6 +99,7 @@
           </div>
         </div>
       </div>
+      <Deck3DPreview v-else />
     </div>
 
     <!-- Label Library -->
