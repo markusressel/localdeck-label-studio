@@ -13,7 +13,7 @@ import { useStore } from '../composables/useStore'
 const containerRef = ref(null)
 const isLoading = ref(true)
 
-const { matrixWidth, matrixHeight, labels, globalLightColor, globalLightBrightness } = useStore()
+const { matrixWidth, matrixHeight, labels, globalLightColor, globalLightBrightness, globalBackgroundColor, globalTextColor } = useStore()
 
 let scene, camera, renderer, controls
 let animationFrameId
@@ -88,17 +88,24 @@ const buildProceduralDeck = () => {
   // Materials
   const switchMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.7 })
   const stemMat = new THREE.MeshStandardMaterial({ color: 0xaa2222, roughness: 0.4 })
+  
+  // Base cap needs to be translucent and double-sided so light escapes
   const capBaseMat = new THREE.MeshPhysicalMaterial({ 
     color: 0xffffff, 
-    roughness: 0.2,
-    transmission: 0.1, // Slight translucency for plastic
-    thickness: 1.5
+    roughness: 0.4,
+    transparent: true,
+    opacity: 0.9,
+    side: THREE.DoubleSide
   })
+  
   const capClearMat = new THREE.MeshPhysicalMaterial({
     color: 0xffffff,
-    transmission: 1.0, // Glass-like
-    roughness: 0.05,
-    ior: 1.5
+    transmission: 1.0,
+    roughness: 0.1,
+    ior: 1.5,
+    transparent: true,
+    opacity: 1.0,
+    side: THREE.DoubleSide
   })
 
   // Build grid
@@ -123,16 +130,64 @@ const buildProceduralDeck = () => {
       stemMesh.position.set(x, 11, z)
       scene.add(stemMesh)
 
-      // Cap Base (White)
-      const capBase = new THREE.Mesh(new THREE.BoxGeometry(18, 6, 18), capBaseMat)
+      // Keycap Geometry (Cylinder with 4 segments = Square frustum)
+      // Radius is distance to corner. Width is radius * sqrt(2)
+      // Top width ~ 14 -> radius = 10
+      // Bottom width ~ 18 -> radius = 12.7
+      const baseGeo = new THREE.CylinderGeometry(10, 12, 6, 4)
+      const capBase = new THREE.Mesh(baseGeo, capBaseMat)
       capBase.position.set(x, 15, z)
+      capBase.rotation.y = Math.PI / 4 // Rotate to make it square instead of diamond
       capBase.castShadow = true
       scene.add(capBase)
 
-      // Cap Clear Insert
-      const capClear = new THREE.Mesh(new THREE.BoxGeometry(16, 2, 16), capClearMat)
+      // Clear Cap (mimics shape, sits exactly on top)
+      // It acts as a shell over the top half
+      const clearGeo = new THREE.CylinderGeometry(10.5, 11, 2, 4)
+      const capClear = new THREE.Mesh(clearGeo, capClearMat)
       capClear.position.set(x, 19, z)
+      capClear.rotation.y = Math.PI / 4
       scene.add(capClear)
+      
+      // Label Rendering (Canvas Texture)
+      const canvas = document.createElement('canvas')
+      canvas.width = 256
+      canvas.height = 256
+      const ctx = canvas.getContext('2d')
+      
+      // Background
+      let bgColor = label.backgroundColor || globalBackgroundColor.value || 'transparent'
+      if (bgColor === 'transparent') bgColor = '#ffffff'
+      if (bgColor.length === 9) bgColor = bgColor.substring(0, 7)
+      ctx.fillStyle = bgColor
+      ctx.fillRect(0, 0, 256, 256)
+      
+      // Text/Icon
+      let textColor = label.textColor || globalTextColor.value || '#000000'
+      if (textColor.length === 9) textColor = textColor.substring(0, 7)
+      ctx.fillStyle = textColor
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      
+      if (label.text) {
+        ctx.font = 'bold 40px sans-serif'
+        ctx.fillText(label.text, 128, 128)
+      } else if (label.icon) {
+        // Fallback for icons since we can't easily draw SVG here yet
+        ctx.font = 'bold 80px sans-serif'
+        ctx.fillText(label.icon.replace('mdi:', ''), 128, 128) 
+      }
+      
+      const labelTex = new THREE.CanvasTexture(canvas)
+      const labelMat = new THREE.MeshBasicMaterial({ map: labelTex, transparent: true })
+      
+      // Plane for label
+      const planeWidth = 10 * Math.sqrt(2) // Match top width of cap
+      const labelGeo = new THREE.PlaneGeometry(planeWidth - 1, planeWidth - 1)
+      const labelMesh = new THREE.Mesh(labelGeo, labelMat)
+      labelMesh.rotation.x = -Math.PI / 2
+      labelMesh.position.set(x, 18.1, z) // Just below clear cap, on top of base cap
+      scene.add(labelMesh)
 
       // LED Light
       const isEnabled = label.lightEnabled !== false
@@ -140,14 +195,16 @@ const buildProceduralDeck = () => {
         let color = label.lightColor || globalLightColor.value || '#10b981'
         if (color.length === 9) color = color.substring(0, 7)
         const b = (label.lightBrightness ?? globalLightBrightness.value) / 100
-        const pointLight = new THREE.PointLight(color, b * 20, 30) // intensity and distance
-        pointLight.position.set(x, 7, z - 4) // Positioned near top of switch
+        
+        // Place light inside the cap and give it high intensity to bleed through DoubleSide translucent plastic
+        const pointLight = new THREE.PointLight(color, b * 150, 40)
+        pointLight.position.set(x, 14, z)
         scene.add(pointLight)
-
-        // Helper to see LED
-        // const sphereSize = 1;
-        // const pointLightHelper = new THREE.PointLightHelper( pointLight, sphereSize );
-        // scene.add( pointLightHelper );
+        
+        // Add a secondary faint light ABOVE the cap to simulate the glow lighting up the clear plastic/label
+        const topGlow = new THREE.PointLight(color, b * 50, 20)
+        topGlow.position.set(x, 21, z)
+        scene.add(topGlow)
       }
     }
   }
@@ -164,7 +221,7 @@ const animate = () => {
 
 // Watch for changes to rebuild deck
 console.log('3D preview refs:', { matrixWidth, matrixHeight, labels, globalLightColor, globalLightBrightness })
-watch([matrixWidth, matrixHeight, labels, globalLightColor, globalLightBrightness], () => {
+watch([matrixWidth, matrixHeight, labels, globalLightColor, globalLightBrightness, globalBackgroundColor, globalTextColor], () => {
   // Very crude rebuild: clear scene and rebuild
   while(scene.children.length > 0){ 
     scene.remove(scene.children[0]) 
