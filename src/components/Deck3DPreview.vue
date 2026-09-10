@@ -31,7 +31,7 @@ onMounted(async () => {
 const loadModels = () => {
   return new Promise((resolve) => {
     const loader = new GLTFLoader()
-    loader.load('/models/cherry_mx/scene.gltf', (gltf) => {
+    loader.load('/models/switch.glb', (gltf) => {
       switchGLTF = gltf.scene
       // Center and scale the switch correctly
       // We will scale it in the build loop, but let's enable shadows
