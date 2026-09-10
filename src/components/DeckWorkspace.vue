@@ -179,6 +179,7 @@
 <script setup>
 import { Icon } from '@iconify/vue'
 import { useStore } from '../composables/useStore.js'
+import Deck3DPreview from './Deck3DPreview.vue'
 import { ref, computed } from 'vue'
 import LabelPreview from './LabelPreview.vue'
 import ColorPicker from './ColorPicker.vue'
@@ -204,6 +205,7 @@ const addDeck = () => {
 const deckOptions = computed(() => decks.value.map(d => ({ value: d.id, label: d.name })))
 
 const librarySearch = ref('')
+const show3DPreview = ref(false)
 
 const filteredLabels = computed(() => {
   const query = librarySearch.value.toLowerCase().trim()
