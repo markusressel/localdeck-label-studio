@@ -170,12 +170,20 @@ const onWindowResize = () => {
 }
 
 const buildProceduralDeck = () => {
+  // Dynamic Room Lighting based on Dark Room toggle
+  // In Dark Room, all ambient light is killed. In Light Room, it's very bright.
+  const ambientIntensity = darkRoom.value ? 0.0 : 0.8
+  const dirIntensity = darkRoom.value ? 0.0 : 2.5
+  
+  // Dynamically set background color to match the room state
+  scene.background = new THREE.Color(darkRoom.value ? '#000000' : '#1a1a1c')
+
   // Add ambient light
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.2)
+  const ambientLight = new THREE.AmbientLight(0xffffff, ambientIntensity)
   scene.add(ambientLight)
 
-  // Add directional light (sun/room light)
-  const dirLight = new THREE.DirectionalLight(0xffffff, 0.8)
+  // Add directional light ("desk lamp")
+  const dirLight = new THREE.DirectionalLight(0xffffff, dirIntensity)
   dirLight.position.set(50, 100, 50)
   dirLight.castShadow = true
   dirLight.shadow.mapSize.width = 2048
@@ -466,12 +474,12 @@ const buildProceduralDeck = () => {
         
         // Cherry MX LED slot is typically offset towards the "bottom" (South/positive Z) of the switch.
         // It's also physically located lower inside the switch housing.
-        const pointLight = new THREE.PointLight(color, b * 150, 20) // Reduced distance to prevent washing out the case
+        const pointLight = new THREE.PointLight(color, b * 150, 15) // Reduced distance so it only lights local switch
         pointLight.position.set(x, 10, z + 5) // Offset to the LED slot, lower in the housing
         scene.add(pointLight)
         
         // Add a secondary faint light ABOVE the cap to simulate the glow lighting up the clear plastic/label
-        const topGlow = new THREE.PointLight(color, b * 50, 15) // Reduced distance
+        const topGlow = new THREE.PointLight(color, b * 50, 8) // Reduced distance
         topGlow.position.set(x, labelPlaneY + 3, z + 2) // Also offset slightly
         scene.add(topGlow)
       }
