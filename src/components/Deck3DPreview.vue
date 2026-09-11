@@ -274,10 +274,15 @@ const buildProceduralDeck = () => {
   
   const switchHousingMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.6 })
   
-  // Base cap is standard opaque white plastic
-  const capBaseMat = new THREE.MeshStandardMaterial({ 
-    color: 0xe0e0e0, // Slightly off-white plastic
-    roughness: 0.8,
+  // Base cap is highly translucent white plastic that perfectly scatters the LED light
+  const capBaseMat = new THREE.MeshPhysicalMaterial({ 
+    color: 0xffffff,
+    roughness: 0.4,
+    metalness: 0.0,
+    transmission: 1.0,
+    thickness: 1.5,
+    attenuationColor: new THREE.Color(0xffffff),
+    attenuationDistance: 4.0,
     side: THREE.DoubleSide
   })
   
@@ -340,7 +345,16 @@ const buildProceduralDeck = () => {
         capClone.traverse((child) => {
           if (child.isMesh) {
             if (child.name.includes('obj1')) {
-              child.material = capBaseMat
+              // Clone the material so each keycap can glow independently with its own LED color
+              const capMatClone = capBaseMat.clone()
+              let c = label.lightColor || globalLightColor.value || '#10b981'
+              let b = (label.lightBrightness ?? globalLightBrightness.value) / 100
+              if (!label.lightEnabled && label.lightEnabled !== undefined) b = 0
+              if (label.lightEnabled === false) b = 0
+              capMatClone.emissive = new THREE.Color(c)
+              capMatClone.emissiveIntensity = b * 0.8
+              
+              child.material = capMatClone
               child.castShadow = true
               whiteCapMesh = child
             } else if (child.name.includes('obj2')) {
@@ -386,8 +400,13 @@ const buildProceduralDeck = () => {
       let bgColor = label.backgroundColor || globalBackgroundColor.value || 'transparent'
       if (bgColor === 'transparent') bgColor = '#ffffff'
       if (bgColor.length === 9) bgColor = bgColor.substring(0, 7)
-      ctx.fillStyle = bgColor
-      ctx.fillRect(0, 0, 256, 256)
+      
+      if (labelMaterial.value !== 'transparent') {
+        ctx.fillStyle = bgColor
+        ctx.fillRect(0, 0, 256, 256)
+      } else {
+        ctx.clearRect(0, 0, 256, 256)
+      }
       
       // Text/Icon
       let textColor = label.textColor || globalTextColor.value || '#000000'
@@ -503,7 +522,8 @@ const buildProceduralDeck = () => {
       if (isEnabled) {
         let color = label.lightColor || globalLightColor.value || '#10b981'
         if (color.length === 9) color = color.substring(0, 7)
-        const b = (label.lightBrightness ?? globalLightBrightness.value) / 100
+        let brightness = label.lightBrightness !== undefined ? label.lightBrightness : globalLightBrightness.value
+        const b = brightness / 100
         
         // The internal LED now only needs to illuminate the switch housing and PCB, 
         // because the keycap itself glows volumetrically.
