@@ -184,8 +184,8 @@ const buildProceduralDeck = () => {
       // Switch Base (Cherry MX GLTF)
       if (switchGLTF) {
         const mxSwitch = switchGLTF.clone()
-        mxSwitch.position.set(x, 1, z) // PCB sits at y=1
-        mxSwitch.scale.set(12.5, 12.5, 12.5) // Halved scale based on user feedback // Adjust scale based on typical GLTF sizes (may need tuning)
+        // Place the bottom of the switch directly on top of the PCB (which spans y=0 to y=2)
+        mxSwitch.position.set(x, 2, z)
         scene.add(mxSwitch)
       } else {
         const switchMesh = new THREE.Mesh(new THREE.BoxGeometry(14, 8, 14), switchMat)
