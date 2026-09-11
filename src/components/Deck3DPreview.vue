@@ -218,6 +218,8 @@ const buildProceduralDeck = () => {
       // Switch Base (Cherry MX GLTF)
       if (switchGLTF) {
         const mxSwitch = switchGLTF.clone()
+        // Rotate 180 degrees so the LED slot faces the bottom (South)
+        mxSwitch.rotation.y = Math.PI
         // Place the bottom of the switch directly on top of the PCB (which spans y=0 to y=2)
         mxSwitch.position.set(x, 2, z)
         scene.add(mxSwitch)
@@ -242,21 +244,31 @@ const buildProceduralDeck = () => {
         capBaseY = 2 + switchHeight - 4 // push down 4 units so the stem connects deep into the cap
         capClone.position.set(x, capBaseY, z)
         
+        let whiteCapMesh = null
         capClone.traverse((child) => {
           if (child.isMesh) {
             if (child.name.includes('obj1')) {
               child.material = capBaseMat
               child.castShadow = true
+              whiteCapMesh = child
             } else if (child.name.includes('obj2')) {
               child.material = capClearMat
+              // Lift the clear cover slightly to guarantee physical clearance for the label
+              child.position.y += 0.5 
             }
           }
         })
         scene.add(capClone)
-        // obj1 (white cap) max Z is -1.0, obj2 (clear cap) max Z is 0.05. Gap is ~1.05.
-        // We place the label exactly on top of the white cap surface.
-        // Float slightly above the white cap to prevent Z-fighting, accounting for typical 5-degree keycap slope
-        labelPlaneY = capBaseY + keycapOBJ.userData.capHeight - (1.05 * keycapOBJ.userData.targetScale) + 0.5
+        
+        // Calculate exact mathematical top of the white cap after placement
+        capClone.updateMatrixWorld(true)
+        if (whiteCapMesh) {
+          const box1 = new THREE.Box3().setFromObject(whiteCapMesh)
+          // Place label EXACTLY 0.1 units above the highest point of the white cap
+          labelPlaneY = box1.max.y + 0.1
+        } else {
+          labelPlaneY = capBaseY + keycapOBJ.userData.capHeight
+        }
       } else {
         const baseGeo = new THREE.CylinderGeometry(10, 12, 6, 4)
         const capBase = new THREE.Mesh(baseGeo, capBaseMat)
@@ -302,7 +314,7 @@ const buildProceduralDeck = () => {
       }
       
       const labelTex = new THREE.CanvasTexture(canvas)
-      const labelMat = new THREE.MeshBasicMaterial({ map: labelTex, transparent: true, depthWrite: true, depthTest: true })
+      const labelMat = new THREE.MeshBasicMaterial({ map: labelTex, transparent: true, depthWrite: true, depthTest: true, side: THREE.DoubleSide })
       
       // Plane for label
       const planeWidth = 10 * Math.sqrt(2) // Match top width of cap
