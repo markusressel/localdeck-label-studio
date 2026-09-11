@@ -288,14 +288,17 @@ const buildProceduralDeck = () => {
     depthWrite: true
   })
   
-  // Clear cap uses full transmission, no 'transparent: true' to allow Three.js to render refraction properly
-  const capClearMat = new THREE.MeshPhysicalMaterial({
+  // Clear snap-on cover
+  // We use standard opacity instead of Physical transmission to avoid the dreaded WebGL "multi-transmission" bug
+  // where two transmissive objects overlapping causes the rear one to vanish!
+  const capClearMat = new THREE.MeshStandardMaterial({
     color: 0xffffff,
-    transmission: 1.0,
-    roughness: 0.05,
-    ior: 1.5,
-    thickness: 0.5,
-    side: THREE.DoubleSide
+    metalness: 0.1,
+    roughness: 0.1,
+    opacity: 0.3, // Acts like glass without breaking the transmission shader
+    side: THREE.DoubleSide,
+    transparent: true,
+    depthWrite: false
   })
 
   // Build grid
