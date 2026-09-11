@@ -67,6 +67,15 @@ const loadModels = () => {
       switchGLTF.position.z -= center.z
       switchGLTF.position.y -= box.min.y // bottom flush with 0
       
+      // Auto-scale to exactly 14 units wide
+      const size = new THREE.Vector3()
+      box.getSize(size)
+      const targetScale = 14 / size.x
+      pivotGroup.scale.set(targetScale, targetScale, targetScale)
+      
+      // Save the final height as userData so we can position it perfectly relative to the keycap
+      pivotGroup.userData.switchHeight = size.y * targetScale
+      
       pivotGroup.add(switchGLTF)
       switchGLTF = pivotGroup
       
