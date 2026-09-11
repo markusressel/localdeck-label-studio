@@ -274,20 +274,34 @@ const buildProceduralDeck = () => {
   
   const switchHousingMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.6 })
   
-  // Base cap uses physical transmission to simulate subsurface scattering falloff
-  const capBaseMat = new THREE.MeshPhysicalMaterial({ 
-    color: 0xffffff,
-    roughness: 1.0, // Perfectly matte to blur the transmission and prevent specular shimmering
-    metalness: 0.0,
-    ior: 1.5, // Restored to 1.5 so it bends light like real plastic (hiding the internals). Roughness 1.0 will blur the shimmer!
-    transmission: previewCapTranslucency.value, 
-    thickness: 2.0,
-    attenuationColor: new THREE.Color(0xffffff),
-    attenuationDistance: previewCapAttenuation.value,
-    side: THREE.DoubleSide,
-    transparent: true,
-    depthWrite: true
-  })
+  // HYBRID RENDERER TRICK FOR THE WHITE CAP:
+  // In standard WebGL, screen-space transmission creates an unavoidable "oil shimmer" when the camera moves.
+  // Instead, we use standard Alpha Blending (opacity). Because it is DoubleSided, the internal PointLight
+  // brightly illuminates the inside walls of the cap (creating a perfect falloff), which we see through the semi-transparent front walls!
+  // In Path Tracer mode, we use the true volumetric transmission shader!
+  const capBaseMat = highQualityRender.value
+    ? new THREE.MeshPhysicalMaterial({ 
+        color: 0xffffff,
+        roughness: 0.5,
+        metalness: 0.0,
+        ior: 1.5,
+        transmission: previewCapTranslucency.value, 
+        thickness: 2.0,
+        attenuationColor: new THREE.Color(0xffffff),
+        attenuationDistance: previewCapAttenuation.value,
+        side: THREE.DoubleSide,
+        transparent: true,
+        depthWrite: true
+      })
+    : new THREE.MeshStandardMaterial({
+        color: 0xffffff,
+        roughness: 0.8,
+        metalness: 0.0,
+        opacity: previewCapTranslucency.value, // Fakes transmission via standard alpha blending
+        side: THREE.DoubleSide,
+        transparent: true,
+        depthWrite: true
+      })
   
   // Clear snap-on cover
   // HYBRID RENDERER TRICK:
