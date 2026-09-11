@@ -274,16 +274,13 @@ const buildProceduralDeck = () => {
   
   const switchHousingMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.6 })
   
-  // Base cap is highly translucent white plastic that perfectly scatters the LED light
-  const capBaseMat = new THREE.MeshPhysicalMaterial({ 
-    color: 0xffffff,
-    roughness: 0.4,
-    metalness: 0.0,
-    transmission: 1.0,
-    thickness: 1.5,
-    attenuationColor: new THREE.Color(0xffffff),
-    attenuationDistance: 4.0,
-    side: THREE.DoubleSide
+  // Base cap is a solid standard material that glows from within (emissive) to simulate perfect scattering
+  const capBaseMat = new THREE.MeshStandardMaterial({ 
+    color: 0xe0e0e0,
+    roughness: 0.8,
+    side: THREE.DoubleSide,
+    transparent: false,
+    depthWrite: true
   })
   
   // Clear cap uses full transmission, no 'transparent: true' to allow Three.js to render refraction properly
@@ -491,12 +488,12 @@ const buildProceduralDeck = () => {
         map: labelTex, 
         transparent: true, 
         side: THREE.DoubleSide,
-        depthWrite: false
+        depthWrite: true, 
+        alphaTest: 0.1, // ULTIMATE FIX: This forces the GPU to physically discard invisible canvas pixels!
+        roughness: 0.9,
+        metalness: 0.0
       }
       
-      // Standard BasicMaterial works best here because it perfectly respects the Canvas diffuse colors
-      // without PBR transmission completely wiping them out.
-      // We simulate paper density by adjusting the raw material opacity.
       if (labelMaterial.value === 'transparent') {
         matConfig.opacity = 0.9
       } else if (labelMaterial.value === 'thin') {
@@ -505,7 +502,8 @@ const buildProceduralDeck = () => {
         matConfig.opacity = 1.0
       }
       
-      const labelMat = new THREE.MeshBasicMaterial(matConfig)
+      // MeshStandardMaterial respects lighting so the glowing base illuminates the paper!
+      const labelMat = new THREE.MeshStandardMaterial(matConfig)
       
       // Plane for label
       const planeWidth = 10 * Math.sqrt(2) // Match top width of cap
