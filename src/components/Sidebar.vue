@@ -72,6 +72,27 @@
               <ColorPicker v-model="switchStemColor" />
             </div>
           </div>
+          
+          <div class="style-group-header" style="margin-top: 1rem;">
+            <Icon icon="mdi:lightbulb-on-outline" class="header-icon" />
+            <span>3D Preview Lighting</span>
+          </div>
+          <div class="control-row">
+            <div class="control-group">
+              <label>LED Intensity (cd)</label>
+              <input type="number" v-model.number="previewLedIntensity" min="100" max="10000" step="100" />
+            </div>
+          </div>
+          <div class="control-row" style="margin-top: 0.5rem">
+            <div class="control-group half">
+              <label>Translucency</label>
+              <input type="number" v-model.number="previewCapTranslucency" min="0" max="1" step="0.05" />
+            </div>
+            <div class="control-group half">
+              <label>Falloff Dist.</label>
+              <input type="number" v-model.number="previewCapAttenuation" min="0.1" max="10.0" step="0.1" />
+            </div>
+          </div>
         </div>
       </div>
     </div>
