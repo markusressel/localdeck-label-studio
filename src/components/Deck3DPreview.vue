@@ -17,7 +17,7 @@ import { useStore } from '../composables/useStore'
 const containerRef = ref(null)
 const isLoading = ref(true)
 
-const { matrixWidth, matrixHeight, labels, globalLightColor, globalLightBrightness, globalBackgroundColor, globalTextColor, darkRoom, highQualityRender, caseColor, labelMaterial, switchBodyColor, switchStemColor } = useStore()
+const { matrixWidth, matrixHeight, labels, globalLightColor, globalLightBrightness, globalBackgroundColor, globalTextColor, darkRoom, highQualityRender, caseColor, labelMaterial, switchBodyColor, switchStemColor, previewLedIntensity, previewCapTranslucency, previewCapAttenuation } = useStore()
 
 let scene, camera, renderer, controls, pathTracer
 let switchGLTF = null
@@ -279,10 +279,10 @@ const buildProceduralDeck = () => {
     color: 0xffffff,
     roughness: 0.5,
     metalness: 0.0,
-    transmission: 0.9, // 0.9 means it's 10% solid diffuse, 90% translucent
+    transmission: previewCapTranslucency.value, // 0.9 means it's 10% solid diffuse, 90% translucent
     thickness: 2.0,
     attenuationColor: new THREE.Color(0xffffff),
-    attenuationDistance: 2.0,
+    attenuationDistance: previewCapAttenuation.value,
     side: THREE.DoubleSide,
     transparent: true,
     depthWrite: true
@@ -515,7 +515,7 @@ const buildProceduralDeck = () => {
         
         // Internal LED placed exactly where the physical switch LED slot is.
         // Needs massive intensity to punch through the MeshPhysicalMaterial transmission!
-        const pointLight = new THREE.PointLight(color, b * 3000, 20)
+        const pointLight = new THREE.PointLight(color, b * previewLedIntensity.value, 20)
         pointLight.position.set(x, 10, z + 5)
         scene.add(pointLight)
         
@@ -538,7 +538,7 @@ const animate = () => {
 // Watch for changes to rebuild deck
 console.log('3D preview refs:', { matrixWidth, matrixHeight, labels, globalLightColor, globalLightBrightness })
 let rebuildTimeout = null
-watch([matrixWidth, matrixHeight, labels, globalLightColor, globalLightBrightness, globalBackgroundColor, globalTextColor, darkRoom, highQualityRender, caseColor, labelMaterial, switchBodyColor, switchStemColor], () => {
+watch([matrixWidth, matrixHeight, labels, globalLightColor, globalLightBrightness, globalBackgroundColor, globalTextColor, darkRoom, highQualityRender, caseColor, labelMaterial, switchBodyColor, switchStemColor, previewLedIntensity, previewCapTranslucency, previewCapAttenuation], () => {
   if (rebuildTimeout) clearTimeout(rebuildTimeout)
   rebuildTimeout = setTimeout(() => {
     // Very crude rebuild: clear scene and rebuild

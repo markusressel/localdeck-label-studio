@@ -117,7 +117,7 @@ const {
   globalIconColor,
   caseColor,
   switchBodyColor,
-  switchStemColor,
+  switchStemColor, previewLedIntensity, previewCapTranslucency, previewCapAttenuation,
   globalBackgroundColor,
   selectedItemIndex,
   duplicateSelected,

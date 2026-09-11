@@ -33,6 +33,10 @@ const globalBackgroundColor = ref('transparent')
 const zoomLevel = ref(2)
 const darkRoom = ref(true)
 const highQualityRender = ref(false)
+const previewLedIntensity = ref(3000)
+const previewCapTranslucency = ref(0.9)
+const previewCapAttenuation = ref(2.0)
+
 const labels = ref([])
 const isDragging = ref(false)
 const dragOverTarget = ref(null)
@@ -663,7 +667,7 @@ watch([decks, activeDeckId, labelWidth, labelHeight, labelMaterial, globalLightC
     switchBodyColor,
     switchStemColor, caseColor, switchBodyColor, switchStemColor,
     globalBackgroundColor, zoomLevel, labels, selectedId, printFormat, printZoom,
-    printOffsetY, darkRoom, highQualityRender, selectedPrintIds, printGrid], saveState, { deep: true })
+    printOffsetY, darkRoom, highQualityRender, previewLedIntensity, previewCapTranslucency, previewCapAttenuation, selectedPrintIds, printGrid], saveState, { deep: true })
 
 export function useStore() {
   return {
