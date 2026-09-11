@@ -233,7 +233,7 @@ const buildProceduralDeck = () => {
   }
   
   const extrudeSettings = {
-    depth: 6,
+    depth: 8, // Increased depth for a taller case
     bevelEnabled: true,
     bevelSegments: 4,
     steps: 1,
@@ -250,8 +250,8 @@ const buildProceduralDeck = () => {
     metalness: 0.1 
   })
   const caseMesh = new THREE.Mesh(caseGeo, caseMeshMat)
-  // Bevel thickness adds to depth. Placing it at Y=7 covers the bottom housing.
-  caseMesh.position.set(0, 7, 0) 
+  // Raised to Y=9 (2mm taller) to fully set the switches into the housing base
+  caseMesh.position.set(0, 9, 0) 
   caseMesh.castShadow = true
   caseMesh.receiveShadow = true
   scene.add(caseMesh)
