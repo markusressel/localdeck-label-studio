@@ -277,9 +277,9 @@ const buildProceduralDeck = () => {
   // Base cap uses physical transmission to simulate subsurface scattering falloff
   const capBaseMat = new THREE.MeshPhysicalMaterial({ 
     color: 0xffffff,
-    roughness: 1.0, // Perfectly matte to prevent internal specular highlights shimmering
+    roughness: 1.0, // Perfectly matte to blur the transmission and prevent specular shimmering
     metalness: 0.0,
-    ior: 1.0, // NO REFRACTION. Prevents screen-space transmission from shifting pixels when camera moves!
+    ior: 1.5, // Restored to 1.5 so it bends light like real plastic (hiding the internals). Roughness 1.0 will blur the shimmer!
     transmission: previewCapTranslucency.value, 
     thickness: 2.0,
     attenuationColor: new THREE.Color(0xffffff),
