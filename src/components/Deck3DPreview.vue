@@ -277,9 +277,10 @@ const buildProceduralDeck = () => {
   // Base cap uses physical transmission to simulate subsurface scattering falloff
   const capBaseMat = new THREE.MeshPhysicalMaterial({ 
     color: 0xffffff,
-    roughness: 0.5,
+    roughness: 1.0, // Perfectly matte to prevent internal specular highlights shimmering
     metalness: 0.0,
-    transmission: previewCapTranslucency.value, // 0.9 means it's 10% solid diffuse, 90% translucent
+    ior: 1.0, // NO REFRACTION. Prevents screen-space transmission from shifting pixels when camera moves!
+    transmission: previewCapTranslucency.value, 
     thickness: 2.0,
     attenuationColor: new THREE.Color(0xffffff),
     attenuationDistance: previewCapAttenuation.value,
