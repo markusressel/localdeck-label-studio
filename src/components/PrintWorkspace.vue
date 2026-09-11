@@ -78,7 +78,7 @@
               transform: `scale(${printZoom})`, 
               transformOrigin: 'top left',
               backgroundSize: `${labelWidth}mm ${labelHeight}mm`, 
-              backgroundPosition: '5mm 5mm' 
+              backgroundPosition: `5mm calc(5mm + ${printOffsetY}mm)`
             }"
           >
             <div 

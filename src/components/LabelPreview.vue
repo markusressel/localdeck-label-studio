@@ -382,6 +382,8 @@ const innerStyle = computed(() => {
   padding: 1mm;
   box-sizing: border-box;
   mix-blend-mode: multiply; 
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
 }
 
 .label-icon-container, .label-image-container {

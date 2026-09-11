@@ -7,14 +7,17 @@
   align-items: flex-start !important;
 }
 
-.label-wrapper {
-  border: 0.5px dashed #ccc !important; /* Cut lines */
+.print-grid-slot {
   box-sizing: border-box !important;
   page-break-inside: avoid;
   break-inside: avoid;
-  /* ensure background colors print */
-  -webkit-print-color-adjust: exact !important;
-  print-color-adjust: exact !important;
+}
+
+@media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
 }
 
 @media print {
@@ -43,8 +46,9 @@
   }
 
   /* Reset body styles that interfere with print */
-  body {
-    background: white;
+  :root, html, body, #app {
+    background: transparent !important;
+    background-color: transparent !important;
     min-height: auto;
   }
 }
@@ -63,6 +67,8 @@
   .print-preview-content {
     overflow: visible !important;
     height: auto !important;
+    background: transparent !important;
+    padding: 0 !important;
   }
 
   .paper-zoom-wrapper {
