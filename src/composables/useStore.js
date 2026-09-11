@@ -27,7 +27,7 @@ const globalIconSize = ref(24)
 const globalIconColor = ref('#000000')
 
 const caseColor = ref('#2a2a2b')
-const switchBodyColor = ref('#222222')
+const switchBodyColor = ref('#ffffff')
 const switchStemColor = ref('#ffffff')
 const globalBackgroundColor = ref('transparent')
 const zoomLevel = ref(2)
