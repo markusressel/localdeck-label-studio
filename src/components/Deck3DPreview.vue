@@ -187,6 +187,8 @@ const buildProceduralDeck = () => {
   const switchMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.7 })
   const stemMat = new THREE.MeshStandardMaterial({ color: 0xaa2222, roughness: 0.4 })
   
+  const switchHousingMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.6 })
+  
   // Base cap is standard opaque white plastic
   const capBaseMat = new THREE.MeshStandardMaterial({ 
     color: 0xe0e0e0, // Slightly off-white plastic
@@ -222,6 +224,14 @@ const buildProceduralDeck = () => {
         mxSwitch.rotation.y = Math.PI
         // Place the bottom of the switch directly on top of the PCB (which spans y=0 to y=2)
         mxSwitch.position.set(x, 2, z)
+        
+        // Override all baked CAD materials to make the body and stem white plastic
+        mxSwitch.traverse(child => {
+          if (child.isMesh) {
+            child.material = switchHousingMat
+          }
+        })
+        
         scene.add(mxSwitch)
       } else {
         const switchMesh = new THREE.Mesh(new THREE.BoxGeometry(14, 8, 14), switchMat)
