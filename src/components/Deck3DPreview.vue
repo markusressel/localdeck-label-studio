@@ -73,7 +73,7 @@ const loadModels = () => {
       // Auto-scale to exactly 14 units wide
       const size = new THREE.Vector3()
       box.getSize(size)
-      const targetScale = 14 / size.x
+      const targetScale = 15.6 / size.x
       pivotGroup.scale.set(targetScale, targetScale, targetScale)
       
       // Save the final height as userData so we can position it perfectly relative to the keycap
@@ -106,7 +106,7 @@ const loadModels = () => {
       
       const size = new THREE.Vector3()
       box.getSize(size)
-      const targetScale = 14.5 / size.x // Scale to 14.5 width to match switch base
+      const targetScale = 18.0 / size.x // Scale to 18 width (typical keycap base)
       pivot.scale.set(targetScale, targetScale, targetScale)
       pivot.userData.capHeight = size.y * targetScale
       
@@ -186,22 +186,22 @@ const buildProceduralDeck = () => {
   const switchMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.7 })
   const stemMat = new THREE.MeshStandardMaterial({ color: 0xaa2222, roughness: 0.4 })
   
-  // Base cap needs to be translucent and double-sided so light escapes
+  // Base cap uses slight transmission for subsurface scattering look without breaking depth sorting
   const capBaseMat = new THREE.MeshPhysicalMaterial({ 
     color: 0xffffff, 
     roughness: 0.4,
-    transparent: true,
-    opacity: 0.9,
+    transmission: 0.3,
+    thickness: 2.0,
     side: THREE.DoubleSide
   })
   
+  // Clear cap uses full transmission, no 'transparent: true' to allow Three.js to render refraction properly
   const capClearMat = new THREE.MeshPhysicalMaterial({
     color: 0xffffff,
     transmission: 1.0,
-    roughness: 0.1,
+    roughness: 0.05,
     ior: 1.5,
-    transparent: true,
-    opacity: 1.0,
+    thickness: 0.5,
     side: THREE.DoubleSide
   })
 
@@ -240,7 +240,7 @@ const buildProceduralDeck = () => {
         const capClone = keycapOBJ.clone()
         // The switch is at y=2, and has a height. We want the cap to sit slightly down on the stem.
         const switchHeight = switchGLTF ? (switchGLTF.userData.switchHeight || 10) : 10
-        capBaseY = 2 + switchHeight - 3 // push down 3 units into the stem
+        capBaseY = 2 + switchHeight - 4 // push down 4 units so the stem connects deep into the cap
         capClone.position.set(x, capBaseY, z)
         
         capClone.traverse((child) => {
@@ -300,7 +300,7 @@ const buildProceduralDeck = () => {
       }
       
       const labelTex = new THREE.CanvasTexture(canvas)
-      const labelMat = new THREE.MeshBasicMaterial({ map: labelTex, transparent: true })
+      const labelMat = new THREE.MeshBasicMaterial({ map: labelTex, transparent: true, depthWrite: false })
       
       // Plane for label
       const planeWidth = 10 * Math.sqrt(2) // Match top width of cap
