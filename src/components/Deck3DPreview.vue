@@ -10,6 +10,7 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js'
+import * as emoji from 'node-emoji'
 import { useStore } from '../composables/useStore'
 
 const containerRef = ref(null)
@@ -342,11 +343,12 @@ const buildProceduralDeck = () => {
         ctx.font = `bold ${tSize}px sans-serif`
         ctx.textBaseline = 'middle'
         ctx.fillStyle = textColor // Ensure text uses textColor!
-        ctx.fillText(label.text, 0, 0)
+        ctx.fillText(emoji.emojify(label.text), 0, 0)
         ctx.restore()
       } 
       if (label.icon) {
-        if (label.icon.includes(':')) {
+        const isIconify = label.icon.includes(':') && !label.icon.startsWith(':')
+        if (isIconify) {
           const parts = label.icon.split(':')
           if (parts.length === 2) {
             const img = new Image()
@@ -375,7 +377,7 @@ const buildProceduralDeck = () => {
           ctx.translate(128 + iX, iBaseY + iY)
           ctx.font = `${iSize}px sans-serif`
           ctx.textBaseline = 'middle'
-          ctx.fillText(label.icon, 0, 0)
+          ctx.fillText(emoji.emojify(label.icon), 0, 0)
           ctx.restore()
         }
       }

@@ -42,7 +42,7 @@
               :icon="label.icon"
             />
             <span v-else>
-              {{ label.icon }}
+              {{ emoji.emojify(label.icon) }}
             </span>
           </div>
           <div 
