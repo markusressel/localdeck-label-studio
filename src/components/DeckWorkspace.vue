@@ -259,6 +259,7 @@ const {
   globalBackgroundColor,
   zoomLevel,
   darkRoom,
+  highQualityRender,
   labels,
   dragOverTarget,
   selectedId,
