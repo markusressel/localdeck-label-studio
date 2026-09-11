@@ -17,7 +17,7 @@ import { useStore } from '../composables/useStore'
 const containerRef = ref(null)
 const isLoading = ref(true)
 
-const { matrixWidth, matrixHeight, labels, globalLightColor, globalLightBrightness, globalBackgroundColor, globalTextColor, darkRoom, highQualityRender, caseColor, switchBodyColor, switchStemColor } = useStore()
+const { matrixWidth, matrixHeight, labels, globalLightColor, globalLightBrightness, globalBackgroundColor, globalTextColor, darkRoom, highQualityRender, caseColor, labelMaterial, switchBodyColor, switchStemColor } = useStore()
 
 let scene, camera, renderer, controls, pathTracer
 let switchGLTF = null
@@ -457,7 +457,27 @@ const buildProceduralDeck = () => {
       }
       
       const labelTex = new THREE.CanvasTexture(canvas)
-      const labelMat = new THREE.MeshBasicMaterial({ map: labelTex, transparent: false, side: THREE.DoubleSide })
+      let matConfig = { 
+        map: labelTex, 
+        transparent: true, 
+        roughness: 0.9,
+        metalness: 0.0,
+        side: THREE.DoubleSide,
+        depthWrite: false
+      }
+      
+      if (labelMaterial.value === 'transparent') {
+        matConfig.transmission = 1.0
+        matConfig.opacity = 1.0
+      } else if (labelMaterial.value === 'thin') {
+        matConfig.transmission = 0.8
+        matConfig.opacity = 0.9
+      } else {
+        matConfig.transmission = 0.2
+        matConfig.opacity = 1.0
+      }
+      
+      const labelMat = new THREE.MeshPhysicalMaterial(matConfig)
       
       // Plane for label
       const planeWidth = 10 * Math.sqrt(2) // Match top width of cap
@@ -503,7 +523,7 @@ const animate = () => {
 // Watch for changes to rebuild deck
 console.log('3D preview refs:', { matrixWidth, matrixHeight, labels, globalLightColor, globalLightBrightness })
 let rebuildTimeout = null
-watch([matrixWidth, matrixHeight, labels, globalLightColor, globalLightBrightness, globalBackgroundColor, globalTextColor, darkRoom, highQualityRender, caseColor, switchBodyColor, switchStemColor], () => {
+watch([matrixWidth, matrixHeight, labels, globalLightColor, globalLightBrightness, globalBackgroundColor, globalTextColor, darkRoom, highQualityRender, caseColor, labelMaterial, switchBodyColor, switchStemColor], () => {
   if (rebuildTimeout) clearTimeout(rebuildTimeout)
   rebuildTimeout = setTimeout(() => {
     // Very crude rebuild: clear scene and rebuild
