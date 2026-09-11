@@ -460,24 +460,22 @@ const buildProceduralDeck = () => {
       let matConfig = { 
         map: labelTex, 
         transparent: true, 
-        roughness: 0.9,
-        metalness: 0.0,
         side: THREE.DoubleSide,
         depthWrite: false
       }
       
+      // Standard BasicMaterial works best here because it perfectly respects the Canvas diffuse colors
+      // without PBR transmission completely wiping them out.
+      // We simulate paper density by adjusting the raw material opacity.
       if (labelMaterial.value === 'transparent') {
-        matConfig.transmission = 1.0
-        matConfig.opacity = 1.0
-      } else if (labelMaterial.value === 'thin') {
-        matConfig.transmission = 0.8
         matConfig.opacity = 0.9
+      } else if (labelMaterial.value === 'thin') {
+        matConfig.opacity = 0.95
       } else {
-        matConfig.transmission = 0.2
         matConfig.opacity = 1.0
       }
       
-      const labelMat = new THREE.MeshPhysicalMaterial(matConfig)
+      const labelMat = new THREE.MeshBasicMaterial(matConfig)
       
       // Plane for label
       const planeWidth = 10 * Math.sqrt(2) // Match top width of cap
