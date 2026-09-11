@@ -274,18 +274,15 @@ const buildProceduralDeck = () => {
   
   const switchHousingMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.6 })
   
-  // HYBRID RENDERER TRICK FOR THE WHITE CAP:
-  // We use standard Alpha Blending (opacity) for BOTH WebGL and Path Tracer.
-  // Why? Because highly rough volumetric transmission with a bright internal light is a pathological case for path tracers
-  // and causes extreme "firefly" noise during camera movement. Alpha blending with DoubleSide simulates
-  // the exact same volumetric falloff flawlessly and convergences instantly in the Path Tracer!
+  // OPAQUE WHITE CAP:
+  // The only way to completely hide the internal switch stem while maintaining
+  // a stable, non-shimmering glow is to make the material 100% opaque.
   const capBaseMat = new THREE.MeshStandardMaterial({
     color: 0xffffff,
     roughness: 0.8,
     metalness: 0.0,
-    opacity: previewCapTranslucency.value,
     side: THREE.DoubleSide,
-    transparent: true,
+    transparent: false,
     depthWrite: true
   })
   
@@ -530,11 +527,17 @@ const buildProceduralDeck = () => {
         let brightness = label.lightBrightness !== undefined ? label.lightBrightness : globalLightBrightness.value
         const b = brightness / 100
         
-        // Internal LED placed exactly where the physical switch LED slot is.
-        // Needs massive intensity to punch through the MeshPhysicalMaterial transmission!
-        const pointLight = new THREE.PointLight(color, b * previewLedIntensity.value, 20)
+        // 1. Internal LED to illuminate the clear switch housing and PCB
+        const pointLight = new THREE.PointLight(color, b * 100, 15)
         pointLight.position.set(x, 10, z + 5)
         scene.add(pointLight)
+        
+        // 2. External 'Glow' Light
+        // Since the white cap is 100% opaque to hide the stem, we fake volumetric scattering
+        // by placing a soft light OUTSIDE the cap. This creates a realistic falloff gradient!
+        const glowLight = new THREE.PointLight(color, b * (previewLedIntensity.value / 10), 12)
+        glowLight.position.set(x, labelPlaneY - 2, z + 3) // Positioned slightly inside/top of the cap to cast soft light down the sides
+        scene.add(glowLight)
         
         // Removed topGlow: The fake overhead light caused a harsh specular circle.
         // The emissive keycap base will now naturally illuminate the label from below!
