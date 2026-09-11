@@ -191,6 +191,71 @@ const buildProceduralDeck = () => {
   pcbMesh.receiveShadow = true
   scene.add(pcbMesh)
 
+  // Build Enclosure Case with switch cutouts
+  const caseWidth = pcbWidth + 12 // 6mm border on each side
+  const caseHeight = pcbHeight + 12
+  const radius = 6 // Rounded corner radius
+  
+  const shape = new THREE.Shape()
+  
+  const cw2 = caseWidth / 2
+  const ch2 = caseHeight / 2
+  
+  shape.moveTo(-cw2, -ch2 + radius)
+  shape.lineTo(-cw2, ch2 - radius)
+  shape.quadraticCurveTo(-cw2, ch2, -cw2 + radius, ch2)
+  shape.lineTo(cw2 - radius, ch2)
+  shape.quadraticCurveTo(cw2, ch2, cw2, ch2 - radius)
+  shape.lineTo(cw2, -ch2 + radius)
+  shape.quadraticCurveTo(cw2, -ch2, cw2 - radius, -ch2)
+  shape.lineTo(-cw2 + radius, -ch2)
+  shape.quadraticCurveTo(-cw2, -ch2, -cw2, -ch2 + radius)
+  
+  // Cutouts
+  const gridStartX = -pcbWidth / 2 + 10
+  const gridStartZ = -pcbHeight / 2 + 10
+  
+  for (let r = 0; r < matrixHeight.value; r++) {
+    for (let c = 0; c < matrixWidth.value; c++) {
+      const cx = gridStartX + c * 20
+      const cz = gridStartZ + r * 20
+      
+      const hole = new THREE.Path()
+      const hw = 7.5 // half-width of 15x15 hole to comfortably fit the switch housing
+      hole.moveTo(cx - hw, cz - hw)
+      hole.lineTo(cx - hw, cz + hw)
+      hole.lineTo(cx + hw, cz + hw)
+      hole.lineTo(cx + hw, cz - hw)
+      hole.lineTo(cx - hw, cz - hw)
+      
+      shape.holes.push(hole)
+    }
+  }
+  
+  const extrudeSettings = {
+    depth: 6,
+    bevelEnabled: true,
+    bevelSegments: 4,
+    steps: 1,
+    bevelSize: 1.5,
+    bevelThickness: 1.5
+  }
+  
+  const caseGeo = new THREE.ExtrudeGeometry(shape, extrudeSettings)
+  caseGeo.rotateX(Math.PI / 2) // Now it lies flat on XZ, and extrudes downwards in Y
+  
+  const caseMeshMat = new THREE.MeshStandardMaterial({ 
+    color: 0x2a2a2b, 
+    roughness: 0.8, 
+    metalness: 0.1 
+  })
+  const caseMesh = new THREE.Mesh(caseGeo, caseMeshMat)
+  // Bevel thickness adds to depth. Placing it at Y=7 covers the bottom housing.
+  caseMesh.position.set(0, 7, 0) 
+  caseMesh.castShadow = true
+  caseMesh.receiveShadow = true
+  scene.add(caseMesh)
+
   // Materials
   const switchMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.7 })
   const stemMat = new THREE.MeshStandardMaterial({ color: 0xaa2222, roughness: 0.4 })
@@ -215,13 +280,10 @@ const buildProceduralDeck = () => {
   })
 
   // Build grid
-  const startX = -pcbWidth / 2 + 10
-  const startZ = -pcbHeight / 2 + 10
-
   for (let r = 0; r < matrixHeight.value; r++) {
     for (let c = 0; c < matrixWidth.value; c++) {
-      const x = startX + c * 20
-      const z = startZ + r * 20
+      const x = gridStartX + c * 20
+      const z = gridStartZ + r * 20
       const index = (r * matrixWidth.value) + c
       const label = labels.value[index] || {}
 
