@@ -255,7 +255,8 @@ const buildProceduralDeck = () => {
         scene.add(capClone)
         // obj1 (white cap) max Z is -1.0, obj2 (clear cap) max Z is 0.05. Gap is ~1.05.
         // We place the label exactly on top of the white cap surface.
-        labelPlaneY = capBaseY + keycapOBJ.userData.capHeight - (1.1 * keycapOBJ.userData.targetScale) // sit on white cap
+        // Float slightly above the white cap to prevent Z-fighting, accounting for typical 5-degree keycap slope
+        labelPlaneY = capBaseY + keycapOBJ.userData.capHeight - (1.05 * keycapOBJ.userData.targetScale) + 0.5
       } else {
         const baseGeo = new THREE.CylinderGeometry(10, 12, 6, 4)
         const capBase = new THREE.Mesh(baseGeo, capBaseMat)
@@ -301,14 +302,16 @@ const buildProceduralDeck = () => {
       }
       
       const labelTex = new THREE.CanvasTexture(canvas)
-      const labelMat = new THREE.MeshBasicMaterial({ map: labelTex, transparent: true, depthWrite: false })
+      const labelMat = new THREE.MeshBasicMaterial({ map: labelTex, transparent: true, depthWrite: true, depthTest: true })
       
       // Plane for label
       const planeWidth = 10 * Math.sqrt(2) // Match top width of cap
       const labelGeo = new THREE.PlaneGeometry(planeWidth - 1, planeWidth - 1)
       const labelMesh = new THREE.Mesh(labelGeo, labelMat)
-      labelMesh.rotation.x = -Math.PI / 2
-      labelMesh.position.set(x, labelPlaneY, z) // Just below clear cap, on top of base cap
+      // Most keycaps have a ~5 degree slope towards the user
+      labelMesh.rotation.x = -Math.PI / 2 + (5 * Math.PI / 180)
+      labelMesh.position.set(x, labelPlaneY, z)
+      labelMesh.renderOrder = 999 // Force it to render on top of the opaque cap
       scene.add(labelMesh)
 
       // LED Light
