@@ -36,7 +36,7 @@ const loadModels = () => {
       const loader = new GLTFLoader()
       loader.load('/models/switch.glb', (gltf) => {
       
-      const parts = ['Mid Switch PCB LED', 'Mid Top PCB LED', 'Mid Bottom PCB LED']
+      const parts = ['Mid Switch Blue Plastic', 'Mid Top Mid Top', 'Mid Bottom Mid Bottom'] // Exact mesh matches to prevent overlapping
       switchGLTF = new THREE.Group()
 
       gltf.scene.traverse((child) => {
@@ -109,6 +109,7 @@ const loadModels = () => {
       const targetScale = 18.0 / size.x // Scale to 18 width (typical keycap base)
       pivot.scale.set(targetScale, targetScale, targetScale)
       pivot.userData.capHeight = size.y * targetScale
+      pivot.userData.targetScale = targetScale
       
       pivot.add(obj)
       keycapOBJ = pivot
@@ -186,12 +187,10 @@ const buildProceduralDeck = () => {
   const switchMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.7 })
   const stemMat = new THREE.MeshStandardMaterial({ color: 0xaa2222, roughness: 0.4 })
   
-  // Base cap uses slight transmission for subsurface scattering look without breaking depth sorting
-  const capBaseMat = new THREE.MeshPhysicalMaterial({ 
-    color: 0xffffff, 
-    roughness: 0.4,
-    transmission: 0.3,
-    thickness: 2.0,
+  // Base cap is standard opaque white plastic
+  const capBaseMat = new THREE.MeshStandardMaterial({ 
+    color: 0xe0e0e0, // Slightly off-white plastic
+    roughness: 0.8,
     side: THREE.DoubleSide
   })
   
@@ -254,7 +253,9 @@ const buildProceduralDeck = () => {
           }
         })
         scene.add(capClone)
-        labelPlaneY = capBaseY + (keycapOBJ.userData.capHeight * 0.85) // put label inside the cap, just below the clear top
+        // obj1 (white cap) max Z is -1.0, obj2 (clear cap) max Z is 0.05. Gap is ~1.05.
+        // We place the label exactly on top of the white cap surface.
+        labelPlaneY = capBaseY + keycapOBJ.userData.capHeight - (1.1 * keycapOBJ.userData.targetScale) // sit on white cap
       } else {
         const baseGeo = new THREE.CylinderGeometry(10, 12, 6, 4)
         const capBase = new THREE.Mesh(baseGeo, capBaseMat)
