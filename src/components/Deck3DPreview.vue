@@ -16,7 +16,7 @@ import { useStore } from '../composables/useStore'
 const containerRef = ref(null)
 const isLoading = ref(true)
 
-const { matrixWidth, matrixHeight, labels, globalLightColor, globalLightBrightness, globalBackgroundColor, globalTextColor } = useStore()
+const { matrixWidth, matrixHeight, labels, globalLightColor, globalLightBrightness, globalBackgroundColor, globalTextColor, darkRoom } = useStore()
 
 let scene, camera, renderer, controls
 let switchGLTF = null
@@ -490,7 +490,7 @@ const animate = () => {
 
 // Watch for changes to rebuild deck
 console.log('3D preview refs:', { matrixWidth, matrixHeight, labels, globalLightColor, globalLightBrightness })
-watch([matrixWidth, matrixHeight, labels, globalLightColor, globalLightBrightness, globalBackgroundColor, globalTextColor], () => {
+watch([matrixWidth, matrixHeight, labels, globalLightColor, globalLightBrightness, globalBackgroundColor, globalTextColor, darkRoom], () => {
   // Very crude rebuild: clear scene and rebuild
   while(scene.children.length > 0){ 
     scene.remove(scene.children[0]) 
