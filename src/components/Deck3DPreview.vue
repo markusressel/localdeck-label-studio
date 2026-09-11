@@ -496,16 +496,14 @@ const buildProceduralDeck = () => {
         if (color.length === 9) color = color.substring(0, 7)
         const b = (label.lightBrightness ?? globalLightBrightness.value) / 100
         
-        // Cherry MX LED slot is typically offset towards the "bottom" (South/positive Z) of the switch.
-        // It's also physically located lower inside the switch housing.
-        const pointLight = new THREE.PointLight(color, b * 1200, 15) // Reduced distance so it only lights local switch
-        pointLight.position.set(x, 10, z + 5) // Offset to the LED slot, lower in the housing
+        // The internal LED now only needs to illuminate the switch housing and PCB, 
+        // because the keycap itself glows volumetrically.
+        const pointLight = new THREE.PointLight(color, b * 200, 15)
+        pointLight.position.set(x, 10, z + 5)
         scene.add(pointLight)
         
-        // Add a secondary faint light ABOVE the cap to simulate the glow lighting up the clear plastic/label
-        const topGlow = new THREE.PointLight(color, b * 400, 8) // Reduced distance
-        topGlow.position.set(x, labelPlaneY + 3, z + 2) // Also offset slightly
-        scene.add(topGlow)
+        // Removed topGlow: The fake overhead light caused a harsh specular circle.
+        // The emissive keycap base will now naturally illuminate the label from below!
       }
     }
   }
