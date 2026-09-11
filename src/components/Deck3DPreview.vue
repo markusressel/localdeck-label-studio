@@ -11,14 +11,15 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js'
 import * as emoji from 'node-emoji'
+import { WebGLPathTracer } from 'three-gpu-pathtracer'
 import { useStore } from '../composables/useStore'
 
 const containerRef = ref(null)
 const isLoading = ref(true)
 
-const { matrixWidth, matrixHeight, labels, globalLightColor, globalLightBrightness, globalBackgroundColor, globalTextColor, darkRoom } = useStore()
+const { matrixWidth, matrixHeight, labels, globalLightColor, globalLightBrightness, globalBackgroundColor, globalTextColor, darkRoom, highQualityRender } = useStore()
 
-let scene, camera, renderer, controls
+let scene, camera, renderer, controls, pathTracer
 let switchGLTF = null
 let keycapOBJ = null
 let animationFrameId
@@ -157,6 +158,8 @@ const initThreeJS = () => {
   controls = new OrbitControls(camera, renderer.domElement)
   controls.enableDamping = true
   controls.dampingFactor = 0.05
+
+  pathTracer = new WebGLPathTracer(renderer)
 
   // Resize handler
   window.addEventListener('resize', onWindowResize)
@@ -498,7 +501,7 @@ const animate = () => {
 
 // Watch for changes to rebuild deck
 console.log('3D preview refs:', { matrixWidth, matrixHeight, labels, globalLightColor, globalLightBrightness })
-watch([matrixWidth, matrixHeight, labels, globalLightColor, globalLightBrightness, globalBackgroundColor, globalTextColor, darkRoom], () => {
+watch([matrixWidth, matrixHeight, labels, globalLightColor, globalLightBrightness, globalBackgroundColor, globalTextColor, darkRoom, highQualityRender], () => {
   // Very crude rebuild: clear scene and rebuild
   while(scene.children.length > 0){ 
     scene.remove(scene.children[0]) 

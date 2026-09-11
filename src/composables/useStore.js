@@ -28,6 +28,7 @@ const globalIconColor = ref('#000000')
 const globalBackgroundColor = ref('transparent')
 const zoomLevel = ref(2)
 const darkRoom = ref(true)
+const highQualityRender = ref(false)
 const labels = ref([])
 const isDragging = ref(false)
 const dragOverTarget = ref(null)
@@ -649,7 +650,7 @@ const printLabels = async () => {
 
 watch([decks, activeDeckId, labelWidth, labelHeight, labelMaterial, globalLightColor, globalLightBrightness, globalLightEffect, globalTextSize, globalTextColor, globalIconSize, globalIconColor,
     globalBackgroundColor, zoomLevel, labels, selectedId, printFormat, printZoom,
-    printOffsetY, darkRoom, selectedPrintIds, printGrid], saveState, { deep: true })
+    printOffsetY, darkRoom, highQualityRender, selectedPrintIds, printGrid], saveState, { deep: true })
 
 export function useStore() {
   return {
@@ -665,7 +666,7 @@ export function useStore() {
     globalIconColor,
     globalBackgroundColor,
     zoomLevel,
-    darkRoom,
+    darkRoom, highQualityRender,
     labels,
     isDragging,
     dragOverTarget,
