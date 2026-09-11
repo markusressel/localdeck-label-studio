@@ -9,6 +9,7 @@ import { ref, onMounted, onUnmounted, watch } from 'vue'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js'
 import { useStore } from '../composables/useStore'
 
 const containerRef = ref(null)
@@ -18,6 +19,7 @@ const { matrixWidth, matrixHeight, labels, globalLightColor, globalLightBrightne
 
 let scene, camera, renderer, controls
 let switchGLTF = null
+let keycapOBJ = null
 let animationFrameId
 
 onMounted(async () => {
@@ -29,9 +31,10 @@ onMounted(async () => {
 })
 
 const loadModels = () => {
-  return new Promise((resolve) => {
-    const loader = new GLTFLoader()
-    loader.load('/models/switch.glb', (gltf) => {
+  return Promise.all([
+    new Promise((resolve) => {
+      const loader = new GLTFLoader()
+      loader.load('/models/switch.glb', (gltf) => {
       
       const parts = ['Mid Switch PCB LED', 'Mid Top PCB LED', 'Mid Bottom PCB LED']
       switchGLTF = new THREE.Group()
@@ -82,9 +85,41 @@ const loadModels = () => {
       resolve()
     }, undefined, (error) => {
       console.error('Error loading switch GLTF:', error)
-      resolve() // resolve anyway to not break the app
+      resolve() 
+    })
+  }),
+  new Promise((resolve) => {
+    const loader = new OBJLoader()
+    loader.load('/models/keycap.obj', (obj) => {
+      
+      // Rotate for Z-up
+      obj.rotation.x = -Math.PI / 2
+      obj.updateMatrixWorld(true)
+      
+      const box = new THREE.Box3().setFromObject(obj)
+      const center = box.getCenter(new THREE.Vector3())
+      
+      const pivot = new THREE.Group()
+      obj.position.x -= center.x
+      obj.position.z -= center.z
+      obj.position.y -= box.min.y
+      
+      const size = new THREE.Vector3()
+      box.getSize(size)
+      const targetScale = 14.5 / size.x // Scale to 14.5 width to match switch base
+      pivot.scale.set(targetScale, targetScale, targetScale)
+      pivot.userData.capHeight = size.y * targetScale
+      
+      pivot.add(obj)
+      keycapOBJ = pivot
+      
+      resolve()
+    }, undefined, (error) => {
+      console.error('Error loading keycap OBJ:', error)
+      resolve()
     })
   })
+  ])
 }
 
 onUnmounted(() => {
@@ -198,24 +233,42 @@ const buildProceduralDeck = () => {
         scene.add(stemMesh)
       }
 
-      // Keycap Geometry (Cylinder with 4 segments = Square frustum)
-      // Radius is distance to corner. Width is radius * sqrt(2)
-      // Top width ~ 14 -> radius = 10
-      // Bottom width ~ 18 -> radius = 12.7
-      const baseGeo = new THREE.CylinderGeometry(10, 12, 6, 4)
-      const capBase = new THREE.Mesh(baseGeo, capBaseMat)
-      capBase.position.set(x, 15, z)
-      capBase.rotation.y = Math.PI / 4 // Rotate to make it square instead of diamond
-      capBase.castShadow = true
-      scene.add(capBase)
+      // Keycap Geometry (OBJ)
+      let capBaseY = 15
+      let labelPlaneY = 18.1
+      if (keycapOBJ) {
+        const capClone = keycapOBJ.clone()
+        // The switch is at y=2, and has a height. We want the cap to sit slightly down on the stem.
+        const switchHeight = switchGLTF ? (switchGLTF.userData.switchHeight || 10) : 10
+        capBaseY = 2 + switchHeight - 3 // push down 3 units into the stem
+        capClone.position.set(x, capBaseY, z)
+        
+        capClone.traverse((child) => {
+          if (child.isMesh) {
+            if (child.name.includes('obj1')) {
+              child.material = capBaseMat
+              child.castShadow = true
+            } else if (child.name.includes('obj2')) {
+              child.material = capClearMat
+            }
+          }
+        })
+        scene.add(capClone)
+        labelPlaneY = capBaseY + (keycapOBJ.userData.capHeight * 0.85) // put label inside the cap, just below the clear top
+      } else {
+        const baseGeo = new THREE.CylinderGeometry(10, 12, 6, 4)
+        const capBase = new THREE.Mesh(baseGeo, capBaseMat)
+        capBase.position.set(x, 15, z)
+        capBase.rotation.y = Math.PI / 4
+        capBase.castShadow = true
+        scene.add(capBase)
 
-      // Clear Cap (mimics shape, sits exactly on top)
-      // It acts as a shell over the top half
-      const clearGeo = new THREE.CylinderGeometry(10.5, 11, 2, 4)
-      const capClear = new THREE.Mesh(clearGeo, capClearMat)
-      capClear.position.set(x, 19, z)
-      capClear.rotation.y = Math.PI / 4
-      scene.add(capClear)
+        const clearGeo = new THREE.CylinderGeometry(10.5, 11, 2, 4)
+        const capClear = new THREE.Mesh(clearGeo, capClearMat)
+        capClear.position.set(x, 19, z)
+        capClear.rotation.y = Math.PI / 4
+        scene.add(capClear)
+      }
       
       // Label Rendering (Canvas Texture)
       const canvas = document.createElement('canvas')
@@ -254,7 +307,7 @@ const buildProceduralDeck = () => {
       const labelGeo = new THREE.PlaneGeometry(planeWidth - 1, planeWidth - 1)
       const labelMesh = new THREE.Mesh(labelGeo, labelMat)
       labelMesh.rotation.x = -Math.PI / 2
-      labelMesh.position.set(x, 18.1, z) // Just below clear cap, on top of base cap
+      labelMesh.position.set(x, labelPlaneY, z) // Just below clear cap, on top of base cap
       scene.add(labelMesh)
 
       // LED Light
@@ -266,12 +319,12 @@ const buildProceduralDeck = () => {
         
         // Place light inside the cap and give it high intensity to bleed through DoubleSide translucent plastic
         const pointLight = new THREE.PointLight(color, b * 150, 40)
-        pointLight.position.set(x, 14, z)
+        pointLight.position.set(x, capBaseY + 1, z)
         scene.add(pointLight)
         
         // Add a secondary faint light ABOVE the cap to simulate the glow lighting up the clear plastic/label
         const topGlow = new THREE.PointLight(color, b * 50, 20)
-        topGlow.position.set(x, 21, z)
+        topGlow.position.set(x, labelPlaneY + 3, z)
         scene.add(topGlow)
       }
     }
