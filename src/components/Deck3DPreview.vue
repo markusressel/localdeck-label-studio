@@ -274,15 +274,22 @@ const buildProceduralDeck = () => {
   
   const switchHousingMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.6 })
   
-  // OPAQUE WHITE CAP:
-  // The only way to completely hide the internal switch stem while maintaining
-  // a stable, non-shimmering glow is to make the material 100% opaque.
-  const capBaseMat = new THREE.MeshStandardMaterial({
+  // HIGHLY REALISTIC VOLUMETRIC CAP:
+  // This uses absolute physical optical properties. 
+  // It relies on Transmission (volume), IOR (refraction to hide internals), and Roughness (frosting).
+  // In WebGL this will shimmer (screen-space limitation).
+  // In Path Tracer this will be noisy during movement (true volumetric path-tracing limitation), but will converge to photorealism.
+  const capBaseMat = new THREE.MeshPhysicalMaterial({
     color: 0xffffff,
-    roughness: 0.8,
+    roughness: 0.5, // Frosted surface
     metalness: 0.0,
+    transmission: 1.0, // 100% volume
+    ior: 1.5, // Bends light heavily so you cannot clearly see the switch stem inside!
+    thickness: 2.0, // 2mm thick plastic volume
+    attenuationColor: new THREE.Color(0xffffff),
+    attenuationDistance: previewCapAttenuation.value, // Light travels this far before being absorbed
     side: THREE.DoubleSide,
-    transparent: false,
+    transparent: true,
     depthWrite: true
   })
   
@@ -527,17 +534,11 @@ const buildProceduralDeck = () => {
         let brightness = label.lightBrightness !== undefined ? label.lightBrightness : globalLightBrightness.value
         const b = brightness / 100
         
-        // 1. Internal LED to illuminate the clear switch housing and PCB
-        const pointLight = new THREE.PointLight(color, b * 100, 15)
+        // Internal LED placed exactly where the physical switch LED slot is.
+        // Needs massive intensity to punch through the 2mm volumetric plastic!
+        const pointLight = new THREE.PointLight(color, b * previewLedIntensity.value, 20)
         pointLight.position.set(x, 10, z + 5)
         scene.add(pointLight)
-        
-        // 2. External 'Glow' Light
-        // Since the white cap is 100% opaque to hide the stem, we fake volumetric scattering
-        // by placing a soft light OUTSIDE the cap. This creates a realistic falloff gradient!
-        const glowLight = new THREE.PointLight(color, b * (previewLedIntensity.value / 10), 12)
-        glowLight.position.set(x, labelPlaneY - 2, z + 3) // Positioned slightly inside/top of the cap to cast soft light down the sides
-        scene.add(glowLight)
         
         // Removed topGlow: The fake overhead light caused a harsh specular circle.
         // The emissive keycap base will now naturally illuminate the label from below!
