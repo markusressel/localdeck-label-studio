@@ -321,17 +321,18 @@ const buildProceduralDeck = () => {
       ctx.textAlign = 'center'
       ctx.textBaseline = 'middle'
       
+      // 2D Preview renders in DOM pixels where ~53px = 14mm. Our canvas is 256x256. Scale factor is approx 4.8.
+      const PX_SCALE = 4.8
+      
       if (label.text) {
-        const tX = label.textX || 0
-        // The 2D preview uses CSS transforms where +Y is down. Our canvas origin is top-left.
-        // Base center is 128, 128.
-        const tY = label.textY || 0
-        const scale = label.textScale || 1
+        const tX = (label.textOffsetX || 0) * PX_SCALE
+        const tY = (label.textOffsetY || 0) * PX_SCALE
+        const tSize = (label.textSize || 10) * PX_SCALE
         
         ctx.save()
         ctx.translate(128 + tX, 128 + tY)
-        ctx.scale(scale, scale)
-        ctx.font = 'bold 40px sans-serif'
+        ctx.font = `bold ${tSize}px sans-serif`
+        ctx.textBaseline = 'middle' // Match DOM centering
         ctx.fillText(label.text, 0, 0)
         ctx.restore()
       } 
@@ -341,16 +342,13 @@ const buildProceduralDeck = () => {
           const img = new Image()
           img.crossOrigin = "anonymous"
           img.onload = () => {
-            const iX = label.iconX || 0
-            const iY = label.iconY || 0
-            const scale = label.iconScale || 1
-            const size = 128 * scale
+            const iX = (label.iconOffsetX || 0) * PX_SCALE
+            const iY = (label.iconOffsetY || 0) * PX_SCALE
+            const iSize = (label.iconSize || 24) * PX_SCALE
             
             ctx.save()
-            // Translate to center + custom user offset
             ctx.translate(128 + iX, 128 + iY)
-            // drawImage top-left is x-size/2, y-size/2 to keep it centered at 0,0 of the transform
-            ctx.drawImage(img, -size/2, -size/2, size, size)
+            ctx.drawImage(img, -iSize/2, -iSize/2, iSize, iSize)
             ctx.restore()
             
             labelTex.needsUpdate = true
