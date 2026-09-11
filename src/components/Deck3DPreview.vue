@@ -23,6 +23,7 @@ let scene, camera, renderer, controls, pathTracer
 let switchGLTF = null
 let keycapOBJ = null
 let animationFrameId
+const iconImageCache = new Map()
 
 onMounted(async () => {
   initThreeJS()
