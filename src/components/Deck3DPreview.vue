@@ -466,12 +466,12 @@ const buildProceduralDeck = () => {
         
         // Cherry MX LED slot is typically offset towards the "bottom" (South/positive Z) of the switch.
         // It's also physically located lower inside the switch housing.
-        const pointLight = new THREE.PointLight(color, b * 150, 40)
+        const pointLight = new THREE.PointLight(color, b * 150, 20) // Reduced distance to prevent washing out the case
         pointLight.position.set(x, 10, z + 5) // Offset to the LED slot, lower in the housing
         scene.add(pointLight)
         
         // Add a secondary faint light ABOVE the cap to simulate the glow lighting up the clear plastic/label
-        const topGlow = new THREE.PointLight(color, b * 50, 20)
+        const topGlow = new THREE.PointLight(color, b * 50, 15) // Reduced distance
         topGlow.position.set(x, labelPlaneY + 3, z + 2) // Also offset slightly
         scene.add(topGlow)
       }
