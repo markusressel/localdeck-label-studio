@@ -282,7 +282,7 @@ const buildProceduralDeck = () => {
         if (whiteCapMesh) {
           const box1 = new THREE.Box3().setFromObject(whiteCapMesh)
           // Place label EXACTLY 0.1 units above the highest point of the white cap
-          labelPlaneY = box1.max.y + 20.0 // TEMPORARY DEBUG: Lift 20 units into the sky
+          labelPlaneY = box1.max.y + 0.1
         } else {
           labelPlaneY = capBaseY + keycapOBJ.userData.capHeight
         }
@@ -322,16 +322,37 @@ const buildProceduralDeck = () => {
       ctx.textBaseline = 'middle'
       
       if (label.text) {
+        // Very basic placement mapping
         ctx.font = 'bold 40px sans-serif'
-        ctx.fillText(label.text, 128, 128)
-      } else if (label.icon) {
-        // Fallback for icons since we can't easily draw SVG here yet
-        ctx.font = 'bold 80px sans-serif'
-        ctx.fillText(label.icon.replace('mdi:', ''), 128, 128) 
+        if (label.textPosition === 'bottom') {
+           ctx.fillText(label.text, 128, 200)
+        } else if (label.textPosition === 'top') {
+           ctx.fillText(label.text, 128, 56)
+        } else {
+           ctx.fillText(label.text, 128, 128)
+        }
+      } 
+      if (label.icon) {
+        const parts = label.icon.split(':')
+        if (parts.length === 2) {
+          const img = new Image()
+          img.crossOrigin = "anonymous"
+          img.onload = () => {
+            // Draw icon centered if no text, otherwise draw above/below text
+            let y = 64
+            if (label.text && label.textPosition === 'top') y = 120
+            else if (label.text && label.textPosition === 'bottom') y = 20
+            else if (!label.text) y = 64
+            
+            ctx.drawImage(img, 64, y, 128, 128)
+            labelTex.needsUpdate = true
+          }
+          img.src = `https://api.iconify.design/${parts[0]}/${parts[1]}.svg?color=${encodeURIComponent(textColor)}`
+        }
       }
       
       const labelTex = new THREE.CanvasTexture(canvas)
-      const labelMat = new THREE.MeshBasicMaterial({ map: labelTex, transparent: true, depthWrite: true, depthTest: true, side: THREE.DoubleSide })
+      const labelMat = new THREE.MeshBasicMaterial({ map: labelTex, transparent: false, side: THREE.DoubleSide })
       
       // Plane for label
       const planeWidth = 10 * Math.sqrt(2) // Match top width of cap
