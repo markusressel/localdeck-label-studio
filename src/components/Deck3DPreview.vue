@@ -282,7 +282,7 @@ const buildProceduralDeck = () => {
         if (whiteCapMesh) {
           const box1 = new THREE.Box3().setFromObject(whiteCapMesh)
           // Place label EXACTLY 0.1 units above the highest point of the white cap
-          labelPlaneY = box1.max.y + 0.1
+          labelPlaneY = box1.max.y + 20.0 // TEMPORARY DEBUG: Lift 20 units into the sky
         } else {
           labelPlaneY = capBaseY + keycapOBJ.userData.capHeight
         }
