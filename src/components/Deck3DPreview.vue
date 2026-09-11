@@ -324,15 +324,24 @@ const buildProceduralDeck = () => {
       // 2D Preview renders in DOM pixels where ~53px = 14mm. Our canvas is 256x256. Scale factor is approx 4.8.
       const PX_SCALE = 4.8
       
+      // Emulate the CSS Flexbox (flex-direction: column) base layout positions
+      let tBaseY = 128
+      let iBaseY = 128
+      if (label.text && label.icon) {
+        iBaseY = 96  // Push icon up
+        tBaseY = 186 // Push text down
+      }
+      
       if (label.text) {
         const tX = (label.textOffsetX || 0) * PX_SCALE
         const tY = (label.textOffsetY || 0) * PX_SCALE
         const tSize = (label.textSize || 10) * PX_SCALE
         
         ctx.save()
-        ctx.translate(128 + tX, 128 + tY)
+        ctx.translate(128 + tX, tBaseY + tY)
         ctx.font = `bold ${tSize}px sans-serif`
-        ctx.textBaseline = 'middle' // Match DOM centering
+        ctx.textBaseline = 'middle'
+        ctx.fillStyle = textColor // Ensure text uses textColor!
         ctx.fillText(label.text, 0, 0)
         ctx.restore()
       } 
@@ -347,7 +356,7 @@ const buildProceduralDeck = () => {
             const iSize = (label.iconSize || 24) * PX_SCALE
             
             ctx.save()
-            ctx.translate(128 + iX, 128 + iY)
+            ctx.translate(128 + iX, iBaseY + iY)
             ctx.drawImage(img, -iSize/2, -iSize/2, iSize, iSize)
             ctx.restore()
             
