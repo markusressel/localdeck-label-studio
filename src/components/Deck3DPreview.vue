@@ -322,15 +322,18 @@ const buildProceduralDeck = () => {
       ctx.textBaseline = 'middle'
       
       if (label.text) {
-        // Very basic placement mapping
+        const tX = label.textX || 0
+        // The 2D preview uses CSS transforms where +Y is down. Our canvas origin is top-left.
+        // Base center is 128, 128.
+        const tY = label.textY || 0
+        const scale = label.textScale || 1
+        
+        ctx.save()
+        ctx.translate(128 + tX, 128 + tY)
+        ctx.scale(scale, scale)
         ctx.font = 'bold 40px sans-serif'
-        if (label.textPosition === 'bottom') {
-           ctx.fillText(label.text, 128, 200)
-        } else if (label.textPosition === 'top') {
-           ctx.fillText(label.text, 128, 56)
-        } else {
-           ctx.fillText(label.text, 128, 128)
-        }
+        ctx.fillText(label.text, 0, 0)
+        ctx.restore()
       } 
       if (label.icon) {
         const parts = label.icon.split(':')
@@ -338,13 +341,18 @@ const buildProceduralDeck = () => {
           const img = new Image()
           img.crossOrigin = "anonymous"
           img.onload = () => {
-            // Draw icon centered if no text, otherwise draw above/below text
-            let y = 64
-            if (label.text && label.textPosition === 'top') y = 120
-            else if (label.text && label.textPosition === 'bottom') y = 20
-            else if (!label.text) y = 64
+            const iX = label.iconX || 0
+            const iY = label.iconY || 0
+            const scale = label.iconScale || 1
+            const size = 128 * scale
             
-            ctx.drawImage(img, 64, y, 128, 128)
+            ctx.save()
+            // Translate to center + custom user offset
+            ctx.translate(128 + iX, 128 + iY)
+            // drawImage top-left is x-size/2, y-size/2 to keep it centered at 0,0 of the transform
+            ctx.drawImage(img, -size/2, -size/2, size, size)
+            ctx.restore()
+            
             labelTex.needsUpdate = true
           }
           img.src = `https://api.iconify.design/${parts[0]}/${parts[1]}.svg?color=${encodeURIComponent(textColor)}`
@@ -359,7 +367,7 @@ const buildProceduralDeck = () => {
       const labelGeo = new THREE.PlaneGeometry(planeWidth - 1, planeWidth - 1)
       const labelMesh = new THREE.Mesh(labelGeo, labelMat)
       // Most keycaps have a ~5 degree slope towards the user
-      labelMesh.rotation.x = -Math.PI / 2 + (5 * Math.PI / 180)
+      labelMesh.rotation.x = -Math.PI / 2
       labelMesh.position.set(x, labelPlaneY, z)
       labelMesh.renderOrder = 999 // Force it to render on top of the opaque cap
       scene.add(labelMesh)
