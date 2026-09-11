@@ -425,21 +425,32 @@ const buildProceduralDeck = () => {
         if (isIconify) {
           const parts = label.icon.split(':')
           if (parts.length === 2) {
-            const img = new Image()
-            img.crossOrigin = "anonymous"
-            img.onload = () => {
-              const iX = (label.iconOffsetX || 0) * PX_SCALE
-              const iY = (label.iconOffsetY || 0) * PX_SCALE
-              const iSize = (label.iconSize || 24) * PX_SCALE
-              
+            const iX = (label.iconOffsetX || 0) * PX_SCALE
+            const iY = (label.iconOffsetY || 0) * PX_SCALE
+            const iSize = (label.iconSize || 24) * PX_SCALE
+            
+            const iconUrl = `https://api.simplesvg.com/${parts[0]}/${parts[1]}.svg?color=${encodeURIComponent(textColor)}`
+            
+            const drawIcon = (image) => {
               ctx.save()
               ctx.translate(128 + iX, iBaseY + iY)
-              ctx.drawImage(img, -iSize/2, -iSize/2, iSize, iSize)
+              ctx.drawImage(image, -iSize/2, -iSize/2, iSize, iSize)
               ctx.restore()
-              
               labelTex.needsUpdate = true
+              if (pathTracer && highQualityRender.value) pathTracer.updateCamera()
             }
-            img.src = `https://api.iconify.design/${parts[0]}/${parts[1]}.svg?color=${encodeURIComponent(textColor)}`
+
+            if (iconImageCache.has(iconUrl)) {
+              drawIcon(iconImageCache.get(iconUrl))
+            } else {
+              const img = new Image()
+              img.crossOrigin = 'Anonymous'
+              img.onload = () => {
+                iconImageCache.set(iconUrl, img)
+                drawIcon(img)
+              }
+              img.src = iconUrl
+            }
           }
         } else {
           // Native Emoji Rendering
