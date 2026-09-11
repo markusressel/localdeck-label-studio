@@ -45,6 +45,13 @@ const loadModels = () => {
           const name = child.name.replace(/_/g, ' ')
           if (parts.some(p => name.includes(p))) {
             const meshClone = child.clone()
+            
+            // The CAD model has the stem fully depressed into the housing. 
+            // We need to physically translate the stem mesh UP along its Z axis to un-press it!
+            if (name.includes('Mid Switch Blue Plastic')) {
+              meshClone.position.z += 0.6 // Lift stem by 0.6 CAD units (approx 6mm)
+            }
+            
             meshClone.castShadow = true
             meshClone.receiveShadow = true
             switchGLTF.add(meshClone)
