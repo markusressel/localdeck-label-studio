@@ -51,20 +51,18 @@
             </div>
           </div>
         </div>
-      </div>
-
-      <div class="sidebar-section">
-        <div class="section-header">
-          <h2>LocalDeck Hardware</h2>
-        </div>
-        <div class="section-content compact">
+        <div class="style-group bordered-top">
+          <div class="style-group-header">
+            <Icon icon="mdi:keyboard-variant" class="header-icon" />
+            <span>LocalDeck Hardware</span>
+          </div>
           <div class="control-row">
             <div class="control-group">
               <label>Case Base</label>
               <ColorPicker v-model="caseColor" />
             </div>
           </div>
-          <div class="control-row">
+          <div class="control-row" style="margin-top: 0.5rem">
             <div class="control-group half">
               <label>Switch Body</label>
               <ColorPicker v-model="switchBodyColor" />
