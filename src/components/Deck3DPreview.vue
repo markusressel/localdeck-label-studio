@@ -501,12 +501,16 @@ const animate = () => {
 
 // Watch for changes to rebuild deck
 console.log('3D preview refs:', { matrixWidth, matrixHeight, labels, globalLightColor, globalLightBrightness })
+let rebuildTimeout = null
 watch([matrixWidth, matrixHeight, labels, globalLightColor, globalLightBrightness, globalBackgroundColor, globalTextColor, darkRoom, highQualityRender, caseColor, switchBodyColor, switchStemColor], () => {
-  // Very crude rebuild: clear scene and rebuild
-  while(scene.children.length > 0){ 
-    scene.remove(scene.children[0]) 
-  }
-  buildProceduralDeck()
+  if (rebuildTimeout) clearTimeout(rebuildTimeout)
+  rebuildTimeout = setTimeout(() => {
+    // Very crude rebuild: clear scene and rebuild
+    while(scene.children.length > 0){ 
+      scene.remove(scene.children[0]) 
+    }
+    buildProceduralDeck()
+  }, 250) // 250ms debounce prevents Iconify API rate limiting (HTTP 429) and reduces BVH rebuild stutter
 }, { deep: true })
 </script>
 
