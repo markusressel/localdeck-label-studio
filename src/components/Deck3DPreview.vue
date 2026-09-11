@@ -274,12 +274,17 @@ const buildProceduralDeck = () => {
   
   const switchHousingMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.6 })
   
-  // Base cap is a solid standard material that glows from within (emissive) to simulate perfect scattering
-  const capBaseMat = new THREE.MeshStandardMaterial({ 
-    color: 0xe0e0e0,
-    roughness: 0.8,
+  // Base cap uses physical transmission to simulate subsurface scattering falloff
+  const capBaseMat = new THREE.MeshPhysicalMaterial({ 
+    color: 0xffffff,
+    roughness: 0.5,
+    metalness: 0.0,
+    transmission: 0.9, // 0.9 means it's 10% solid diffuse, 90% translucent
+    thickness: 2.0,
+    attenuationColor: new THREE.Color(0xffffff),
+    attenuationDistance: 2.0,
     side: THREE.DoubleSide,
-    transparent: false,
+    transparent: true,
     depthWrite: true
   })
   
@@ -342,16 +347,7 @@ const buildProceduralDeck = () => {
         capClone.traverse((child) => {
           if (child.isMesh) {
             if (child.name.includes('obj1')) {
-              // Clone the material so each keycap can glow independently with its own LED color
-              const capMatClone = capBaseMat.clone()
-              let c = label.lightColor || globalLightColor.value || '#10b981'
-              let b = (label.lightBrightness ?? globalLightBrightness.value) / 100
-              if (!label.lightEnabled && label.lightEnabled !== undefined) b = 0
-              if (label.lightEnabled === false) b = 0
-              capMatClone.emissive = new THREE.Color(c)
-              capMatClone.emissiveIntensity = b * 0.8
-              
-              child.material = capMatClone
+              child.material = capBaseMat
               child.castShadow = true
               whiteCapMesh = child
             } else if (child.name.includes('obj2')) {
@@ -368,7 +364,7 @@ const buildProceduralDeck = () => {
         if (whiteCapMesh) {
           const box1 = new THREE.Box3().setFromObject(whiteCapMesh)
           // Place label EXACTLY 0.1 units above the highest point of the white cap
-          labelPlaneY = box1.max.y + 0.1
+          labelPlaneY = box1.max.y + 0.1; console.log("Calculated labelPlaneY:", labelPlaneY)
         } else {
           labelPlaneY = capBaseY + keycapOBJ.userData.capHeight
         }
@@ -486,23 +482,17 @@ const buildProceduralDeck = () => {
       const labelTex = new THREE.CanvasTexture(canvas)
       let matConfig = { 
         map: labelTex, 
-        transparent: true, 
+        transparent: false, // MUST BE FALSE so the clear cover's transmission shader includes it in the opaque pass!
         side: THREE.DoubleSide,
         depthWrite: true, 
-        alphaTest: 0.1, // ULTIMATE FIX: This forces the GPU to physically discard invisible canvas pixels!
+        alphaTest: 0.5, // Physically cuts out transparent film pixels so we can see the cap underneath!
         roughness: 0.9,
         metalness: 0.0
       }
       
-      if (labelMaterial.value === 'transparent') {
-        matConfig.opacity = 0.9
-      } else if (labelMaterial.value === 'thin') {
-        matConfig.opacity = 0.95
-      } else {
-        matConfig.opacity = 1.0
-      }
+      // We no longer use opacity since transparent=false. The paper is treated as a solid cutout.
       
-      // MeshStandardMaterial respects lighting so the glowing base illuminates the paper!
+      // MeshStandardMaterial respects lighting so it casts/receives shadows!
       const labelMat = new THREE.MeshStandardMaterial(matConfig)
       
       // Plane for label
@@ -523,9 +513,9 @@ const buildProceduralDeck = () => {
         let brightness = label.lightBrightness !== undefined ? label.lightBrightness : globalLightBrightness.value
         const b = brightness / 100
         
-        // The internal LED now only needs to illuminate the switch housing and PCB, 
-        // because the keycap itself glows volumetrically.
-        const pointLight = new THREE.PointLight(color, b * 200, 15)
+        // Internal LED placed exactly where the physical switch LED slot is.
+        // Needs massive intensity to punch through the MeshPhysicalMaterial transmission!
+        const pointLight = new THREE.PointLight(color, b * 3000, 20)
         pointLight.position.set(x, 10, z + 5)
         scene.add(pointLight)
         
