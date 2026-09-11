@@ -346,23 +346,37 @@ const buildProceduralDeck = () => {
         ctx.restore()
       } 
       if (label.icon) {
-        const parts = label.icon.split(':')
-        if (parts.length === 2) {
-          const img = new Image()
-          img.crossOrigin = "anonymous"
-          img.onload = () => {
-            const iX = (label.iconOffsetX || 0) * PX_SCALE
-            const iY = (label.iconOffsetY || 0) * PX_SCALE
-            const iSize = (label.iconSize || 24) * PX_SCALE
-            
-            ctx.save()
-            ctx.translate(128 + iX, iBaseY + iY)
-            ctx.drawImage(img, -iSize/2, -iSize/2, iSize, iSize)
-            ctx.restore()
-            
-            labelTex.needsUpdate = true
+        if (label.icon.includes(':')) {
+          const parts = label.icon.split(':')
+          if (parts.length === 2) {
+            const img = new Image()
+            img.crossOrigin = "anonymous"
+            img.onload = () => {
+              const iX = (label.iconOffsetX || 0) * PX_SCALE
+              const iY = (label.iconOffsetY || 0) * PX_SCALE
+              const iSize = (label.iconSize || 24) * PX_SCALE
+              
+              ctx.save()
+              ctx.translate(128 + iX, iBaseY + iY)
+              ctx.drawImage(img, -iSize/2, -iSize/2, iSize, iSize)
+              ctx.restore()
+              
+              labelTex.needsUpdate = true
+            }
+            img.src = `https://api.iconify.design/${parts[0]}/${parts[1]}.svg?color=${encodeURIComponent(textColor)}`
           }
-          img.src = `https://api.iconify.design/${parts[0]}/${parts[1]}.svg?color=${encodeURIComponent(textColor)}`
+        } else {
+          // Native Emoji Rendering
+          const iX = (label.iconOffsetX || 0) * PX_SCALE
+          const iY = (label.iconOffsetY || 0) * PX_SCALE
+          const iSize = (label.iconSize || 24) * PX_SCALE
+          
+          ctx.save()
+          ctx.translate(128 + iX, iBaseY + iY)
+          ctx.font = `${iSize}px sans-serif`
+          ctx.textBaseline = 'middle'
+          ctx.fillText(label.icon, 0, 0)
+          ctx.restore()
         }
       }
       
