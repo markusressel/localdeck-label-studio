@@ -289,17 +289,30 @@ const buildProceduralDeck = () => {
   })
   
   // Clear snap-on cover
-  // We use standard opacity instead of Physical transmission to avoid the dreaded WebGL "multi-transmission" bug
-  // where two transmissive objects overlapping causes the rear one to vanish!
-  const capClearMat = new THREE.MeshStandardMaterial({
-    color: 0xffffff,
-    metalness: 0.1,
-    roughness: 0.1,
-    opacity: 0.3, // Acts like glass without breaking the transmission shader
-    side: THREE.DoubleSide,
-    transparent: true,
-    depthWrite: false
-  })
+  // HYBRID RENDERER TRICK:
+  // In standard WebGL, we use opacity to avoid the multi-transmission culling bug.
+  // In Path Tracer mode, we unleash the true physical transmission shader for perfect refraction!
+  const capClearMat = highQualityRender.value 
+    ? new THREE.MeshPhysicalMaterial({
+        color: 0xffffff,
+        metalness: 0.0,
+        roughness: 0.05, // Crystal clear
+        transmission: 1.0, // Perfect glass
+        ior: 1.5, // Refractive index of plastic
+        thickness: 0.5,
+        side: THREE.DoubleSide,
+        transparent: true,
+        depthWrite: false
+      })
+    : new THREE.MeshStandardMaterial({
+        color: 0xffffff,
+        metalness: 0.1,
+        roughness: 0.1,
+        opacity: 0.3, // Fakes glass in standard WebGL
+        side: THREE.DoubleSide,
+        transparent: true,
+        depthWrite: false
+      })
 
   // Build grid
   for (let r = 0; r < matrixHeight.value; r++) {
