@@ -52,6 +52,30 @@
           </div>
         </div>
       </div>
+
+      <div class="sidebar-section">
+        <div class="section-header">
+          <h2>LocalDeck Hardware</h2>
+        </div>
+        <div class="section-content compact">
+          <div class="control-row">
+            <div class="control-group">
+              <label>Case Base</label>
+              <ColorPicker v-model="caseColor" />
+            </div>
+          </div>
+          <div class="control-row">
+            <div class="control-group half">
+              <label>Switch Body</label>
+              <ColorPicker v-model="switchBodyColor" />
+            </div>
+            <div class="control-group half">
+              <label>Switch Stem</label>
+              <ColorPicker v-model="switchStemColor" />
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="editor-panel detail-panel" v-if="selectedItemIndex !== null">

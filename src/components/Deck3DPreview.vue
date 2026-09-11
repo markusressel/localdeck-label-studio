@@ -17,7 +17,7 @@ import { useStore } from '../composables/useStore'
 const containerRef = ref(null)
 const isLoading = ref(true)
 
-const { matrixWidth, matrixHeight, labels, globalLightColor, globalLightBrightness, globalBackgroundColor, globalTextColor, darkRoom, highQualityRender } = useStore()
+const { matrixWidth, matrixHeight, labels, globalLightColor, globalLightBrightness, globalBackgroundColor, globalTextColor, darkRoom, highQualityRender, caseColor, switchBodyColor, switchStemColor } = useStore()
 
 let scene, camera, renderer, controls, pathTracer
 let switchGLTF = null
@@ -256,7 +256,7 @@ const buildProceduralDeck = () => {
   caseGeo.rotateX(Math.PI / 2) // Now it lies flat on XZ, and extrudes downwards in Y
   
   const caseMeshMat = new THREE.MeshStandardMaterial({ 
-    color: 0x2a2a2b, 
+    color: caseColor.value, 
     roughness: 0.8, 
     metalness: 0.1 
   })
@@ -268,7 +268,7 @@ const buildProceduralDeck = () => {
   scene.add(caseMesh)
 
   // Materials
-  const switchMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.7 })
+  const switchMat = new THREE.MeshStandardMaterial({ color: switchBodyColor.value, roughness: 0.7 })
   const stemMat = new THREE.MeshStandardMaterial({ color: 0xaa2222, roughness: 0.4 })
   
   const switchHousingMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.6 })
@@ -501,7 +501,7 @@ const animate = () => {
 
 // Watch for changes to rebuild deck
 console.log('3D preview refs:', { matrixWidth, matrixHeight, labels, globalLightColor, globalLightBrightness })
-watch([matrixWidth, matrixHeight, labels, globalLightColor, globalLightBrightness, globalBackgroundColor, globalTextColor, darkRoom, highQualityRender], () => {
+watch([matrixWidth, matrixHeight, labels, globalLightColor, globalLightBrightness, globalBackgroundColor, globalTextColor, darkRoom, highQualityRender, caseColor, switchBodyColor, switchStemColor], () => {
   // Very crude rebuild: clear scene and rebuild
   while(scene.children.length > 0){ 
     scene.remove(scene.children[0]) 

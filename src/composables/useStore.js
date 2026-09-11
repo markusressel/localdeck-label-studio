@@ -25,6 +25,10 @@ const globalTextSize = ref(10)
 const globalTextColor = ref('#000000')
 const globalIconSize = ref(24)
 const globalIconColor = ref('#000000')
+
+const caseColor = ref('#2a2a2b')
+const switchBodyColor = ref('#222222')
+const switchStemColor = ref('#ffffff')
 const globalBackgroundColor = ref('transparent')
 const zoomLevel = ref(2)
 const darkRoom = ref(true)
@@ -217,6 +221,9 @@ const loadState = () => {
       if (data.globalTextColor) globalTextColor.value = data.globalTextColor
       if (data.globalIconSize !== undefined) globalIconSize.value = data.globalIconSize
       if (data.globalIconColor) globalIconColor.value = data.globalIconColor
+      if (data.caseColor) caseColor.value = data.caseColor
+      if (data.switchBodyColor) switchBodyColor.value = data.switchBodyColor
+      if (data.switchStemColor) switchStemColor.value = data.switchStemColor
       if (data.globalBackgroundColor) globalBackgroundColor.value = data.globalBackgroundColor
       if (data.zoomLevel) zoomLevel.value = data.zoomLevel
       if (data.decks) {
@@ -278,6 +285,9 @@ const saveState = () => {
     globalTextColor: globalTextColor.value,
     globalIconSize: globalIconSize.value,
     globalIconColor: globalIconColor.value,
+    caseColor: caseColor.value,
+    switchBodyColor: switchBodyColor.value,
+    switchStemColor: switchStemColor.value,
     globalBackgroundColor: globalBackgroundColor.value,
     zoomLevel: zoomLevel.value,
     selectedId: selectedId.value,
@@ -649,6 +659,9 @@ const printLabels = async () => {
 }
 
 watch([decks, activeDeckId, labelWidth, labelHeight, labelMaterial, globalLightColor, globalLightBrightness, globalLightEffect, globalTextSize, globalTextColor, globalIconSize, globalIconColor,
+    caseColor,
+    switchBodyColor,
+    switchStemColor, caseColor, switchBodyColor, switchStemColor,
     globalBackgroundColor, zoomLevel, labels, selectedId, printFormat, printZoom,
     printOffsetY, darkRoom, highQualityRender, selectedPrintIds, printGrid], saveState, { deep: true })
 
