@@ -11,15 +11,14 @@
     >
       <!-- Physical Keycap Layers (Hidden in print mode) -->
       <template v-if="!printMode">
+        <div class="material-layer"></div>
+        <div class="diffused-led-glow"></div>
         <div class="keycap-led-glow"></div>
         <div class="plastic-cap"></div>
       </template>
 
       <!-- The Label Insert -->
       <div class="label-insert">
-        <div class="material-layer" v-if="!printMode"></div>
-        <div class="diffused-led-glow" v-if="!printMode"></div>
-        
         <div class="label-content" :style="{ backgroundColor: effectiveBackgroundColor, isolation: 'isolate' }">
           <div v-if="label.image" class="label-image-container">
             <img :src="label.image" alt="Custom icon" class="custom-image" />
@@ -268,7 +267,7 @@ const innerStyle = computed(() => {
   transform: translateX(-50%);
   width: 150%;
   height: 120%;
-  background: radial-gradient(circle at 50% 100%, #ffffff 0%, var(--led-color) 20%, transparent 75%);
+  background: radial-gradient(circle at 50% 100%, #ffffff 0%, var(--led-color) 20%, transparent calc(40% + var(--p2d-falloff) * 5%));
   opacity: var(--led-brightness);
   pointer-events: none;
   z-index: 1;
@@ -304,9 +303,9 @@ const innerStyle = computed(() => {
   border-right-color: var(--led-color);
   -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 70%);
   mask-image: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 70%);
-  opacity: calc(var(--led-brightness) * 1.2);
+  opacity: calc(var(--led-brightness) * var(--p2d-translucency) * 1.5);
   mix-blend-mode: screen;
-  filter: drop-shadow(0 0 4px var(--led-color));
+  filter: drop-shadow(0 0 calc(var(--p2d-falloff) * 1px) var(--led-color));
 }
 
 .plastic-cap::after {
@@ -331,11 +330,11 @@ const innerStyle = computed(() => {
 .material-layer {
   position: absolute;
   inset: 0;
-  border-radius: 2px;
+  border-radius: 6px;
   z-index: 1;
   transition: background 0.3s, box-shadow 0.3s;
   background: rgba(255, 255, 255, calc(1 - var(--p2d-translucency)));
-  box-shadow: 0 1px 3px rgba(0,0,0, calc((1 - var(--p2d-translucency)) * 0.2));
+  box-shadow: 0 1px 3px rgba(0,0,0, calc((1 - var(--p2d-translucency)) * 0.2)) inset;
 }
 
 /* Dark Room Materials - No ambient light, pitch black */
@@ -353,7 +352,8 @@ const innerStyle = computed(() => {
 .diffused-led-glow {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 50% 90%, var(--led-color) 0%, transparent 85%);
+  border-radius: 6px;
+  background: radial-gradient(circle at 50% 90%, var(--led-color) 0%, transparent calc(40% + var(--p2d-falloff) * 5%));
   z-index: 1;
   pointer-events: none;
   transition: opacity 0.3s, filter 0.3s;
@@ -448,7 +448,7 @@ const innerStyle = computed(() => {
   height: var(--label-height) !important;
   background: transparent !important;
   box-shadow: none !important;
-  border: 0.5px dashed #ccc !important;
+  border: 1px solid black !important;
   border-radius: 0 !important;
   transform: none !important; /* Printing doesn't use scale */
 }
