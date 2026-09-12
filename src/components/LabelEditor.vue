@@ -168,6 +168,23 @@
       </div>
     </div>
     
+    <div class="style-group bordered-top">
+      <div class="style-group-header">
+        <Icon icon="mdi:auto-fix" class="header-icon" />
+        <span>Image Adjustments</span>
+      </div>
+      <div class="control-row">
+        <div class="control-group half">
+          <label>Contrast (%)</label>
+          <CustomSlider v-model="contrastProxy" :min="0" :max="200" showValue />
+        </div>
+        <div class="control-group half">
+          <label>Saturation (%)</label>
+          <CustomSlider v-model="saturationProxy" :min="0" :max="200" showValue />
+        </div>
+      </div>
+    </div>
+
   </div>
 </template>
 
@@ -212,6 +229,20 @@ const shouldForceFlatColor = computed(() => {
   return false;
 })
 watch(() => props.modelValue, (newVal) => { console.log("LabelEditor modelValue updated:", newVal) }, { deep: true })
+
+const contrastProxy = computed({
+  get: () => props.modelValue.contrast ?? 100,
+  set: (val) => {
+    emit('update:modelValue', { ...props.modelValue, contrast: val === 100 ? null : val })
+  }
+})
+
+const saturationProxy = computed({
+  get: () => props.modelValue.saturation ?? 100,
+  set: (val) => {
+    emit('update:modelValue', { ...props.modelValue, saturation: val === 100 ? null : val })
+  }
+})
 
 const useCustomText = computed({
   get: () => props.modelValue.textSize !== null && props.modelValue.textSize !== undefined,
