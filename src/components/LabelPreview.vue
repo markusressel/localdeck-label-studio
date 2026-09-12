@@ -73,6 +73,9 @@ import * as emoji from 'node-emoji'
 
 import { isEmoji } from '../utils/emojiUtils.js'
 import { isColorTransparent } from '../utils/colorUtils.js'
+import { useStore } from '../composables/useStore.js'
+
+const { preview2dLedIntensity, preview2dTranslucency, preview2dFalloff } = useStore()
 
 const props = defineProps({
   label: { type: Object, required: true },
@@ -222,6 +225,9 @@ const innerStyle = computed(() => {
     '--label-height': props.height + 'mm',
     '--led-color': effectiveLightColor.value,
     '--led-brightness': effectiveLightBrightness.value,
+    '--p2d-intensity': preview2dLedIntensity.value,
+    '--p2d-translucency': preview2dTranslucency.value,
+    '--p2d-falloff': preview2dFalloff.value,
     'transform': `scale(${props.scale})`,
     'transform-origin': 'top left'
   }
@@ -328,19 +334,8 @@ const innerStyle = computed(() => {
   border-radius: 2px;
   z-index: 1;
   transition: background 0.3s, box-shadow 0.3s;
-}
-
-/* Light Room Materials */
-.material-transparent .material-layer {
-  background: transparent;
-}
-.material-thin-paper .material-layer {
-  background: rgba(255, 255, 255, 0.85); 
-  box-shadow: 0 1px 3px rgba(0,0,0,0.15); 
-}
-.material-thick-paper .material-layer {
-  background: rgba(255, 255, 255, 0.98);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+  background: rgba(255, 255, 255, calc(1 - var(--p2d-translucency)));
+  box-shadow: 0 1px 3px rgba(0,0,0, calc((1 - var(--p2d-translucency)) * 0.2));
 }
 
 /* Dark Room Materials - No ambient light, pitch black */
@@ -349,12 +344,8 @@ const innerStyle = computed(() => {
   box-shadow: 0 4px 15px rgba(0,0,0,0.9), 0 2px 4px rgba(0,0,0,0.8);
 }
 
-.keycap-outer.is-dark-room.material-thin-paper .material-layer {
-  background: #000000;
-  box-shadow: none;
-}
-.keycap-outer.is-dark-room.material-thick-paper .material-layer {
-  background: #000000;
+.keycap-outer.is-dark-room .material-layer {
+  background: rgba(0, 0, 0, calc(1 - var(--p2d-translucency)));
   box-shadow: none;
 }
 
@@ -366,21 +357,8 @@ const innerStyle = computed(() => {
   z-index: 1;
   pointer-events: none;
   transition: opacity 0.3s, filter 0.3s;
-}
-
-/* Transparent film doesn't diffuse, it just lets the base LED through */
-.material-transparent .diffused-led-glow {
-  opacity: 0;
-}
-
-.material-thin-paper .diffused-led-glow {
-  opacity: calc(var(--led-brightness) * 0.9);
-  filter: blur(5px);
-}
-
-.material-thick-paper .diffused-led-glow {
-  opacity: calc(var(--led-brightness) * 0.65);
-  filter: blur(10px);
+  opacity: calc(var(--led-brightness) * var(--p2d-intensity));
+  filter: blur(calc(var(--p2d-falloff) * 1px));
 }
 
 .label-content {

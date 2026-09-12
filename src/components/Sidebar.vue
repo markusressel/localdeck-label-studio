@@ -80,6 +80,27 @@
           </div>
           
           <div class="style-group-header" style="margin-top: 1rem;">
+            <Icon icon="mdi:monitor-dashboard" class="header-icon" />
+            <span>2D Preview Lighting</span>
+          </div>
+          <div class="control-row">
+            <div class="control-group">
+              <label>LED Intensity (0-2)</label>
+              <input type="number" v-model.number="preview2dLedIntensity" min="0" max="2" step="0.05" />
+            </div>
+          </div>
+          <div class="control-row" style="margin-top: 0.5rem">
+            <div class="control-group half">
+              <label>Translucency</label>
+              <input type="number" v-model.number="preview2dTranslucency" min="0" max="1" step="0.01" />
+            </div>
+            <div class="control-group half">
+              <label>Diffusion (px)</label>
+              <input type="number" v-model.number="preview2dFalloff" min="0" max="20" step="1" />
+            </div>
+          </div>
+          
+          <div class="style-group-header" style="margin-top: 1rem;">
             <Icon icon="mdi:lightbulb-on-outline" class="header-icon" />
             <span>3D Preview Lighting</span>
           </div>
@@ -150,6 +171,9 @@ const {
   previewLedIntensity,
   previewCapTranslucency,
   previewCapAttenuation,
+  preview2dLedIntensity,
+  preview2dTranslucency,
+  preview2dFalloff,
   globalBackgroundColor,
   selectedItemIndex,
   duplicateSelected,

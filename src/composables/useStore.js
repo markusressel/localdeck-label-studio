@@ -38,6 +38,26 @@ const previewLedIntensity = ref(3000)
 const previewCapTranslucency = ref(0.9)
 const previewCapAttenuation = ref(2.0)
 
+const preview2dLedIntensity = ref(0.0)
+const preview2dTranslucency = ref(1.0)
+const preview2dFalloff = ref(0.0)
+
+watch(labelMaterial, (newMat) => {
+  if (newMat === 'transparent') {
+    preview2dLedIntensity.value = 0.0
+    preview2dTranslucency.value = 1.0
+    preview2dFalloff.value = 0.0
+  } else if (newMat === 'thin-paper') {
+    preview2dLedIntensity.value = 0.9
+    preview2dTranslucency.value = 0.15
+    preview2dFalloff.value = 5.0
+  } else if (newMat === 'thick-paper') {
+    preview2dLedIntensity.value = 0.65
+    preview2dTranslucency.value = 0.02
+    preview2dFalloff.value = 10.0
+  }
+})
+
 const labels = ref([])
 const isDragging = ref(false)
 const dragOverTarget = ref(null)
@@ -232,6 +252,14 @@ const loadState = () => {
       if (data.switchStemColor) switchStemColor.value = data.switchStemColor
       if (data.globalBackgroundColor) globalBackgroundColor.value = data.globalBackgroundColor
       if (data.zoomLevel) zoomLevel.value = data.zoomLevel
+      
+      if (data.previewLedIntensity !== undefined) previewLedIntensity.value = data.previewLedIntensity
+      if (data.previewCapTranslucency !== undefined) previewCapTranslucency.value = data.previewCapTranslucency
+      if (data.previewCapAttenuation !== undefined) previewCapAttenuation.value = data.previewCapAttenuation
+      
+      if (data.preview2dLedIntensity !== undefined) preview2dLedIntensity.value = data.preview2dLedIntensity
+      if (data.preview2dTranslucency !== undefined) preview2dTranslucency.value = data.preview2dTranslucency
+      if (data.preview2dFalloff !== undefined) preview2dFalloff.value = data.preview2dFalloff
       if (data.decks) {
         decks.value = data.decks
       } else {
@@ -297,6 +325,12 @@ const saveState = () => {
     switchStemColor: switchStemColor.value,
     globalBackgroundColor: globalBackgroundColor.value,
     zoomLevel: zoomLevel.value,
+    previewLedIntensity: previewLedIntensity.value,
+    previewCapTranslucency: previewCapTranslucency.value,
+    previewCapAttenuation: previewCapAttenuation.value,
+    preview2dLedIntensity: preview2dLedIntensity.value,
+    preview2dTranslucency: preview2dTranslucency.value,
+    preview2dFalloff: preview2dFalloff.value,
     selectedId: selectedId.value,
     printFormat: printFormat.value,
     printZoom: printZoom.value,
@@ -670,7 +704,8 @@ watch([decks, activeDeckId, labelWidth, labelHeight, labelMaterial, globalLightC
     switchBodyColor,
     switchStemColor, caseColor, switchBodyColor, switchStemColor,
     globalBackgroundColor, zoomLevel, labels, selectedId, printFormat, printZoom,
-    printOffsetY, darkRoom, highQualityRender, previewLedIntensity, previewCapTranslucency, previewCapAttenuation, selectedPrintIds, printGrid], saveState, { deep: true })
+    printOffsetY, darkRoom, highQualityRender, previewLedIntensity, previewCapTranslucency, previewCapAttenuation, 
+    preview2dLedIntensity, preview2dTranslucency, preview2dFalloff, selectedPrintIds, printGrid], saveState, { deep: true })
 
 export function useStore() {
   return {
@@ -692,6 +727,9 @@ export function useStore() {
     previewLedIntensity,
     previewCapTranslucency,
     previewCapAttenuation,
+    preview2dLedIntensity,
+    preview2dTranslucency,
+    preview2dFalloff,
     globalBackgroundColor,
     zoomLevel,
     darkRoom, highQualityRender,
