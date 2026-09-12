@@ -230,12 +230,7 @@ const getRandomDefault = () => {
 
 const generateId = () => Math.random().toString(36).substr(2, 9)
 
-const loadState = () => {
-  const saved = localStorage.getItem('localdeck-labels')
-  let loaded = false
-  if (saved) {
-    try {
-      const data = JSON.parse(saved)
+const loadStateFromObject = (data) => {
       if (data.width) labelWidth.value = data.width
       if (data.height) labelHeight.value = data.height
       if (data.material) labelMaterial.value = data.material
@@ -296,8 +291,18 @@ const loadState = () => {
           delete l.print
           return l
         })
-        loaded = true
+        return true
       }
+      return false
+}
+
+const loadState = () => {
+  const saved = localStorage.getItem('localdeck-labels')
+  let loaded = false
+  if (saved) {
+    try {
+      const data = JSON.parse(saved)
+      loaded = loadStateFromObject(data)
     } catch (e) {
       console.error('Failed to load saved labels', e)
     }
@@ -305,8 +310,7 @@ const loadState = () => {
   return loaded
 }
 
-const saveState = () => {
-  localStorage.setItem('localdeck-labels', JSON.stringify({
+const getStateObject = () => ({
     decks: decks.value,
     activeDeckId: activeDeckId.value,
     width: labelWidth.value,
@@ -335,11 +339,14 @@ const saveState = () => {
     printFormat: printFormat.value,
     printZoom: printZoom.value,
     darkRoom: darkRoom.value,
-        printOffsetY: printOffsetY.value,
+    printOffsetY: printOffsetY.value,
     selectedPrintIds: selectedPrintIds.value,
     printGrid: printGrid.value,
     labels: labels.value
-  }))
+})
+
+const saveState = () => {
+  localStorage.setItem('localdeck-labels', JSON.stringify(getStateObject()))
 }
 
 const addLabel = (overrides = {}, slot = null) => {
@@ -424,20 +431,7 @@ const removeSelected = () => {
 }
 
 const exportData = () => {
-  const dataToExport = {
-    width: labelWidth.value,
-    height: labelHeight.value,
-    material: labelMaterial.value,
-    globalLightColor: globalLightColor.value,
-    globalLightBrightness: globalLightBrightness.value,
-    globalTextSize: globalTextSize.value,
-    globalTextColor: globalTextColor.value,
-    globalIconSize: globalIconSize.value,
-    globalIconColor: globalIconColor.value,
-    zoomLevel: zoomLevel.value,
-    labels: labels.value
-  }
-  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataToExport, null, 2))
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(getStateObject(), null, 2))
   const downloadAnchorNode = document.createElement('a')
   downloadAnchorNode.setAttribute("href", dataStr)
   downloadAnchorNode.setAttribute("download", "localdeck_labels.json")
@@ -445,7 +439,6 @@ const exportData = () => {
   downloadAnchorNode.click()
   downloadAnchorNode.remove()
 }
-
 
 const triggerImport = () => {
   if (fileInput.value) {
@@ -460,17 +453,7 @@ const importData = (event) => {
   reader.onload = (e) => {
     try {
       const data = JSON.parse(e.target.result)
-      if (data.width !== undefined) labelWidth.value = data.width
-      if (data.height !== undefined) labelHeight.value = data.height
-      if (data.material !== undefined) labelMaterial.value = data.material
-      if (data.globalLightColor !== undefined) globalLightColor.value = data.globalLightColor
-      if (data.globalLightBrightness !== undefined) globalLightBrightness.value = data.globalLightBrightness
-      if (data.globalTextSize !== undefined) globalTextSize.value = data.globalTextSize
-      if (data.globalTextColor !== undefined) globalTextColor.value = data.globalTextColor
-      if (data.globalIconSize !== undefined) globalIconSize.value = data.globalIconSize
-      if (data.globalIconColor !== undefined) globalIconColor.value = data.globalIconColor
-      if (data.zoomLevel !== undefined) zoomLevel.value = data.zoomLevel
-      if (data.labels) labels.value = data.labels
+      loadStateFromObject(data)
     } catch (err) {
       console.error("Failed to parse imported JSON", err)
       alert("Invalid JSON file")

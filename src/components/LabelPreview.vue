@@ -448,7 +448,7 @@ const innerStyle = computed(() => {
   height: var(--label-height) !important;
   background: transparent !important;
   box-shadow: none !important;
-  border: 1px dashed black !important;
+  border: none !important;
   border-radius: 0 !important;
   transform: none !important; /* Printing doesn't use scale */
 }

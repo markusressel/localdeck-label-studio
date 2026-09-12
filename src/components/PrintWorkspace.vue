@@ -92,7 +92,7 @@
               }"
             ></div>
             
-            <div class="label-grid" :style="{ paddingTop: printOffsetY + 'mm' }">
+            <div class="label-grid" :style="{ marginTop: printOffsetY + 'mm' }">
               <div 
                 v-for="(labelId, index) in printGrid.slice(0, totalPrintSlots)"
                 :key="'slot-' + index"
