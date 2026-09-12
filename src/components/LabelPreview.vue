@@ -20,7 +20,7 @@
         <div class="material-layer" v-if="!printMode"></div>
         <div class="diffused-led-glow" v-if="!printMode"></div>
         
-        <div class="label-content" :style="{ backgroundColor: effectiveBackgroundColor }">
+        <div class="label-content" :style="{ backgroundColor: effectiveBackgroundColor, isolation: 'isolate' }">
           <div v-if="label.image" class="label-image-container">
             <img :src="label.image" alt="Custom icon" class="custom-image" />
           </div>
@@ -32,16 +32,17 @@
             @mousedown.stop="onMouseDown($event, 'icon')"
             :style="{ 
               fontSize: effectiveIconSize + 'px', 
-              color: effectiveIconColor,
+              color: isColorTransparent(effectiveIconColor) ? '#000' : effectiveIconColor,
+              mixBlendMode: isColorTransparent(effectiveIconColor) ? 'destination-out' : 'normal',
               transform: `translate(${label.iconOffsetX || 0}px, ${label.iconOffsetY || 0}px)`
             }"
           >
             <Icon 
               v-if="!isEmoji(label.icon)"
-               
+              :class="{ 'force-flat-icon': shouldForceFlatColor }"
               :icon="label.icon"
             />
-            <span v-else>
+            <span v-else :class="{ 'force-flat-icon': shouldForceFlatColor }">
               {{ emoji.emojify(label.icon) }}
             </span>
           </div>
@@ -52,7 +53,8 @@
             @mousedown.stop="onMouseDown($event, 'text')"
             :style="{ 
               fontSize: effectiveTextSize + 'px', 
-              color: effectiveTextColor,
+              color: isColorTransparent(effectiveTextColor) ? '#000' : effectiveTextColor,
+              mixBlendMode: isColorTransparent(effectiveTextColor) ? 'destination-out' : 'normal',
               transform: `translate(${label.textOffsetX || 0}px, ${label.textOffsetY || 0}px)`
             }"
             v-html="formattedLabelText"
@@ -70,6 +72,7 @@ import { computed, ref, onMounted, onUpdated, nextTick, onUnmounted } from 'vue'
 import * as emoji from 'node-emoji'
 
 import { isEmoji } from '../utils/emojiUtils.js'
+import { isColorTransparent } from '../utils/colorUtils.js'
 
 const props = defineProps({
   label: { type: Object, required: true },
@@ -84,6 +87,7 @@ const props = defineProps({
   globalTextColor: { type: String, default: '#000000' },
   globalIconSize: { type: Number, default: 24 },
   globalIconColor: { type: String, default: '#000000' },
+  globalIconFlatten: { type: Boolean, default: false },
   globalBackgroundColor: { type: String, default: 'transparent' },
   printMode: { type: Boolean, default: false },
   darkRoom: { type: Boolean, default: false }
@@ -133,6 +137,15 @@ const isCtrlPressed = ref(false)
 const currentlyDragging = ref(null)
 const snappedX = ref(false)
 const snappedY = ref(false)
+
+const shouldForceFlatColor = computed(() => {
+  if (isColorTransparent(effectiveIconColor.value)) return true;
+  if (props.label.iconFlatten) return true;
+  if (props.label.iconFlatten === false) return false;
+  
+  if (props.globalIconFlatten) return true;
+  return false;
+})
 
 const handleKeyDown = (e) => { if (e.key === 'Control' || e.key === 'Meta') isCtrlPressed.value = true }
 const handleKeyUp = (e) => { if (e.key === 'Control' || e.key === 'Meta') isCtrlPressed.value = false }

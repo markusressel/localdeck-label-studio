@@ -25,6 +25,7 @@ const globalTextSize = ref(10)
 const globalTextColor = ref('#000000')
 const globalIconSize = ref(24)
 const globalIconColor = ref('#000000')
+const globalIconFlatten = ref(false)
 
 const caseColor = ref('#2a2a2b')
 const switchBodyColor = ref('#ffffff')
@@ -225,6 +226,7 @@ const loadState = () => {
       if (data.globalTextColor) globalTextColor.value = data.globalTextColor
       if (data.globalIconSize !== undefined) globalIconSize.value = data.globalIconSize
       if (data.globalIconColor) globalIconColor.value = data.globalIconColor
+      if (data.globalIconFlatten !== undefined) globalIconFlatten.value = data.globalIconFlatten
       if (data.caseColor) caseColor.value = data.caseColor
       if (data.switchBodyColor) switchBodyColor.value = data.switchBodyColor
       if (data.switchStemColor) switchStemColor.value = data.switchStemColor
@@ -289,6 +291,7 @@ const saveState = () => {
     globalTextColor: globalTextColor.value,
     globalIconSize: globalIconSize.value,
     globalIconColor: globalIconColor.value,
+    globalIconFlatten: globalIconFlatten.value,
     caseColor: caseColor.value,
     switchBodyColor: switchBodyColor.value,
     switchStemColor: switchStemColor.value,
@@ -681,6 +684,8 @@ export function useStore() {
     globalTextColor,
     globalIconSize,
     globalIconColor,
+    globalIconFlatten,
+    globalBackgroundColor,
     caseColor,
     switchBodyColor,
     switchStemColor,

@@ -117,7 +117,8 @@
                   :globalTextColor="globalTextColor"
                   :globalIconSize="globalIconSize"
                   :globalIconColor="globalIconColor"
-              :globalBackgroundColor="globalBackgroundColor"
+                  :globalIconFlatten="globalIconFlatten"
+                  :globalBackgroundColor="globalBackgroundColor"
                   :printMode="true"
                   :darkRoom="darkRoom"
                   draggable="true"
@@ -170,6 +171,7 @@ const {
   globalTextColor,
   globalIconSize,
   globalIconColor,
+  globalIconFlatten,
   globalBackgroundColor,
   darkRoom,
   paperDimensions,

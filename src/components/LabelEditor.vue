@@ -7,28 +7,36 @@
           <Icon icon="mdi:star-outline" class="header-icon" />
           <span>Icon / Image</span>
         </div>
-        <span v-if="hasIconPositioning" @click="resetIconPositioning" title="Reset icon position" style="cursor: pointer; display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px; font-size: 0.65rem; font-weight: 600; text-transform: uppercase; color: var(--primary); background: var(--primary-transparent); border-radius: 4px;">
-          <Icon icon="mdi:restore" /> Reset Pos
-        </span>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+          <span v-if="hasIconPositioning" @click="resetIconPositioning" title="Reset icon position" style="cursor: pointer; display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px; font-size: 0.65rem; font-weight: 600; text-transform: uppercase; color: var(--primary); background: var(--primary-transparent); border-radius: 4px;">
+            <Icon icon="mdi:restore" /> Reset Pos
+          </span>
+        </div>
       </div>
       <div class="control-group">
         <div style="display: flex; gap: 0.75rem; align-items: stretch; margin-bottom: 0.5rem;">
-          <div class="large-icon-preview" :style="{ color: effectiveIconColor }">
+          <div class="large-icon-preview" :style="{ color: isColorTransparent(effectiveIconColor) ? '#fff' : effectiveIconColor }">
             <template v-if="modelValue.icon">
-              <span v-if="isEmoji(modelValue.icon)" class="emoji-large">{{ modelValue.icon }}</span>
-              <Icon :icon="modelValue.icon" v-else class="svg-large" />
+              <span v-if="isEmoji(modelValue.icon)" class="emoji-large" :class="{ 'force-flat-icon': shouldForceFlatColor }">{{ modelValue.icon }}</span>
+              <Icon :icon="modelValue.icon" v-else class="svg-large" :class="{ 'force-flat-icon': shouldForceFlatColor }" />
             </template>
             <div v-else class="placeholder-icon">
               <Icon icon="mdi:image-outline" />
             </div>
           </div>
           
-          <div class="icon-overrides" v-if="useCustomIcon" style="display: flex; gap: 0.5rem; flex: 1;">
-            <NumberStepper v-model="modelValue.iconSize" :min="10" :max="64" :defaultVal="24" title="Icon Size" />
-            <ColorPicker v-model="modelValue.iconColor" style="flex: 1; height: 100%; border-radius: 8px;" title="Icon Color" />
-            <button @click="useCustomIcon = false" class="icon-btn danger-text" title="Reset Overrides" style="border: 1px dashed var(--card-border); border-radius: 8px; width: 42px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.15);">
-               <Icon icon="mdi:close" style="font-size: 1.2rem;" />
-            </button>
+          <div class="icon-overrides" v-if="useCustomIcon" style="display: flex; flex-direction: column; gap: 0.5rem; flex: 1; justify-content: center;">
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <NumberStepper v-model="modelValue.iconSize" :min="10" :max="64" :defaultVal="24" title="Icon Size" />
+              <ColorPicker v-model="modelValue.iconColor" style="flex: 1; border-radius: 8px;" title="Icon Color" />
+              <button @click="useCustomIcon = false" class="icon-btn danger-text" title="Reset Overrides" style="align-self: flex-start; border: 1px dashed var(--card-border); border-radius: 8px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.15);">
+                 <Icon icon="mdi:close" style="font-size: 1.1rem;" />
+              </button>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 0.25rem;">
+              <span style="font-size: 0.75rem; color: var(--text-muted);">Flatten to solid silhouette</span>
+              <CustomSwitch v-model="modelValue.iconFlatten" title="Forces complex/multi-colored icons into a flat shape" />
+            </div>
           </div>
           
           <div v-else class="icon-overrides-enable" @click="useCustomIcon = true" style="flex: 1; display: flex; align-items: center; justify-content: center; border: 1px dashed var(--card-border); border-radius: 8px; cursor: pointer; color: var(--text-muted); font-size: 0.8rem; background: rgba(255,255,255,0.02); transition: all 0.2s;">
@@ -176,6 +184,7 @@ import CustomInput from './CustomInput.vue'
 import CustomSlider from './CustomSlider.vue'
 import * as emoji from 'node-emoji'
 import { useStore } from '../composables/useStore'
+import { isColorTransparent } from '../utils/colorUtils.js'
 
 const isEmoji = (str) => {
   if (!str) return false
@@ -190,9 +199,18 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:modelValue'])
-const { globalIconColor } = useStore()
+const { globalIconColor, globalIconFlatten } = useStore()
 
 const effectiveIconColor = computed(() => props.modelValue.iconColor ?? globalIconColor.value)
+
+const shouldForceFlatColor = computed(() => {
+  if (isColorTransparent(effectiveIconColor.value)) return true;
+  if (props.modelValue.iconFlatten) return true;
+  if (props.modelValue.iconFlatten === false) return false;
+  
+  if (globalIconFlatten.value) return true;
+  return false;
+})
 watch(() => props.modelValue, (newVal) => { console.log("LabelEditor modelValue updated:", newVal) }, { deep: true })
 
 const useCustomText = computed({

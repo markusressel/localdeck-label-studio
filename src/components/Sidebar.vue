@@ -50,6 +50,12 @@
               <ColorPicker v-model="globalIconColor" />
             </div>
           </div>
+          <div class="control-row" style="margin-top: 0.5rem">
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+              <span style="font-size: 0.75rem; color: var(--text-muted);">Flatten to solid silhouette</span>
+              <CustomSwitch v-model="globalIconFlatten" title="Forces complex/multi-colored icons into a flat shape" />
+            </div>
+          </div>
         </div>
         <div class="style-group bordered-top">
           <div class="style-group-header">
@@ -129,6 +135,7 @@
 import { Icon } from '@iconify/vue'
 import { useStore } from '../composables/useStore.js'
 import ColorPicker from './ColorPicker.vue'
+import CustomSwitch from './CustomSwitch.vue'
 import LabelEditor from './LabelEditor.vue'
 
 const {
@@ -136,9 +143,13 @@ const {
   globalTextColor,
   globalIconSize,
   globalIconColor,
+  globalIconFlatten,
   caseColor,
   switchBodyColor,
-  switchStemColor, previewLedIntensity, previewCapTranslucency, previewCapAttenuation,
+  switchStemColor,
+  previewLedIntensity,
+  previewCapTranslucency,
+  previewCapAttenuation,
   globalBackgroundColor,
   selectedItemIndex,
   duplicateSelected,

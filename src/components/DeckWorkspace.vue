@@ -93,6 +93,7 @@
               :globalTextColor="globalTextColor"
               :globalIconSize="globalIconSize"
               :globalIconColor="globalIconColor"
+              :globalIconFlatten="globalIconFlatten"
               :globalBackgroundColor="globalBackgroundColor"
               :printMode="false"
               :darkRoom="darkRoom"
@@ -160,6 +161,7 @@
           :globalTextColor="globalTextColor"
           :globalIconSize="globalIconSize"
           :globalIconColor="globalIconColor"
+          :globalIconFlatten="globalIconFlatten"
           :printMode="false"
           :darkRoom="darkRoom"
         />
@@ -256,6 +258,7 @@ const {
   globalTextColor,
   globalIconSize,
   globalIconColor,
+  globalIconFlatten,
   globalBackgroundColor,
   zoomLevel,
   darkRoom,

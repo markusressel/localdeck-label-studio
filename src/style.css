@@ -22,6 +22,12 @@ body {
   box-sizing: border-box;
 }
 
+.force-flat-icon {
+  display: inline-block;
+  transform: translateX(-9999px);
+  filter: drop-shadow(9999px 0 0 currentColor);
+}
+
 /* Typography */
 h1, h2, h3 {
   margin: 0;
