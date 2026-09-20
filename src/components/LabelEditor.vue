@@ -37,6 +37,14 @@
               <span style="font-size: 0.75rem; color: var(--text-muted);">Flatten to solid silhouette</span>
               <CustomSwitch v-model="modelValue.iconFlatten" title="Forces complex/multi-colored icons into a flat shape" />
             </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 0.25rem;">
+              <span style="font-size: 0.75rem; color: var(--text-muted);">Flip Horizontal</span>
+              <CustomSwitch v-model="modelValue.iconFlipH" />
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 0.25rem;">
+              <span style="font-size: 0.75rem; color: var(--text-muted);">Flip Vertical</span>
+              <CustomSwitch v-model="modelValue.iconFlipV" />
+            </div>
           </div>
           
           <div v-else class="icon-overrides-enable" @click="useCustomIcon = true" style="flex: 1; display: flex; align-items: center; justify-content: center; border: 1px dashed var(--card-border); border-radius: 8px; cursor: pointer; color: var(--text-muted); font-size: 0.8rem; background: rgba(255,255,255,0.02); transition: all 0.2s;">

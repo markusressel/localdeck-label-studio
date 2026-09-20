@@ -509,6 +509,7 @@ const buildProceduralDeck = () => {
             const drawIcon = (image) => {
               ctx.save()
               ctx.translate(128 + iX, iBaseY + iY)
+              ctx.scale(label.iconFlipH ? -1 : 1, label.iconFlipV ? -1 : 1)
               ctx.drawImage(image, -iSize/2, -iSize/2, iSize, iSize)
               ctx.restore()
               labelTex.needsUpdate = true
@@ -535,13 +536,41 @@ const buildProceduralDeck = () => {
           
           ctx.save()
           ctx.translate(128 + iX, iBaseY + iY)
+          ctx.scale(label.iconFlipH ? -1 : 1, label.iconFlipV ? -1 : 1)
           ctx.font = `${iSize}px sans-serif`
           ctx.textBaseline = 'middle'
           ctx.fillText(emoji.emojify(label.icon), 0, 0)
           ctx.restore()
         }
+      } else if (label.image) {
+        // Custom Image Rendering
+        const iX = (label.iconOffsetX || 0) * PX_SCALE
+        const iY = (label.iconOffsetY || 0) * PX_SCALE
+        const iSize = (label.iconSize || 24) * PX_SCALE
+
+        const drawCustomImage = (image) => {
+          ctx.save()
+          ctx.translate(128 + iX, iBaseY + iY)
+          ctx.scale(label.iconFlipH ? -1 : 1, label.iconFlipV ? -1 : 1)
+          ctx.drawImage(image, -iSize/2, -iSize/2, iSize, iSize)
+          ctx.restore()
+          labelTex.needsUpdate = true
+          if (pathTracer && highQualityRender.value) pathTracer.updateCamera()
+        }
+
+        if (iconImageCache.has(label.image)) {
+          drawCustomImage(iconImageCache.get(label.image))
+        } else {
+          const img = new Image()
+          img.crossOrigin = 'Anonymous'
+          img.onload = () => {
+            iconImageCache.set(label.image, img)
+            drawCustomImage(img)
+          }
+          img.src = label.image
+        }
       }
-      
+
       const labelTex = new THREE.CanvasTexture(canvas)
       let matConfig = { 
         map: labelTex, 

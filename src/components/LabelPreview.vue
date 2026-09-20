@@ -21,7 +21,7 @@
       <div class="label-insert">
         <div class="label-content" :style="{ backgroundColor: effectiveBackgroundColor, isolation: 'isolate', filter: `contrast(${label.contrast ?? 100}%) saturate(${label.saturation ?? 100}%)` }">
           <div v-if="label.image" class="label-image-container">
-            <img :src="label.image" alt="Custom icon" class="custom-image" />
+            <img :src="label.image" alt="Custom icon" class="custom-image" :style="{ transform: `scaleX(${label.iconFlipH ? -1 : 1}) scaleY(${label.iconFlipV ? -1 : 1})` }" />
           </div>
           <div 
             v-else-if="label.icon" 
@@ -33,7 +33,7 @@
               fontSize: effectiveIconSize + 'px', 
               color: isColorTransparent(effectiveIconColor) ? '#000' : effectiveIconColor,
               mixBlendMode: isColorTransparent(effectiveIconColor) ? 'destination-out' : 'normal',
-              transform: `translate(${label.iconOffsetX || 0}px, ${label.iconOffsetY || 0}px)`
+              transform: `translate(${label.iconOffsetX || 0}px, ${label.iconOffsetY || 0}px) scaleX(${label.iconFlipH ? -1 : 1}) scaleY(${label.iconFlipV ? -1 : 1})`
             }"
           >
             <Icon 
