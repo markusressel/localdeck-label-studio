@@ -1,11 +1,12 @@
 <template>
   <aside class="sidebar-section">
-    <div class="editor-panel global-panel">
+    <div class="editor-panel global-panel" :style="{ flex: selectedItemIndex !== null ? `0 0 ${globalPanelHeight}px` : '1', minHeight: '150px' }">
       <div class="panel-header">
         <h2>Global Styles</h2>
       </div>
-      <div class="panel-content">
-        <div class="style-group">
+      <div class="panel-content" style="padding: 0; display: flex; flex-direction: column;">
+        <div style="padding: 1.5rem; flex: 1;">
+          <div class="style-group">
           <div class="style-group-header">
             <Icon icon="mdi:format-text" class="header-icon" />
             <span>Default Text Style</span>
@@ -133,11 +134,13 @@
               <input type="number" v-model.number="previewCapAttenuation" min="0.1" max="10.0" step="0.1" />
             </div>
           </div>
+          </div>
         </div>
       </div>
     </div>
+    <DragHandle v-if="selectedItemIndex !== null" @resize="onResize" />
 
-    <div class="editor-panel detail-panel" v-if="selectedItemIndex !== null">
+    <div class="editor-panel detail-panel" v-if="selectedItemIndex !== null" style="flex: 1; min-height: 150px;">
       <div class="panel-header">
         <h2>Edit Label</h2>
         <div class="panel-actions">
@@ -147,13 +150,15 @@
         </div>
       </div>
       
-      <div class="panel-content">
-        <LabelEditor v-model="labels[selectedItemIndex]" :key="labels[selectedItemIndex].id" />
-        
-        <div style="margin-top: 1.5rem;">
-          <button class="primary" style="width: 100%; background: var(--danger); border-color: var(--danger); display: flex; align-items: center; justify-content: center; gap: 0.5rem;" @click="removeSelected">
-            <Icon icon="mdi:trash-can-outline" /> Delete Label
-          </button>
+      <div class="panel-content" style="padding: 0; display: flex; flex-direction: column;">
+        <div style="padding: 1.5rem; flex: 1;">
+          <LabelEditor v-model="labels[selectedItemIndex]" :key="labels[selectedItemIndex].id" />
+          
+          <div style="margin-top: 1.5rem;">
+            <button class="primary" style="width: 100%; background: var(--danger); border-color: var(--danger); display: flex; align-items: center; justify-content: center; gap: 0.5rem;" @click="removeSelected">
+              <Icon icon="mdi:trash-can-outline" /> Delete Label
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -196,6 +201,19 @@ const {
   removeSelected,
   labels
 } = useStore()
+
+import { ref } from 'vue'
+import DragHandle from './DragHandle.vue'
+
+const globalPanelHeight = ref(400) // Default height in px
+
+const onResize = (delta) => {
+  const newHeight = globalPanelHeight.value + delta;
+  
+  // Clamp the height between sensible min and max (e.g. 150px and windowHeight - 300px)
+  const minHeight = 150;
+  const maxHeight = window.innerHeight - 300;
+  
+  globalPanelHeight.value = Math.max(minHeight, Math.min(newHeight, maxHeight));
+}
 </script>
-
-
