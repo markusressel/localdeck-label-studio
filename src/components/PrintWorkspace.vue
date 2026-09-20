@@ -103,6 +103,7 @@
                 @dragleave.prevent="printDragTarget = null"
                 @drop="onPrintDrop($event, index)"
               >
+                <div class="print-border-overlay" :style="getSlotBorderStyle(index, labelId)"></div>
                 <LabelPreview
                   v-if="labelId"
                   :label="getLabelById(labelId)"
@@ -176,6 +177,7 @@ const {
   darkRoom,
   paperDimensions,
   totalPrintSlots,
+  cols,
   selectAllPrint,
   selectNonePrint,
   selectDeckPrint,
@@ -193,4 +195,24 @@ const {
 const pageCssSize = computed(() => {
   return `${paperDimensions.value.w}mm ${paperDimensions.value.h}mm`
 })
+
+const getSlotBorderStyle = (index, labelId) => {
+  if (!labelId) return {}
+  
+  const borderValue = '0.5pt dashed black'
+  const style = {
+    borderRight: borderValue,
+    borderBottom: borderValue
+  }
+  
+  if (index % cols.value === 0 || !printGrid.value[index - 1]) {
+    style.borderLeft = borderValue
+  }
+  
+  if (index < cols.value || !printGrid.value[index - cols.value]) {
+    style.borderTop = borderValue
+  }
+  
+  return style
+}
 </script>

@@ -5,16 +5,21 @@
   gap: 0 !important;
   justify-content: flex-start !important;
   align-items: flex-start !important;
-  border-top: 0.5pt dashed black !important;
-  border-left: 0.5pt dashed black !important;
 }
 
 .print-grid-slot {
   box-sizing: border-box !important;
   page-break-inside: avoid;
   break-inside: avoid;
-  border-right: 0.5pt dashed black !important;
-  border-bottom: 0.5pt dashed black !important;
+  position: relative;
+}
+
+.print-border-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  box-sizing: border-box;
+  z-index: 50;
 }
 
 @media print {
