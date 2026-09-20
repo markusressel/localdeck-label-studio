@@ -52,3 +52,7 @@ The application features a distinct Drag and Drop engine between the Label Libra
 - When initiating a drag event, you MUST inject a `source` string into the `dataTransfer` payload (`e.dataTransfer.setData('source', 'library' | slotIndex)`).
 - **Library Stamping:** If a label is dragged from the `library`, dropping it onto a deck slot MUST duplicate/stamp the label ID onto the new slot without removing it from its previous slots.
 - **Deck Moving:** If a label is dragged from an existing deck slot, dropping it onto a new deck slot MUST move/swap the label and clear the old slot.
+
+### 6. UI/UX Layout & Sidebar Scrollbars
+- **Grouped Checklists:** When rendering grouped data (e.g., labels belonging to decks), favor a vertical "tree-style" layout. Parent categories should feature a master checkbox (capable of handling indeterminate `[-]` states) to toggle all children, with children visually indented below using subtle structural connector lines.
+- **Scrollbar Edge Alignment:** Scrollable containers inside sidebars must have their scrollbars flush against the screen edge. Achieve this by moving structural padding to the parent sidebar container (e.g., `padding: 1.5rem 0.5rem 0.5rem 1.5rem`) rather than relying on negative margins or nested padded borders, avoiding situations where `overflow: hidden` accidentally clips the scrollbar.
