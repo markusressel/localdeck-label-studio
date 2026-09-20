@@ -24,17 +24,18 @@
 
       <div class="setting-group-vertical" style="flex: 1; overflow: hidden; display: flex; flex-direction: column;">
         <label>Labels to Print</label>
-        <div class="checklist-actions" style="margin-bottom: 0.5rem; display: flex; gap: 0.5rem;">
-           <button @click="selectAllPrint" class="secondary" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">All</button>
-           <button @click="selectNonePrint" class="secondary" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">None</button>
-           <button @click="selectDeckPrint" class="secondary" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">Deck Only</button>
-        </div>
         <div class="labels-checklist" style="overflow-y: auto; flex: 1; border: 1px solid var(--card-border); padding: 0.5rem; border-radius: 4px;">
           <div v-for="group in groupedChecklistItems" :key="group.category" style="margin-bottom: 1rem;">
             <div style="font-size: 0.75rem; color: var(--text-color); font-weight: 600; padding-bottom: 0.25rem; border-bottom: 1px solid var(--border-color); margin-bottom: 0.5rem;">
-              {{ group.category }}
+              <CustomCheckbox 
+                :modelValue="isGroupFullySelected(group)" 
+                :indeterminate="isGroupPartiallySelected(group)"
+                @update:modelValue="toggleGroupSelection(group)" 
+              >
+                {{ group.category }}
+              </CustomCheckbox>
             </div>
-            <div v-for="item in group.items" :key="item.id" class="checklist-item" style="display: flex; flex-direction: column; margin-bottom: 0.25rem;">
+            <div v-for="item in group.items" :key="item.id" class="checklist-item" style="display: flex; flex-direction: column; margin-bottom: 0.25rem; padding-left: 1.5rem;">
               <CustomCheckbox :value="item.id" v-model="selectedPrintIds" style="font-size: 0.85rem;">
                 <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
                   <span style="display: flex; align-items: center;">
@@ -191,9 +192,6 @@ const {
   totalPrintSlots,
   cols,
   printChecklistItems,
-  selectAllPrint,
-  selectNonePrint,
-  selectDeckPrint,
   onPrintDragStart,
   onDragEnd,
   onPrintDrop,
@@ -255,4 +253,35 @@ const groupedChecklistItems = computed(() => {
     }
   })
 })
+
+const isGroupFullySelected = (group) => {
+  if (group.items.length === 0) return false
+  return group.items.every(item => selectedPrintIds.value.includes(item.id))
+}
+
+const isGroupPartiallySelected = (group) => {
+  if (group.items.length === 0) return false
+  const selectedCount = group.items.filter(item => selectedPrintIds.value.includes(item.id)).length
+  return selectedCount > 0 && selectedCount < group.items.length
+}
+
+const toggleGroupSelection = (group) => {
+  const allSelected = isGroupFullySelected(group)
+  const newSelection = [...selectedPrintIds.value]
+  
+  if (allSelected) {
+    group.items.forEach(item => {
+      const idx = newSelection.indexOf(item.id)
+      if (idx > -1) newSelection.splice(idx, 1)
+    })
+  } else {
+    group.items.forEach(item => {
+      if (!newSelection.includes(item.id)) {
+        newSelection.push(item.id)
+      }
+    })
+  }
+  
+  selectedPrintIds.value = newSelection
+}
 </script>

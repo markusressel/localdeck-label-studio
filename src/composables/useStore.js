@@ -217,10 +217,6 @@ if (typeof window !== 'undefined') {
   })
 }
 
-const selectAllPrint = () => { selectedPrintIds.value = printChecklistItems.value.map(item => item.id) }
-const selectNonePrint = () => { selectedPrintIds.value = [] }
-const selectDeckPrint = () => { selectedPrintIds.value = printChecklistItems.value.filter(item => item.id.startsWith(`deck-${activeDeckId.value}`)).map(item => item.id) }
-
 const selectedItemIndex = computed(() => {
   if (!selectedId.value) return null
   const idx = labels.value.findIndex(l => l.id === selectedId.value)
@@ -776,9 +772,6 @@ export function useStore() {
     printChecklistItems,
     explicitlyPrintedLabels,
     syncPrintGrid,
-    selectAllPrint,
-    selectNonePrint,
-    selectDeckPrint,
     loadState,
     saveState,
     addLabel,

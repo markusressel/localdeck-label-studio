@@ -1,7 +1,8 @@
 <template>
-  <div class="custom-checkbox-wrapper" tabindex="0" @keydown.space.prevent="toggleCheckbox" @click.prevent="toggleCheckbox" :class="{ 'is-checked': isChecked }">
+  <div class="custom-checkbox-wrapper" tabindex="0" @keydown.space.prevent="toggleCheckbox" @click.prevent="toggleCheckbox" :class="{ 'is-checked': isChecked || indeterminate }">
     <div class="checkbox-box">
-      <div v-show="isChecked" class="icon-wrapper"><Icon icon="mdi:check" /></div>
+      <div v-show="isChecked && !indeterminate" class="icon-wrapper"><Icon icon="mdi:check" /></div>
+      <div v-show="indeterminate" class="icon-wrapper"><Icon icon="mdi:minus" /></div>
     </div>
     <span class="checkbox-label" v-if="$slots.default">
       <slot></slot>
@@ -21,6 +22,10 @@ const props = defineProps({
   value: {
     type: [String, Number, Boolean, Object],
     default: null
+  },
+  indeterminate: {
+    type: Boolean,
+    default: false
   }
 })
 
