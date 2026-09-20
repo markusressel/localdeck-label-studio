@@ -22,13 +22,11 @@
         <Icon :key="darkRoom ? 'night' : 'sunny'" :icon="darkRoom ? 'mdi:weather-night' : 'mdi:weather-sunny'" style="font-size: 1.5rem; color: var(--text-muted);" />
       </div>
 
-
-
       <div class="setting-group global-light-group" style="margin-right: 0;">
         <Icon icon="mdi:led-on" style="color: var(--text-muted); font-size: 1.2rem;" />
         <div class="light-controls">
           <ColorPicker v-model="globalLightColor" title="Global LED Color" />
-          <div style="width: 80px;" title="Global Brightness"><CustomSlider v-model="globalLightBrightness" :min="0" :max="100" showValue /></div>
+          <div style="width: 150px; min-width: 120px;" title="Global Brightness"><CustomSlider v-model="globalLightBrightness" :min="0" :max="100" showValue /></div>
           <CustomSelect 
             v-model="globalLightEffect" 
             :options="[
@@ -41,7 +39,43 @@
         </div>
       </div>
     </div>
-    <div class="device-preview-container" style="overflow: auto; flex: 1;">
+    <div class="device-preview-container" style="overflow: auto; flex: 1; position: relative;">
+      
+      <!-- 2D Render Settings Overlay -->
+      <div class="floating-controls" v-if="!show3DPreview">
+        <div class="settings-dropdown">
+          <div 
+            class="floating-btn" 
+            :class="{ active: show2dSettings }"
+            @click="show2dSettings = !show2dSettings" 
+            title="2D Render Settings"
+          >
+            <Icon icon="mdi:cog" />
+            <span>2D Render Settings</span>
+            <Icon :icon="show2dSettings ? 'mdi:chevron-up' : 'mdi:chevron-down'" />
+          </div>
+          
+          <div class="settings-panel" v-if="show2dSettings">
+            
+            <div class="setting-field">
+              <label>LED Intensity (0-2)</label>
+              <input type="number" v-model.number="preview2dLedIntensity" min="0" max="2" step="0.05" />
+            </div>
+            
+            <div class="setting-row-multi">
+              <div class="setting-field half">
+                <label>Translucency</label>
+                <input type="number" v-model.number="preview2dTranslucency" min="0" max="1" step="0.01" />
+              </div>
+              <div class="setting-field half">
+                <label>Diffusion (px)</label>
+                <input type="number" v-model.number="preview2dFalloff" min="0" max="20" step="1" />
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
       <div class="localdeck-device" v-if="!show3DPreview">
         <div class="device-grid" :style="{ gridTemplateColumns: `repeat(${matrixWidth}, max-content)` }">
           <div 
@@ -183,9 +217,11 @@ import ColorPicker from './ColorPicker.vue'
 import CustomSelect from './CustomSelect.vue'
 import CustomInput from './CustomInput.vue'
 import CustomSlider from './CustomSlider.vue'
+import CustomSwitch from './CustomSwitch.vue'
 import DragHandle from './DragHandle.vue'
 
 const deckPanelHeight = ref(400)
+const show2dSettings = ref(false)
 const onResize = (delta) => {
   const newHeight = deckPanelHeight.value + delta;
   const minHeight = 200;
@@ -263,6 +299,9 @@ const {
   zoomLevel,
   darkRoom,
   highQualityRender,
+  preview2dLedIntensity,
+  preview2dTranslucency,
+  preview2dFalloff,
   labels,
   dragOverTarget,
   selectedId,

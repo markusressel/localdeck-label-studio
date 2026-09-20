@@ -119,51 +119,6 @@
             </div>
           </div>
 
-          <!-- Rendering & Lighting -->
-          <div class="style-group bordered-top">
-            <div class="style-group-header">
-              <Icon icon="mdi:lightbulb-group-outline" class="header-icon" />
-              <span>Rendering & Lighting</span>
-            </div>
-            
-            <!-- 2D -->
-            <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem; margin-top: 0.5rem;">2D Preview Lighting</div>
-            <div class="control-row">
-              <div class="control-group">
-                <label>LED Intensity (0-2)</label>
-                <input type="number" v-model.number="preview2dLedIntensity" min="0" max="2" step="0.05" />
-              </div>
-            </div>
-            <div class="control-row" style="margin-top: 0.5rem">
-              <div class="control-group half">
-                <label>Translucency</label>
-                <input type="number" v-model.number="preview2dTranslucency" min="0" max="1" step="0.01" />
-              </div>
-              <div class="control-group half">
-                <label>Diffusion (px)</label>
-                <input type="number" v-model.number="preview2dFalloff" min="0" max="20" step="1" />
-              </div>
-            </div>
-            
-            <!-- 3D -->
-            <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem; margin-top: 1rem;">3D Preview Lighting</div>
-            <div class="control-row">
-              <div class="control-group">
-                <label>LED Intensity (cd)</label>
-                <input type="number" v-model.number="previewLedIntensity" min="100" max="10000" step="100" />
-              </div>
-            </div>
-            <div class="control-row" style="margin-top: 0.5rem">
-              <div class="control-group half">
-                <label>Translucency</label>
-                <input type="number" v-model.number="previewCapTranslucency" min="0" max="1" step="0.05" />
-              </div>
-              <div class="control-group half">
-                <label>Falloff Dist.</label>
-                <input type="number" v-model.number="previewCapAttenuation" min="0.1" max="10.0" step="0.1" />
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>

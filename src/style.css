@@ -176,3 +176,111 @@ label {
   border-top: 1px solid var(--card-border);
   margin-top: 1rem;
 }
+
+/* Floating Controls Overlay */
+.floating-controls {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 10;
+}
+
+.floating-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+.floating-btn:hover {
+  background: rgba(255,255,255,0.1);
+  color: var(--text-main);
+}
+
+.floating-btn.active {
+  color: var(--primary);
+  border-color: var(--primary);
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.floating-btn svg {
+  font-size: 1.2rem;
+}
+
+.settings-dropdown {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.settings-panel {
+  margin-top: 0.5rem;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: 1rem;
+  width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+}
+
+.setting-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.setting-label {
+  font-size: 0.85rem;
+  color: var(--text-main);
+}
+
+.setting-divider {
+  height: 1px;
+  background: var(--card-border);
+  margin: 0.25rem 0;
+}
+
+.setting-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.setting-field label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.setting-field input[type="number"],
+.setting-field select {
+  width: 100%;
+  background: rgba(0,0,0,0.2);
+  border: 1px solid var(--card-border);
+  border-radius: 4px;
+  padding: 0.3rem 0.5rem;
+  color: var(--text-main);
+  font-size: 0.85rem;
+}
+
+.setting-row-multi {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.setting-row-multi .half {
+  flex: 1;
+}

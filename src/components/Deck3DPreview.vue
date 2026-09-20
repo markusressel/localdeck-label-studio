@@ -3,14 +3,42 @@
     <div v-if="isLoading" class="loading-overlay">Initializing 3D Engine...</div>
     
     <div class="floating-controls">
-      <div 
-        class="floating-btn" 
-        :class="{ active: highQualityRender }"
-        @click="highQualityRender = !highQualityRender" 
-        title="Toggle High Quality Path Tracing (GPU intensive)"
-      >
-        <Icon :icon="highQualityRender ? 'mdi:diamond' : 'mdi:diamond-outline'" />
-        <span>Path Tracing</span>
+      <div class="settings-dropdown">
+        <div 
+          class="floating-btn" 
+          :class="{ active: showSettings }"
+          @click="showSettings = !showSettings" 
+          title="3D Render Settings"
+        >
+          <Icon icon="mdi:cog" />
+          <span>3D Render Settings</span>
+          <Icon :icon="showSettings ? 'mdi:chevron-up' : 'mdi:chevron-down'" />
+        </div>
+        
+        <div class="settings-panel" v-if="showSettings">
+          <div class="setting-row">
+            <span class="setting-label">Path Tracing</span>
+            <CustomSwitch v-model="highQualityRender" />
+          </div>
+          
+          <div class="setting-divider"></div>
+          
+          <div class="setting-field">
+            <label>LED Intensity (cd)</label>
+            <input type="number" v-model.number="previewLedIntensity" min="100" max="10000" step="100" />
+          </div>
+          
+          <div class="setting-row-multi">
+            <div class="setting-field half">
+              <label>Translucency</label>
+              <input type="number" v-model.number="previewCapTranslucency" min="0" max="1" step="0.05" />
+            </div>
+            <div class="setting-field half">
+              <label>Falloff Dist.</label>
+              <input type="number" v-model.number="previewCapAttenuation" min="0.1" max="10.0" step="0.1" />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -18,6 +46,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { Icon } from '@iconify/vue'
+import CustomSwitch from './CustomSwitch.vue'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
@@ -28,6 +57,7 @@ import { useStore } from '../composables/useStore'
 
 const containerRef = ref(null)
 const isLoading = ref(true)
+const showSettings = ref(false)
 
 const { matrixWidth, matrixHeight, labels, globalLightColor, globalLightBrightness, globalBackgroundColor, globalTextColor, darkRoom, highQualityRender, caseColor, labelMaterial, switchBodyColor, switchStemColor, previewLedIntensity, previewCapTranslucency, previewCapAttenuation } = useStore()
 
@@ -603,41 +633,4 @@ watch([matrixWidth, matrixHeight, labels, globalLightColor, globalLightBrightnes
   font-weight: bold;
 }
 
-.floating-controls {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  z-index: 10;
-}
-
-.floating-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  cursor: pointer;
-  color: var(--text-muted);
-  font-size: 0.9rem;
-  font-weight: 500;
-  transition: all 0.2s;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-}
-
-.floating-btn:hover {
-  background: rgba(255,255,255,0.1);
-  color: var(--text-main);
-}
-
-.floating-btn.active {
-  color: var(--primary);
-  border-color: var(--primary);
-  background: rgba(16, 185, 129, 0.1);
-}
-
-.floating-btn svg {
-  font-size: 1.2rem;
-}
 </style>
