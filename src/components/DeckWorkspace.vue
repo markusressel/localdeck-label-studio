@@ -9,12 +9,7 @@
         <button class="icon-btn" @click="renameDeck" title="Rename Deck"><Icon icon="mdi:pencil" /></button>
         <button class="icon-btn" @click="removeDeck" :disabled="decks.length <= 1" title="Delete Deck" :style="{ opacity: decks.length <= 1 ? 0.3 : 1 }"><Icon icon="mdi:trash-can-outline" /></button>
       </div>
-      <div class="matrix-inputs" style="display: flex; align-items: center; gap: 0.25rem; margin-left: 1rem; background: rgba(0,0,0,0.15); padding: 0.2rem 0.5rem; border-radius: 4px; border: 1px solid var(--card-border);">
-        <Icon icon="mdi:grid" style="color: var(--text-muted); margin-right: 0.25rem;" />
-        <input type="number" v-model.number="matrixWidth" min="1" max="24" style="width: 45px; padding: 0.1rem; text-align: center; background: transparent; border: none; color: white; font-weight: 500;" title="Columns" />
-        <span style="color: var(--text-muted); font-size: 0.8rem;">×</span>
-        <input type="number" v-model.number="matrixHeight" min="1" max="24" style="width: 45px; padding: 0.1rem; text-align: center; background: transparent; border: none; color: white; font-weight: 500;" title="Rows" />
-      </div>
+
       <div class="spacer"></div>
       
       <div class="setting-group" style="margin-right: 1rem; cursor: pointer;" @click="show3DPreview = !show3DPreview" :title="show3DPreview ? 'Back to 2D Editor' : 'Experimental 3D Preview'">

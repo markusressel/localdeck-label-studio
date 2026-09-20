@@ -75,6 +75,17 @@
               <NumberStepper v-model="labelHeight" :min="1" :max="100" :step="0.1" />
             </div>
           </div>
+
+          <div class="control-row" style="margin-top: 0.5rem">
+            <div class="control-group half">
+              <label>Grid Columns</label>
+              <NumberStepper v-model="matrixWidth" :min="1" :max="24" :step="1" />
+            </div>
+            <div class="control-group half">
+              <label>Grid Rows</label>
+              <NumberStepper v-model="matrixHeight" :min="1" :max="24" :step="1" />
+            </div>
+          </div>
           
           <div class="control-row" style="margin-top: 0.5rem">
             <div class="control-group">
@@ -196,6 +207,8 @@ const {
   globalBackgroundColor,
   labelWidth,
   labelHeight,
+  matrixWidth,
+  matrixHeight,
   selectedItemIndex,
   duplicateSelected,
   removeSelected,
