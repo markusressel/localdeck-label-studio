@@ -27,7 +27,7 @@
           
           <div class="icon-overrides" v-if="useCustomIcon" style="display: flex; flex-direction: column; gap: 0.5rem; flex: 1; justify-content: center;">
             <div style="display: flex; gap: 0.5rem; align-items: center;">
-              <NumberStepper v-model="modelValue.iconSize" :min="10" :max="64" :defaultVal="24" title="Icon Size" />
+              <NumberStepper v-model="modelValue.iconSize" :min="10" :max="64" :defaultVal="globalIconSize" title="Icon Size" />
               <ColorPicker v-model="modelValue.iconColor" style="flex: 1; border-radius: 8px;" title="Icon Color" />
               <button @click="useCustomIcon = false" class="icon-btn danger-text" title="Reset Overrides" style="align-self: flex-start; border: 1px dashed var(--card-border); border-radius: 8px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.15);">
                  <Icon icon="mdi:close" style="font-size: 1.1rem;" />
@@ -224,7 +224,14 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:modelValue'])
-const { globalIconColor, globalIconFlatten } = useStore()
+const { 
+  globalIconColor, 
+  globalIconFlatten, 
+  globalIconSize, 
+  globalTextSize, 
+  globalTextColor, 
+  globalBackgroundColor 
+} = useStore()
 
 const effectiveIconColor = computed(() => props.modelValue.iconColor ?? globalIconColor.value)
 
@@ -256,8 +263,8 @@ const useCustomText = computed({
   get: () => props.modelValue.textSize !== null && props.modelValue.textSize !== undefined,
   set: (val) => {
     if (val) {
-      props.modelValue.textSize = 10
-      props.modelValue.textColor = '#000000'
+      props.modelValue.textSize = globalTextSize.value
+      props.modelValue.textColor = globalTextColor.value
     } else {
       props.modelValue.textSize = null
       props.modelValue.textColor = null
@@ -269,8 +276,8 @@ const useCustomIcon = computed({
   get: () => props.modelValue.iconSize !== null && props.modelValue.iconSize !== undefined,
   set: (val) => {
     if (val) {
-      props.modelValue.iconSize = 24
-      props.modelValue.iconColor = '#000000'
+      props.modelValue.iconSize = globalIconSize.value
+      props.modelValue.iconColor = globalIconColor.value
     } else {
       props.modelValue.iconSize = null
       props.modelValue.iconColor = null
@@ -306,7 +313,7 @@ const useCustomBg = computed({
   get: () => props.modelValue.backgroundColor !== null && props.modelValue.backgroundColor !== undefined,
   set: (val) => {
     if (val) {
-      props.modelValue.backgroundColor = '#000000'
+      props.modelValue.backgroundColor = globalBackgroundColor.value || '#000000'
     } else {
       props.modelValue.backgroundColor = null
     }
@@ -317,9 +324,9 @@ const setBlackLabel = () => {
   const updated = { ...props.modelValue }
   updated.backgroundColor = '#000000'
   updated.iconColor = '#ffffff'
-  updated.iconSize = updated.iconSize || 24
+  updated.iconSize = updated.iconSize || globalIconSize.value
   updated.textColor = '#ffffff'
-  updated.textSize = updated.textSize || 10
+  updated.textSize = updated.textSize || globalTextSize.value
   emit('update:modelValue', updated)
 }
 
