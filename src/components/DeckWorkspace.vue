@@ -1,7 +1,8 @@
 <template>
-  <div class="grid-section">
+  <div class="grid-section" style="background: transparent; border: none; overflow: hidden; gap: 1.5rem;">
     <!-- LocalDeck Preview -->
-    <div class="section-header device-header">
+    <div class="deck-preview-panel" :style="{ flex: `0 0 ${deckPanelHeight}px`, minHeight: '200px', display: 'flex', flexDirection: 'column', background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '12px', overflow: 'hidden' }">
+      <div class="section-header device-header">
       <CustomSelect v-model="activeDeckId" :options="deckOptions" style="width: 200px; font-weight: 600;" />
       <div style="display: flex; gap: 0.25rem; margin-left: 0.5rem;">
         <button class="icon-btn" @click="addDeck" title="Add New Deck"><Icon icon="mdi:plus" /></button>
@@ -56,7 +57,7 @@
         </div>
       </div>
     </div>
-    <div class="device-preview-container">
+    <div class="device-preview-container" style="overflow: auto; flex: 1;">
       <div class="localdeck-device" v-if="!show3DPreview">
         <div class="device-grid" :style="{ gridTemplateColumns: `repeat(${matrixWidth}, max-content)` }">
           <div 
@@ -107,8 +108,13 @@
       <Deck3DPreview v-else />
     </div>
 
+    </div>
+    
+    <DragHandle @resize="onResize" />
+
     <!-- Label Library -->
-    <div class="section-header">
+    <div class="library-panel" style="flex: 1; min-height: 200px; display: flex; flex-direction: column; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; overflow: hidden;">
+      <div class="section-header">
       <h2>Label Library</h2>
       <span class="badge">{{ labels.length }} items</span>
       
@@ -129,7 +135,7 @@
       </div>
     </div>
     
-    <div class="interactive-grid">
+    <div class="interactive-grid" style="overflow-y: auto; flex: 1;">
       <div 
         v-for="(label, index) in filteredLabels" 
         :key="label.id"
@@ -180,6 +186,7 @@
       </div>
     </div>
   </div>
+  </div>
 </template>
 
 <script setup>
@@ -192,6 +199,15 @@ import ColorPicker from './ColorPicker.vue'
 import CustomSelect from './CustomSelect.vue'
 import CustomInput from './CustomInput.vue'
 import CustomSlider from './CustomSlider.vue'
+import DragHandle from './DragHandle.vue'
+
+const deckPanelHeight = ref(400)
+const onResize = (delta) => {
+  const newHeight = deckPanelHeight.value + delta;
+  const minHeight = 200;
+  const maxHeight = window.innerHeight - 300;
+  deckPanelHeight.value = Math.max(minHeight, Math.min(newHeight, maxHeight));
+}
 
 const store = useStore()
 const {

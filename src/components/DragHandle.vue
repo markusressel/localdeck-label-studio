@@ -54,7 +54,7 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   margin: -0.75rem 0;
-  z-index: 10;
+  z-index: 50;
 }
 
 .sidebar-resizer:hover .resizer-line,
