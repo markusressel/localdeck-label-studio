@@ -69,6 +69,11 @@ const toggleCheckbox = () => {
   transition: color 0.2s;
 }
 
+.checkbox-label {
+  flex: 1;
+  min-width: 0; /* allows text overflow to work */
+}
+
 .custom-checkbox-wrapper:hover .checkbox-box {
   border-color: var(--primary);
   background: var(--hover-bg);

@@ -2,31 +2,12 @@
   <div id="print-area">
     <div v-html="`<style>@media print { @page { margin: 0; size: ${printFormat === 'A4' ? 'A4 portrait' : printFormat === 'A4-L' ? 'A4 landscape' : 'Letter portrait'}; } }</style>`"></div>
     <div class="print-preview-sidebar no-print" v-if="previewMode">
-      <h2>Print Settings</h2>
+      <h2>Labels to Print</h2>
       
-      <div class="setting-group-vertical">
-        <label>Paper Format</label>
-        <CustomSelect 
-          v-model="printFormat" 
-          :options="[
-            { value: 'A4', label: 'A4 (Portrait)' },
-            { value: 'A4-L', label: 'A4 (Landscape)' },
-            { value: 'Letter', label: 'US Letter' }
-          ]"
-        />
-      </div>
-      
-      <div class="setting-group-vertical mt-3">
-        <label>Printer Hardware Top Margin (mm)</label>
-        <small style="color: var(--text-muted); font-size: 0.75rem; margin-bottom: 0.25rem;">Shift labels down if your printer cuts them off.</small>
-        <NumberStepper v-model="printOffsetY" :min="0" :max="50" :defaultVal="0" />
-      </div>
-
       <div class="setting-group-vertical" style="flex: 1; overflow: hidden; display: flex; flex-direction: column;">
-        <label>Labels to Print</label>
         <div class="labels-checklist" style="overflow-y: auto; flex: 1; border: 1px solid var(--card-border); padding: 0.5rem; border-radius: 4px;">
-          <div v-for="group in groupedChecklistItems" :key="group.category" style="margin-bottom: 1rem;">
-            <div style="font-size: 0.75rem; color: var(--text-color); font-weight: 600; padding-bottom: 0.25rem; border-bottom: 1px solid var(--border-color); margin-bottom: 0.5rem;">
+          <div v-for="group in groupedChecklistItems" :key="group.category" style="margin-bottom: 1.5rem;">
+            <div style="font-size: 0.75rem; color: var(--text-color); font-weight: 600; margin-bottom: 0.5rem;">
               <CustomCheckbox 
                 :modelValue="isGroupFullySelected(group)" 
                 :indeterminate="isGroupPartiallySelected(group)"
@@ -35,19 +16,28 @@
                 {{ group.category }}
               </CustomCheckbox>
             </div>
-            <div v-for="item in group.items" :key="item.id" class="checklist-item" style="display: flex; flex-direction: column; margin-bottom: 0.25rem; padding-left: 1.5rem;">
-              <CustomCheckbox :value="item.id" v-model="selectedPrintIds" style="font-size: 0.85rem;">
-                <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
-                  <span style="display: flex; align-items: center;">
-                    <Icon v-if="item.label.icon && !isEmoji(item.label.icon)" :icon="item.label.icon" style="margin-right: 6px; vertical-align: middle; font-size: 1.1em;" />
-                    <span v-else-if="item.label.icon && isEmoji(item.label.icon)" style="margin-right: 6px; vertical-align: middle; font-size: 1.1em;">{{ item.label.icon }}</span>
-                    {{ item.label.text || 'Unnamed' }}
-                  </span>
-                  <span v-if="item.hint" style="font-size: 0.65rem; color: var(--text-muted); opacity: 0.7; margin-left: 0.5rem;">
-                    {{ item.hint }}
-                  </span>
-                </div>
-              </CustomCheckbox>
+            
+            <div class="tree-children" style="position: relative; margin-left: 9px;">
+              <!-- Vertical main branch -->
+              <div style="position: absolute; left: 0; top: -0.25rem; bottom: 0.65rem; width: 1px; background: var(--card-border); opacity: 0.6;"></div>
+              
+              <div v-for="item in group.items" :key="item.id" class="checklist-item" style="position: relative; padding-left: 1.25rem; margin-bottom: 0.5rem;">
+                <!-- Horizontal sub-branch -->
+                <div style="position: absolute; left: 0; top: 0.6rem; width: 0.8rem; height: 1px; background: var(--card-border); opacity: 0.6;"></div>
+                
+                <CustomCheckbox :value="item.id" v-model="selectedPrintIds" style="font-size: 0.85rem; width: 100%;">
+                  <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                    <span style="display: flex; align-items: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                      <Icon v-if="item.label.icon && !isEmoji(item.label.icon)" :icon="item.label.icon" style="margin-right: 6px; vertical-align: middle; font-size: 1.1em; flex-shrink: 0;" />
+                      <span v-else-if="item.label.icon && isEmoji(item.label.icon)" style="margin-right: 6px; vertical-align: middle; font-size: 1.1em; flex-shrink: 0;">{{ item.label.icon }}</span>
+                      <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ item.label.text || 'Unnamed' }}</span>
+                    </span>
+                    <span v-if="item.hint" style="font-size: 0.65rem; color: var(--text-muted); opacity: 0.7; margin-left: 0.5rem; flex-shrink: 0;">
+                      {{ item.hint }}
+                    </span>
+                  </div>
+                </CustomCheckbox>
+              </div>
             </div>
           </div>
         </div>
