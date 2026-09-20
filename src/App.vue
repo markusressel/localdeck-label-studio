@@ -637,7 +637,7 @@ onMounted(() => {
   border-right: 1px solid var(--card-border);
   display: flex;
   flex-direction: column;
-  padding: 1.5rem;
+  padding: 1.5rem 0.5rem 0.5rem 1.5rem;
   gap: 1.5rem;
   box-shadow: 2px 0 10px rgba(0,0,0,0.5);
   z-index: 10;

@@ -5,7 +5,7 @@
       <h2>Labels to Print</h2>
       
       <div class="setting-group-vertical" style="flex: 1; overflow: hidden; display: flex; flex-direction: column;">
-        <div class="labels-checklist" style="overflow-y: auto; flex: 1;">
+        <div class="labels-checklist" style="overflow-y: auto; flex: 1; padding-right: 1rem;">
           <div v-for="group in groupedChecklistItems" :key="group.category" style="margin-bottom: 1.5rem;">
             <div style="font-size: 0.75rem; color: var(--text-color); font-weight: 600; margin-bottom: 0.5rem;">
               <CustomCheckbox 
@@ -125,7 +125,7 @@
     </div>
 
     <div class="print-preview-sidebar right-sidebar no-print" v-if="previewMode">
-      <div style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 1.5rem; padding-right: 0.5rem;">
+      <div style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 1.5rem; margin-right: -1.5rem; padding-right: 1.5rem;">
         <h2>Print Settings</h2>
         
         <div class="setting-group-vertical">
