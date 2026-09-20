@@ -16,24 +16,13 @@
         <Icon :key="show3DPreview ? '3d-on' : '3d-off'" :icon="show3DPreview ? 'mdi:view-dashboard-outline' : 'mdi:cube-outline'" style="font-size: 1.5rem; color: var(--text-muted);" :style="{ color: show3DPreview ? 'var(--primary)' : 'var(--text-muted)' }" />
       </div>
 
-      <div class="setting-group" style="margin-right: 1rem; cursor: pointer;" @click="highQualityRender = !highQualityRender" title="Toggle High Quality Path Tracing (GPU intensive)">
-        <Icon :icon="highQualityRender ? 'mdi:diamond' : 'mdi:diamond-outline'" :style="{ fontSize: '1.5rem', color: highQualityRender ? 'var(--primary)' : 'var(--text-muted)' }" />
-      </div>
+
 
       <div class="setting-group" style="margin-right: 1rem; cursor: pointer;" @click="darkRoom = !darkRoom" title="Toggle Room Lighting">
         <Icon :key="darkRoom ? 'night' : 'sunny'" :icon="darkRoom ? 'mdi:weather-night' : 'mdi:weather-sunny'" style="font-size: 1.5rem; color: var(--text-muted);" />
       </div>
 
-      <div class="setting-group" style="margin-right: 1rem; min-width: 150px;">
-        <CustomSelect 
-          v-model="labelMaterial" 
-          :options="[
-            { value: 'transparent', label: 'Transparent Film' },
-            { value: 'thin-paper', label: 'Thin Paper' },
-            { value: 'thick-paper', label: 'Thick Paper' }
-          ]"
-        />
-      </div>
+
 
       <div class="setting-group global-light-group" style="margin-right: 0;">
         <Icon icon="mdi:led-on" style="color: var(--text-muted); font-size: 1.2rem;" />
