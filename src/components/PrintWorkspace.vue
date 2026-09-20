@@ -5,7 +5,7 @@
       <h2>Labels to Print</h2>
       
       <div class="setting-group-vertical" style="flex: 1; overflow: hidden; display: flex; flex-direction: column;">
-        <div class="labels-checklist" style="overflow-y: auto; flex: 1; border: 1px solid var(--card-border); padding: 0.5rem; border-radius: 4px;">
+        <div class="labels-checklist" style="overflow-y: auto; flex: 1;">
           <div v-for="group in groupedChecklistItems" :key="group.category" style="margin-bottom: 1.5rem;">
             <div style="font-size: 0.75rem; color: var(--text-color); font-weight: 600; margin-bottom: 0.5rem;">
               <CustomCheckbox 
@@ -125,7 +125,29 @@
     </div>
 
     <div class="print-preview-sidebar right-sidebar no-print" v-if="previewMode">
-      <div class="print-actions-bottom" style="margin-top: auto; display: flex; flex-direction: column; gap: 0.5rem;">
+      <div style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 1.5rem; padding-right: 0.5rem;">
+        <h2>Print Settings</h2>
+        
+        <div class="setting-group-vertical">
+          <label>Paper Format</label>
+          <CustomSelect 
+            v-model="printFormat" 
+            :options="[
+              { value: 'A4', label: 'A4 (Portrait)' },
+              { value: 'A4-L', label: 'A4 (Landscape)' },
+              { value: 'Letter', label: 'US Letter' }
+            ]"
+          />
+        </div>
+        
+        <div class="setting-group-vertical mt-3">
+          <label>Printer Hardware Top Margin (mm)</label>
+          <small style="color: var(--text-muted); font-size: 0.75rem; margin-bottom: 0.25rem;">Shift labels down if your printer cuts them off.</small>
+          <NumberStepper v-model="printOffsetY" :min="0" :max="50" :defaultVal="0" />
+        </div>
+      </div>
+
+      <div class="print-actions-bottom" style="margin-top: auto; display: flex; flex-direction: column; gap: 0.5rem; flex-shrink: 0; padding-top: 1.5rem; border-top: 1px solid var(--card-border);">
         <AlertBox type="warning">
           Please ensure your browser's print dialog is manually set to <strong>{{ printFormat }}</strong> to match your preview.
         </AlertBox>
