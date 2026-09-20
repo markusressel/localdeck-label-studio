@@ -217,7 +217,7 @@ onMounted(() => {
   max-width: 1600px;
   margin: 0 auto;
   width: 100%;
-  padding: 2rem;
+  padding: 1.5rem 1rem 1rem 1rem;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -225,8 +225,9 @@ onMounted(() => {
 
 .workspace {
   display: flex;
+  flex: 1;
+  min-height: 0;
   gap: 2rem;
-  height: calc(100vh - 9rem);
 }
 
 .grid-section {
