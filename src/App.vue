@@ -258,13 +258,15 @@ onMounted(() => {
 }
 
 .device-preview-container {
-  padding: 0 2rem 2rem 2rem;
-  display: flex;
-  justify-content: center;
-  border-bottom: 2px dashed var(--card-border);
+  /* Let block layout handle the height correctly */
+  display: block;
 }
 
 .localdeck-device {
+  margin: 2rem auto;
+  width: max-content;
+  height: max-content;
+  flex-shrink: 0;
   background: #1a1b1e;
   padding: 1rem;
   border-radius: 12px;
