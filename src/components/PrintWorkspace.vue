@@ -30,11 +30,14 @@
            <button @click="selectDeckPrint" class="secondary" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">Deck Only</button>
         </div>
         <div class="labels-checklist" style="overflow-y: auto; flex: 1; border: 1px solid var(--card-border); padding: 0.5rem; border-radius: 4px;">
-          <div v-for="label in labels" :key="label.id" class="checklist-item" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
-            <CustomCheckbox :value="label.id" v-model="selectedPrintIds">
-              <Icon v-if="label.icon && !isEmoji(label.icon)" :icon="label.icon" style="margin-right: 4px; vertical-align: middle;" />
-              <span v-else-if="label.icon && isEmoji(label.icon)" style="margin-right: 4px; vertical-align: middle;">{{ label.icon }}</span>
-              {{ label.text || 'Unnamed' }}
+          <div v-for="item in printChecklistItems" :key="item.id" class="checklist-item" style="display: flex; flex-direction: column; margin-bottom: 0.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.25rem;">
+            <div style="font-size: 0.65rem; color: var(--text-muted); margin-bottom: 0.15rem; font-weight: 600;">
+              {{ item.category }} <span v-if="item.hint" style="font-weight: normal; opacity: 0.7;">— {{ item.hint }}</span>
+            </div>
+            <CustomCheckbox :value="item.id" v-model="selectedPrintIds" style="font-size: 0.85rem;">
+              <Icon v-if="item.label.icon && !isEmoji(item.label.icon)" :icon="item.label.icon" style="margin-right: 4px; vertical-align: middle; font-size: 1.1em;" />
+              <span v-else-if="item.label.icon && isEmoji(item.label.icon)" style="margin-right: 4px; vertical-align: middle; font-size: 1.1em;">{{ item.label.icon }}</span>
+              {{ item.label.text || 'Unnamed' }}
             </CustomCheckbox>
           </div>
         </div>
@@ -106,7 +109,7 @@
                 <div class="print-border-overlay" :style="getSlotBorderStyle(index, labelId)"></div>
                 <LabelPreview
                   v-if="labelId"
-                  :label="getLabelById(labelId)"
+                  :label="getLabelByOccurrenceId(labelId)"
                   :width="labelWidth"
                   :height="labelHeight"
                   :scale="printZoom"
@@ -178,6 +181,7 @@ const {
   paperDimensions,
   totalPrintSlots,
   cols,
+  printChecklistItems,
   selectAllPrint,
   selectNonePrint,
   selectDeckPrint,
@@ -185,6 +189,7 @@ const {
   onDragEnd,
   onPrintDrop,
   getLabelById,
+  getLabelByOccurrenceId,
   printLabels,
   startPanOrSelect,
   doPanOrSelect,

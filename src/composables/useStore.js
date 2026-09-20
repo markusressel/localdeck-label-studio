@@ -109,13 +109,45 @@ const getLabelAtSlot = (slotIndex) => {
   return labels.value.find(l => l.id === labelId) || null
 }
 
-const printedLabels = computed(() => {
-  const slotVals = Object.values(activeDeck.value.slots || {})
-  return labels.value.filter(l => slotVals.includes(l.id))
+const printChecklistItems = computed(() => {
+  const items = []
+  const usedLabelIds = new Set()
+  
+  decks.value.forEach(deck => {
+    if (!deck.slots) return
+    Object.keys(deck.slots).forEach(slotIdx => {
+      const labelId = deck.slots[slotIdx]
+      const label = labels.value.find(l => l.id === labelId)
+      if (label) {
+        usedLabelIds.add(labelId)
+        items.push({
+          id: `deck-${deck.id}-slot-${slotIdx}`,
+          labelId: label.id,
+          label: label,
+          category: deck.name || 'Deck',
+          hint: `Slot ${parseInt(slotIdx) + 1}`
+        })
+      }
+    })
+  })
+  
+  labels.value.forEach(label => {
+    if (!usedLabelIds.has(label.id)) {
+      items.push({
+        id: `unused-${label.id}`,
+        labelId: label.id,
+        label: label,
+        category: 'Library (Unused)',
+        hint: ''
+      })
+    }
+  })
+  
+  return items
 })
 
 const explicitlyPrintedLabels = computed(() => {
-  return labels.value.filter(l => selectedPrintIds.value.includes(l.id))
+  return printChecklistItems.value.filter(item => selectedPrintIds.value.includes(item.id))
 })
 
 const syncPrintGrid = () => {
@@ -125,17 +157,17 @@ const syncPrintGrid = () => {
     printGrid.value = newGrid
   }
   
-  const validIds = new Set(explicitlyPrintedLabels.value.map(l => l.id))
+  const validIds = new Set(explicitlyPrintedLabels.value.map(item => item.id))
   for (let i = 0; i < printGrid.value.length; i++) {
     if (printGrid.value[i] && !validIds.has(printGrid.value[i])) printGrid.value[i] = null
   }
   
   const existingIds = new Set(printGrid.value.filter(Boolean))
   let pointer = 0
-  explicitlyPrintedLabels.value.forEach(label => {
-    if (!existingIds.has(label.id)) {
+  explicitlyPrintedLabels.value.forEach(item => {
+    if (!existingIds.has(item.id)) {
        while (pointer < printGrid.value.length && printGrid.value[pointer] !== null) pointer++
-       if (pointer < printGrid.value.length) printGrid.value[pointer] = label.id
+       if (pointer < printGrid.value.length) printGrid.value[pointer] = item.id
     }
   })
 }
@@ -159,7 +191,7 @@ watch(printFormat, (format) => {
 
 watch(previewMode, async (newVal) => {
   if (newVal && selectedPrintIds.value.length === 0) {
-    selectedPrintIds.value = printedLabels.value.map(l => l.id)
+    selectedPrintIds.value = printChecklistItems.value.filter(item => item.id.startsWith(`deck-${activeDeckId.value}`)).map(item => item.id)
   }
   if (newVal) {
     syncPrintGrid()
@@ -185,9 +217,9 @@ if (typeof window !== 'undefined') {
   })
 }
 
-const selectAllPrint = () => { selectedPrintIds.value = labels.value.map(l => l.id) }
+const selectAllPrint = () => { selectedPrintIds.value = printChecklistItems.value.map(item => item.id) }
 const selectNonePrint = () => { selectedPrintIds.value = [] }
-const selectDeckPrint = () => { selectedPrintIds.value = printedLabels.value.map(l => l.id) }
+const selectDeckPrint = () => { selectedPrintIds.value = printChecklistItems.value.filter(item => item.id.startsWith(`deck-${activeDeckId.value}`)).map(item => item.id) }
 
 const selectedItemIndex = computed(() => {
   if (!selectedId.value) return null
@@ -580,6 +612,10 @@ const onPrintDrop = (e, targetIndex) => {
 }
 
 const getLabelById = (id) => labels.value.find(l => l.id === id)
+const getLabelByOccurrenceId = (id) => {
+  const item = printChecklistItems.value.find(i => i.id === id)
+  return item ? item.label : null
+}
 
 
 const startPanOrSelect = (e) => {
@@ -737,7 +773,7 @@ export function useStore() {
     selectedItemIndex,
     
     getLabelAtSlot,
-    printedLabels,
+    printChecklistItems,
     explicitlyPrintedLabels,
     syncPrintGrid,
     selectAllPrint,
