@@ -30,15 +30,24 @@
            <button @click="selectDeckPrint" class="secondary" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">Deck Only</button>
         </div>
         <div class="labels-checklist" style="overflow-y: auto; flex: 1; border: 1px solid var(--card-border); padding: 0.5rem; border-radius: 4px;">
-          <div v-for="item in printChecklistItems" :key="item.id" class="checklist-item" style="display: flex; flex-direction: column; margin-bottom: 0.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.25rem;">
-            <div style="font-size: 0.65rem; color: var(--text-muted); margin-bottom: 0.15rem; font-weight: 600;">
-              {{ item.category }} <span v-if="item.hint" style="font-weight: normal; opacity: 0.7;">— {{ item.hint }}</span>
+          <div v-for="group in groupedChecklistItems" :key="group.category" style="margin-bottom: 1rem;">
+            <div style="font-size: 0.75rem; color: var(--text-color); font-weight: 600; padding-bottom: 0.25rem; border-bottom: 1px solid var(--border-color); margin-bottom: 0.5rem;">
+              {{ group.category }}
             </div>
-            <CustomCheckbox :value="item.id" v-model="selectedPrintIds" style="font-size: 0.85rem;">
-              <Icon v-if="item.label.icon && !isEmoji(item.label.icon)" :icon="item.label.icon" style="margin-right: 4px; vertical-align: middle; font-size: 1.1em;" />
-              <span v-else-if="item.label.icon && isEmoji(item.label.icon)" style="margin-right: 4px; vertical-align: middle; font-size: 1.1em;">{{ item.label.icon }}</span>
-              {{ item.label.text || 'Unnamed' }}
-            </CustomCheckbox>
+            <div v-for="item in group.items" :key="item.id" class="checklist-item" style="display: flex; flex-direction: column; margin-bottom: 0.25rem;">
+              <CustomCheckbox :value="item.id" v-model="selectedPrintIds" style="font-size: 0.85rem;">
+                <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                  <span style="display: flex; align-items: center;">
+                    <Icon v-if="item.label.icon && !isEmoji(item.label.icon)" :icon="item.label.icon" style="margin-right: 6px; vertical-align: middle; font-size: 1.1em;" />
+                    <span v-else-if="item.label.icon && isEmoji(item.label.icon)" style="margin-right: 6px; vertical-align: middle; font-size: 1.1em;">{{ item.label.icon }}</span>
+                    {{ item.label.text || 'Unnamed' }}
+                  </span>
+                  <span v-if="item.hint" style="font-size: 0.65rem; color: var(--text-muted); opacity: 0.7; margin-left: 0.5rem;">
+                    {{ item.hint }}
+                  </span>
+                </div>
+              </CustomCheckbox>
+            </div>
           </div>
         </div>
       </div>
@@ -220,4 +229,30 @@ const getSlotBorderStyle = (index, labelId) => {
   
   return style
 }
+
+const groupedChecklistItems = computed(() => {
+  const groups = {}
+  printChecklistItems.value.forEach(item => {
+    if (!groups[item.category]) groups[item.category] = []
+    groups[item.category].push(item)
+  })
+  
+  const sortedKeys = Object.keys(groups).sort((a, b) => {
+    if (a === 'Library (Unused)') return 1
+    if (b === 'Library (Unused)') return -1
+    return a.localeCompare(b)
+  })
+  
+  return sortedKeys.map(key => {
+    const items = groups[key].sort((a, b) => {
+      const textA = a.label.text || 'Unnamed'
+      const textB = b.label.text || 'Unnamed'
+      return textA.localeCompare(textB)
+    })
+    return {
+      category: key,
+      items
+    }
+  })
+})
 </script>

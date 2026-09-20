@@ -800,6 +800,7 @@ export function useStore() {
     onPrintDragStart,
     onPrintDrop,
     getLabelById,
+    getLabelByOccurrenceId,
     fileInput,
     printDraggedSlot,
     previewContentRef,
