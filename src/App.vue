@@ -10,14 +10,6 @@
           </div>
         </div>
         <div class="settings">
-          <div class="setting-group">
-            <label>Width (mm)</label>
-            <input type="number" v-model.number="labelWidth" step="0.1" />
-          </div>
-          <div class="setting-group">
-            <label>Height (mm)</label>
-            <input type="number" v-model.number="labelHeight" step="0.1" />
-          </div>
 
           <input type="file" ref="fileInput" @change="importData" accept=".json" style="display: none" />
           <button @click="triggerImport" class="secondary import-btn">

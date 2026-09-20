@@ -19,15 +19,33 @@ const props = defineProps({
   modelValue: { type: Number },
   min: { type: Number, default: 0 },
   max: { type: Number, default: 100 },
-  defaultVal: { type: Number, default: 24 }
+  defaultVal: { type: Number, default: 24 },
+  step: { type: Number, default: 1 }
 })
 
 const emit = defineEmits(['update:modelValue'])
 
+const formatVal = (val) => {
+  // Fix precision issues when adding floats
+  const decimals = (props.step.toString().split('.')[1] || '').length;
+  return parseFloat(parseFloat(val).toFixed(decimals));
+}
+
 const increment = () => {
   let val = props.modelValue === null || props.modelValue === undefined ? props.defaultVal : props.modelValue
-  if (val < props.max) {
-    emit('update:modelValue', val + 1)
+  if (val + props.step <= props.max) {
+    emit('update:modelValue', formatVal(val + props.step))
+  } else {
+    emit('update:modelValue', props.max)
+  }
+}
+
+const decrement = () => {
+  let val = props.modelValue === null || props.modelValue === undefined ? props.defaultVal : props.modelValue
+  if (val - props.step >= props.min) {
+    emit('update:modelValue', formatVal(val - props.step))
+  } else {
+    emit('update:modelValue', props.min)
   }
 }
 
@@ -37,15 +55,14 @@ const handleWheel = (e) => {
 }
 
 const onInput = (e) => {
-  let val = parseInt(e.target.value, 10)
-  if (isNaN(val)) return
-  // Don't clamp on input so they can type freely, or clamp?
-  // Let's emit directly to allow typing
-  emit('update:modelValue', val)
+  let val = parseFloat(e.target.value)
+  if (!isNaN(val)) {
+    emit('update:modelValue', val)
+  }
 }
 
 const onBlur = (e) => {
-  let val = parseInt(e.target.value, 10)
+  let val = parseFloat(e.target.value)
   if (isNaN(val)) {
     emit('update:modelValue', props.defaultVal)
     return
@@ -56,12 +73,6 @@ const onBlur = (e) => {
   e.target.value = val
 }
 
-const decrement = () => {
-  let val = props.modelValue === null || props.modelValue === undefined ? props.defaultVal : props.modelValue
-  if (val > props.min) {
-    emit('update:modelValue', val - 1)
-  }
-}
 </script>
 
 <style scoped>

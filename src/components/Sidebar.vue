@@ -62,7 +62,20 @@
             <Icon icon="mdi:keyboard-variant" class="header-icon" />
             <span>LocalDeck Hardware</span>
           </div>
+          
+          <!-- New Dimension controls -->
           <div class="control-row">
+            <div class="control-group half">
+              <label>Width (mm)</label>
+              <NumberStepper v-model="labelWidth" :min="1" :max="100" :step="0.1" />
+            </div>
+            <div class="control-group half">
+              <label>Height (mm)</label>
+              <NumberStepper v-model="labelHeight" :min="1" :max="100" :step="0.1" />
+            </div>
+          </div>
+          
+          <div class="control-row" style="margin-top: 0.5rem">
             <div class="control-group">
               <label>Case Base</label>
               <ColorPicker v-model="caseColor" />
@@ -158,6 +171,7 @@ import { useStore } from '../composables/useStore.js'
 import ColorPicker from './ColorPicker.vue'
 import CustomSwitch from './CustomSwitch.vue'
 import LabelEditor from './LabelEditor.vue'
+import NumberStepper from './NumberStepper.vue'
 
 const {
   globalTextSize,
@@ -175,6 +189,8 @@ const {
   preview2dTranslucency,
   preview2dFalloff,
   globalBackgroundColor,
+  labelWidth,
+  labelHeight,
   selectedItemIndex,
   duplicateSelected,
   removeSelected,
