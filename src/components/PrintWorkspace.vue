@@ -125,7 +125,7 @@
     </div>
 
     <div class="print-preview-sidebar right-sidebar no-print" v-if="previewMode">
-      <div style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 1.5rem; margin-right: -1.5rem; padding-right: 1.5rem;">
+      <div style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 1.5rem; padding-right: 1rem;">
         <h2>Print Settings</h2>
         
         <div class="setting-group-vertical">
