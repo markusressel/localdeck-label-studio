@@ -52,18 +52,6 @@
           </div>
         </div>
       </div>
-
-      <div class="print-actions-bottom" style="margin-top: auto; display: flex; flex-direction: column; gap: 0.5rem;">
-        <AlertBox type="warning">
-          Please ensure your browser's print dialog is manually set to <strong>{{ printFormat }}</strong> to match your preview.
-        </AlertBox>
-        <button @click="printLabels" class="primary print-now-btn" style="width: 100%;">
-          <Icon icon="mdi:printer" /> Print
-        </button>
-        <button @click="previewMode = false" class="secondary exit-preview-btn" style="width: 100%;">
-          Cancel
-        </button>
-      </div>
     </div>
     
     <div 
@@ -143,6 +131,20 @@
             </div>
           </div>
         </div>
+      </div>
+    </div>
+
+    <div class="print-preview-sidebar right-sidebar no-print" v-if="previewMode">
+      <div class="print-actions-bottom" style="margin-top: auto; display: flex; flex-direction: column; gap: 0.5rem;">
+        <AlertBox type="warning">
+          Please ensure your browser's print dialog is manually set to <strong>{{ printFormat }}</strong> to match your preview.
+        </AlertBox>
+        <button @click="printLabels" class="primary print-now-btn" style="width: 100%;">
+          <Icon icon="mdi:printer" /> Print
+        </button>
+        <button @click="previewMode = false" class="secondary exit-preview-btn" style="width: 100%;">
+          Cancel
+        </button>
       </div>
     </div>
   </div>

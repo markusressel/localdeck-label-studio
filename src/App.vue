@@ -643,6 +643,12 @@ onMounted(() => {
   z-index: 10;
 }
 
+.print-preview-sidebar.right-sidebar {
+  border-right: none;
+  border-left: 1px solid var(--card-border);
+  box-shadow: -2px 0 10px rgba(0,0,0,0.5);
+}
+
 .print-preview-sidebar h2 {
   font-size: 1.25rem;
   margin: 0;
