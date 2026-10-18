@@ -62,7 +62,7 @@ const containerRef = ref(null)
 const isLoading = ref(true)
 const showSettings = ref(false)
 
-const { matrixWidth, matrixHeight, labels, globalStyle, darkRoom, highQualityRender, caseColor, labelMaterial, switchBodyColor, switchStemColor, previewLedIntensity, previewCapTranslucency, previewCapAttenuation } = useStore()
+const { matrixWidth, matrixHeight, labels, decks, activeDeckId, getLabelAtSlot, globalStyle, darkRoom, highQualityRender, caseColor, labelMaterial, switchBodyColor, switchStemColor, previewLedIntensity, previewCapTranslucency, previewCapAttenuation } = useStore()
 
 let scene, camera, renderer, controls, pathTracer
 let switchGLTF = null
@@ -370,7 +370,8 @@ const buildProceduralDeck = () => {
       const x = gridStartX + c * 20
       const z = gridStartZ + r * 20
       const index = (r * matrixWidth.value) + c
-      const label = labels.value[index] || {}
+      // Empty slots render a blank cap
+      const label = getLabelAtSlot(index) || {}
 
       // Switch Base (Cherry MX GLTF)
       if (switchGLTF) {
@@ -624,7 +625,7 @@ const animate = () => {
 
 // Watch for changes to rebuild deck
 let rebuildTimeout = null
-watch([matrixWidth, matrixHeight, labels, globalStyle, darkRoom, highQualityRender, caseColor, labelMaterial, switchBodyColor, switchStemColor, previewLedIntensity, previewCapTranslucency, previewCapAttenuation], () => {
+watch([matrixWidth, matrixHeight, labels, decks, activeDeckId, globalStyle, darkRoom, highQualityRender, caseColor, labelMaterial, switchBodyColor, switchStemColor, previewLedIntensity, previewCapTranslucency, previewCapAttenuation], () => {
   if (rebuildTimeout) clearTimeout(rebuildTimeout)
   rebuildTimeout = setTimeout(() => {
     // Very crude rebuild: clear scene and rebuild
