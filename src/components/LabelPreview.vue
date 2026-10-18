@@ -395,6 +395,20 @@ const innerStyle = computed(() => {
   pointer-events: none;
 }
 
+/*
+ * The rim and stem only block LED light. In the dark room that is all the
+ * light there is; in daylight the room light dominates, so they only take away
+ * the LED's share.
+ */
+.keycap-outer.material-transparent .label-insert::before,
+.keycap-outer.material-transparent .label-insert::after {
+  opacity: calc(var(--led-level) * 0.35);
+}
+.keycap-outer.material-transparent.is-dark-room .label-insert::before,
+.keycap-outer.material-transparent.is-dark-room .label-insert::after {
+  opacity: 1;
+}
+
 /* LED glare at the bottom edge of the label: visible through film, mostly hidden by paper */
 .keycap-led-glow {
   position: absolute;
