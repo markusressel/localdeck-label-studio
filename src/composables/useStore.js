@@ -418,6 +418,12 @@ const fillMatrix = () => {
   }
 }
 
+// Populate every empty slot of the active deck with a new starter label (first run)
+const seedDefaultLabels = () => {
+  for (let i = 0; i < totalMatrixSlots.value; i++) {
+    if (!getLabelAtSlot(i)) addLabel(getRandomDefault(), i)
+  }
+}
 
 const duplicateSelected = () => {
   if (selectedItemIndex.value === null) return
@@ -768,6 +774,7 @@ export function useStore() {
     getStateObject,
     addLabel,
     fillMatrix,
+    seedDefaultLabels,
     matrixWidth,
     decks,
     activeDeckId,

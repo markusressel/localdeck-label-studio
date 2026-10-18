@@ -67,7 +67,7 @@ const {
   printLabels,
   spacePressed,
   loadState,
-  fillTo24,
+  seedDefaultLabels,
   labels,
   selectedId
 } = store
@@ -84,7 +84,7 @@ onMounted(() => {
   })
   const loaded = loadState()
   if (!loaded) {
-    fillTo24()
+    seedDefaultLabels()
     if (labels.value.length > 0) selectedId.value = labels.value[0].id
   } else if (labels.value.length > 0 && !selectedId.value) {
     selectedId.value = labels.value[0].id

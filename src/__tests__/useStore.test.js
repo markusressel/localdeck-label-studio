@@ -67,6 +67,13 @@ describe('useStore', () => {
     expect(store.darkRoom.value).toBe(false)
   })
 
+  it('seeds every empty deck slot with a starter label', () => {
+    store.seedDefaultLabels()
+    const total = store.totalMatrixSlots.value
+    expect(store.labels.value.length).toBe(total)
+    for (let i = 0; i < total; i++) expect(store.getLabelAtSlot(i)).not.toBeNull()
+  })
+
   it('handles label duplication correctly', () => {
     const id1 = store.addLabel({ text: 'First' })
     store.selectedId.value = id1
