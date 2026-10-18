@@ -65,3 +65,21 @@ vec3 clampFirefly( vec3 c ) {
  * @returns {number}
  */
 export const fireflyClampFor = (ledIntensity) => Math.max(1, 0.1 * ledIntensity)
+
+/**
+ * Adapt the number of path tracing samples rendered per animation frame to
+ * the measured frame time: more while frames stay fast, fewer when they slow
+ * down, so a strong GPU converges quickly and a weak one stays responsive.
+ *
+ * @param {number} current - samples per frame used for the last frame
+ * @param {number} frameMs - duration of the last frame
+ * @param {object} [options]
+ * @param {number} [options.targetMs] - frame time to aim for
+ * @param {number} [options.max]
+ * @returns {number}
+ */
+export function nextSamplesPerFrame(current, frameMs, { targetMs = 25, max = 32 } = {}) {
+  if (frameMs < targetMs * 0.8) return Math.min(max, current + 1)
+  if (frameMs > targetMs * 1.25) return Math.max(1, Math.floor(current * 0.7))
+  return current
+}

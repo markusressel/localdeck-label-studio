@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { denoiseSigma, clampFireflies, fireflyClampFor, FIREFLY_CLAMP_UNIFORM, DENOISE_UNTIL_SAMPLES } from '../utils/pathTracing.js'
+import { denoiseSigma, clampFireflies, fireflyClampFor, FIREFLY_CLAMP_UNIFORM, DENOISE_UNTIL_SAMPLES, nextSamplesPerFrame } from '../utils/pathTracing.js'
 
 describe('denoiseSigma', () => {
   it('denoises the first samples strongly and fades out', () => {
@@ -43,5 +43,21 @@ describe('fireflyClampFor', () => {
     expect(fireflyClampFor(3000)).toBe(300)
     expect(fireflyClampFor(6000)).toBeGreaterThan(fireflyClampFor(3000))
     expect(fireflyClampFor(0)).toBe(1)
+  })
+})
+
+describe('nextSamplesPerFrame', () => {
+  it('adds samples while frames are fast', () => {
+    expect(nextSamplesPerFrame(4, 10)).toBe(5)
+    expect(nextSamplesPerFrame(32, 10)).toBe(32)
+  })
+
+  it('backs off quickly when frames get slow, but keeps at least one', () => {
+    expect(nextSamplesPerFrame(10, 50)).toBe(7)
+    expect(nextSamplesPerFrame(1, 200)).toBe(1)
+  })
+
+  it('holds steady near the target', () => {
+    expect(nextSamplesPerFrame(6, 25)).toBe(6)
   })
 })

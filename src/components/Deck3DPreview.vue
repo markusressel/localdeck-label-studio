@@ -1,7 +1,7 @@
 <template>
   <div class="deck-3d-preview" ref="containerRef">
     <div v-if="isLoading" class="loading-overlay">Initializing 3D Engine...</div>
-    <div v-if="highQualityRender && !isLoading" class="sample-count">{{ pathTracedSamples }} samples</div>
+    <div v-if="highQualityRender && !isLoading" class="sample-count">{{ pathTracedSamples }} samples ({{ pathTracedSamplesPerFrame }} per frame)</div>
     
     <div class="floating-controls">
       <div class="settings-dropdown">
@@ -60,7 +60,7 @@ import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js'
 import { WebGLPathTracer, GradientEquirectTexture, DenoiseMaterial } from 'three-gpu-pathtracer'
 import { FullScreenQuad } from 'three/examples/jsm/postprocessing/Pass.js'
 import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js'
-import { denoiseSigma, clampFireflies, fireflyClampFor, FIREFLY_CLAMP_UNIFORM } from '../utils/pathTracing.js'
+import { denoiseSigma, clampFireflies, fireflyClampFor, FIREFLY_CLAMP_UNIFORM, nextSamplesPerFrame } from '../utils/pathTracing.js'
 import { useStore } from '../composables/useStore'
 import { resolveLabelStyle } from '../utils/labelStyle.js'
 import { loadIconImage, loadImageElement } from '../utils/iconImage.js'
@@ -75,6 +75,7 @@ const containerRef = ref(null)
 const isLoading = ref(true)
 const showSettings = ref(false)
 const pathTracedSamples = ref(0)
+const pathTracedSamplesPerFrame = ref(1)
 
 const { matrixWidth, matrixHeight, labels, decks, activeDeckId, getLabelAtSlot, globalStyle, darkRoom, highQualityRender, caseColor, labelMaterial, switchBodyColor, switchStemColor, previewLedIntensity, previewCapTranslucency, previewCapAttenuation, previewRoomLight } = useStore()
 
@@ -307,6 +308,8 @@ const initThreeJS = () => {
   controls.addEventListener('change', () => {
     if (highQualityRender.value) pathTracer.updateCamera()
   })
+  controls.addEventListener('start', () => { isInteracting = true })
+  controls.addEventListener('end', () => { isInteracting = false })
 
   pathTracedRoomEnvironment = new GradientEquirectTexture()
   pathTracedRoomEnvironment.topColor.set(0xffffff)
@@ -724,16 +727,27 @@ const buildProceduralDeck = () => {
   }
 }
 
+// Path tracing samples per animation frame, adapted to the frame time
+let samplesPerFrame = 1
+let isInteracting = false
+let lastFrameTime = 0
+
 const animate = () => {
   animationFrameId = requestAnimationFrame(animate)
-  const timeS = performance.now() / 1000
+  const now = performance.now()
+  const frameMs = lastFrameTime ? now - lastFrameTime : 16
+  lastFrameTime = now
+  const timeS = now / 1000
   for (const key of ledKeys) {
     if (key.animated) applyLed(key, timeS)
   }
   controls.update()
   if (highQualityRender.value && pathTracer.scene) {
-    pathTracer.renderSample()
+    // One sample per frame while orbiting keeps the camera responsive
+    samplesPerFrame = isInteracting ? 1 : nextSamplesPerFrame(samplesPerFrame, frameMs)
+    for (let i = 0; i < samplesPerFrame; i++) pathTracer.renderSample()
     pathTracedSamples.value = Math.floor(pathTracer.samples)
+    pathTracedSamplesPerFrame.value = samplesPerFrame
   } else {
     renderer.render(scene, camera)
   }
