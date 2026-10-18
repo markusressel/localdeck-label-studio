@@ -1,6 +1,7 @@
 <template>
   <div class="deck-3d-preview" ref="containerRef">
     <div v-if="isLoading" class="loading-overlay">Initializing 3D Engine...</div>
+    <div v-if="highQualityRender && !isLoading" class="sample-count">{{ pathTracedSamples }} samples</div>
     
     <div class="floating-controls">
       <div class="settings-dropdown">
@@ -56,7 +57,9 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js'
-import { WebGLPathTracer, GradientEquirectTexture } from 'three-gpu-pathtracer'
+import { WebGLPathTracer, GradientEquirectTexture, DenoiseMaterial } from 'three-gpu-pathtracer'
+import { FullScreenQuad } from 'three/examples/jsm/postprocessing/Pass.js'
+import { denoiseSigma } from '../utils/pathTracing.js'
 import { useStore } from '../composables/useStore'
 import { resolveLabelStyle } from '../utils/labelStyle.js'
 import { loadIconImage, loadImageElement } from '../utils/iconImage.js'
@@ -70,6 +73,7 @@ import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment
 const containerRef = ref(null)
 const isLoading = ref(true)
 const showSettings = ref(false)
+const pathTracedSamples = ref(0)
 
 const { matrixWidth, matrixHeight, labels, decks, activeDeckId, getLabelAtSlot, globalStyle, darkRoom, highQualityRender, caseColor, labelMaterial, switchBodyColor, switchStemColor, previewLedIntensity, previewCapTranslucency, previewCapAttenuation, previewRoomLight } = useStore()
 
@@ -78,6 +82,7 @@ let scene, camera, renderer, controls, pathTracer
 // tracer needs an equirectangular environment instead of the PMREM one.
 let roomEnvironment
 let pathTracedRoomEnvironment
+let denoiseQuad
 let switchGLTF = null
 let keycapOBJ = null
 let animationFrameId
@@ -218,6 +223,10 @@ onUnmounted(() => {
   if (roomEnvironment) roomEnvironment.dispose()
   if (pathTracedRoomEnvironment) pathTracedRoomEnvironment.dispose()
   if (pathTracer) pathTracer.dispose()
+  if (denoiseQuad) {
+    denoiseQuad.material.dispose()
+    denoiseQuad.dispose()
+  }
   if (renderer) renderer.dispose()
 })
 
@@ -250,10 +259,36 @@ const initThreeJS = () => {
   controls.dampingFactor = 0.05
 
   pathTracer = new WebGLPathTracer(renderer)
-  pathTracer.bounces = 8
-  pathTracer.transmissiveBounces = 12
+  pathTracer.bounces = 6
+  pathTracer.transmissiveBounces = 10
   pathTracer.filterGlossyFactor = 0.5
   pathTracer.dynamicLowRes = true // fast low-res preview while the camera moves
+  // One full-frame sample per animation frame. The default 3x3 tiles render a
+  // ninth of a sample per frame, which capped convergence at the display rate.
+  pathTracer.tiles.set(1, 1)
+
+  // Edge-preserving denoising of the first noisy samples, fading out as they converge
+  denoiseQuad = new FullScreenQuad(new DenoiseMaterial({
+    map: null,
+    blending: THREE.NoBlending,
+    premultipliedAlpha: renderer.getContextAttributes().premultipliedAlpha
+  }))
+  pathTracer.renderToCanvasCallback = (target, renderer, quad) => {
+    const currentAutoClear = renderer.autoClear
+    renderer.autoClear = false
+    const sigma = denoiseSigma(pathTracer.samples)
+    if (sigma > 0) {
+      const denoise = denoiseQuad.material
+      denoise.map = target.texture
+      denoise.sigma = sigma
+      denoise.opacity = quad.material.opacity
+      denoise.blending = quad.material.blending
+      denoiseQuad.render(renderer)
+    } else {
+      quad.render(renderer)
+    }
+    renderer.autoClear = currentAutoClear
+  }
   controls.addEventListener('change', () => {
     if (highQualityRender.value) pathTracer.updateCamera()
   })
@@ -412,10 +447,13 @@ const buildProceduralDeck = () => {
     clearcoatRoughness: 0.35,
     ...(pathTraced && {
       roughness: 0.7,
-      transmission: previewCapTranslucency.value,
+      // Fully transmissive, dimmed by absorption inside the plastic: shadow rays then
+      // lose light deterministically instead of being randomly blocked at each
+      // surface, which converges much faster
+      transmission: 1.0,
       thickness: 1.5,
       ior: 1.45,
-      attenuationColor: new THREE.Color(0xffffff),
+      attenuationColor: new THREE.Color().setScalar(previewCapTranslucency.value),
       attenuationDistance: previewCapAttenuation.value,
       side: THREE.DoubleSide
     })
@@ -585,7 +623,8 @@ const buildProceduralDeck = () => {
         transmission: backlight.transmittance,
         thickness: 0,
         ior: 1.5,
-        roughness: labelMaterial.value === 'transparent' ? 0.15 : 0.9,
+        // Printed ink is matte; a near-mirror film lit by a point light only makes fireflies
+        roughness: labelMaterial.value === 'transparent' ? 0.4 : 0.9,
         metalness: 0.0
       }) : new THREE.MeshStandardMaterial({
         map: labelTex,
@@ -663,6 +702,7 @@ const animate = () => {
   controls.update()
   if (highQualityRender.value && pathTracer.scene) {
     pathTracer.renderSample()
+    pathTracedSamples.value = Math.floor(pathTracer.samples)
   } else {
     renderer.render(scene, camera)
   }
@@ -691,6 +731,14 @@ watch([matrixWidth, matrixHeight, labels, decks, activeDeckId, globalStyle, dark
   overflow: hidden;
   border-radius: 8px;
   background: transparent;
+}
+.sample-count {
+  position: absolute;
+  left: 0.75rem;
+  bottom: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  pointer-events: none;
 }
 .loading-overlay {
   position: absolute;
