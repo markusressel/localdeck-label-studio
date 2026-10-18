@@ -314,10 +314,15 @@ const innerStyle = computed(() => {
   pointer-events: none;
 }
 
+/* Paper covers the insert with its own matte, slightly warm white */
+.material-thin-paper .insert-base { background: #f4f2ed; }
+.material-thick-paper .insert-base { background: #f3f0e9; }
+
 /* Dark room: the insert is lit only from behind by the LED */
 .is-dark-room .insert-base {
-  background: color-mix(in srgb, var(--led-color) 15%, #fff);
-  filter: brightness(min(1.2, calc(0.05 + var(--led-level) * (0.3 + 0.5 * var(--p2d-translucency)))));
+  /* Less light gets through paper, and what does is scattered closer to white */
+  background: color-mix(in srgb, var(--led-color) calc(var(--p2d-translucency) * 30%), #fff);
+  filter: brightness(min(1.2, calc(0.04 + var(--led-level) * (0.2 + 0.75 * var(--p2d-translucency)))));
 }
 
 /*
@@ -336,7 +341,7 @@ const innerStyle = computed(() => {
     transparent 100%
   );
   pointer-events: none;
-  opacity: calc(var(--led-level) * var(--p2d-translucency) * 0.7);
+  opacity: calc(var(--led-level) * var(--p2d-translucency) * 0.85);
   filter: blur(calc(var(--p2d-falloff) * 0.5px));
 }
 

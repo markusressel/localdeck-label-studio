@@ -130,7 +130,7 @@ describe('useStore', () => {
 
     store.loadStateFromObject({ version: 2, material: 'thick-paper', preview2dLedIntensity: 0.3, preview2dTranslucency: 0.02, labels: [{ id: 'a' }] })
     expect(store.preview2dLedIntensity.value).toBe(1)
-    expect(store.preview2dTranslucency.value).toBe(0.25)
+    expect(store.preview2dTranslucency.value).toBe(0.2)
     expect(store.preview2dFalloff.value).toBe(8)
   })
 

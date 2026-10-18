@@ -51,7 +51,7 @@ export function createStore({ storage = globalThis.localStorage } = {}) {
   const PREVIEW_2D_PRESETS = {
     transparent: { preview2dTranslucency: 1.0, preview2dFalloff: 0.0 },
     'thin-paper': { preview2dTranslucency: 0.5, preview2dFalloff: 4.0 },
-    'thick-paper': { preview2dTranslucency: 0.25, preview2dFalloff: 8.0 }
+    'thick-paper': { preview2dTranslucency: 0.2, preview2dFalloff: 8.0 }
   }
 
   watch(labelMaterial, (newMat) => {
