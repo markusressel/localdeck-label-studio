@@ -35,7 +35,7 @@ saved automatically in the browser's local storage.
 
 ## Getting started
 
-Requires [Node.js](https://nodejs.org/) 20 or newer.
+Requires [Node.js](https://nodejs.org/) 22 (see `.nvmrc`); the tests need 22.22.2 or newer.
 
 ```sh
 npm install
@@ -78,6 +78,13 @@ Contributor and AI-agent guidelines are in [AGENTS.md](AGENTS.md).
 
 The build uses relative asset paths (`base: './'`), so `dist/` can be hosted as-is on GitHub Pages or any
 static file host.
+
+### CI and deployment
+
+- `.github/workflows/ci.yml` lints, tests (with coverage) and builds every push to `main` and every pull request.
+- `.github/workflows/deploy.yml` runs the checks again and publishes `dist/` to GitHub Pages on every push
+  to `main`. It needs **Settings → Pages → Source: GitHub Actions** in the repository.
+- Dependabot opens weekly update PRs for npm packages and the workflows' actions.
 
 ## Credits
 
