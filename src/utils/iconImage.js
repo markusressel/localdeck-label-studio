@@ -36,3 +36,28 @@ export function loadIconImage(name, color) {
   }
   return cache.get(key)
 }
+
+const imageCache = new Map()
+
+/**
+ * Load an image (e.g. an uploaded data URL) as an <img>, cached by source.
+ *
+ * @param {string} src
+ * @returns {Promise<HTMLImageElement>}
+ */
+export function loadImageElement(src) {
+  if (!imageCache.has(src)) {
+    const promise = new Promise((resolve, reject) => {
+      const img = new Image()
+      img.crossOrigin = 'Anonymous'
+      img.onload = () => resolve(img)
+      img.onerror = reject
+      img.src = src
+    }).catch(err => {
+      imageCache.delete(src)
+      throw err
+    })
+    imageCache.set(src, promise)
+  }
+  return imageCache.get(src)
+}

@@ -51,11 +51,11 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js'
-import { emojify } from '../utils/emojiUtils.js'
 import { WebGLPathTracer } from 'three-gpu-pathtracer'
 import { useStore } from '../composables/useStore'
 import { resolveLabelStyle } from '../utils/labelStyle.js'
-import { loadIconImage } from '../utils/iconImage.js'
+import { loadIconImage, loadImageElement } from '../utils/iconImage.js'
+import { drawLabelTexture, TEXTURE_SIZE } from '../utils/labelTexture.js'
 import NumberStepper from './NumberStepper.vue'
 
 const containerRef = ref(null)
@@ -68,7 +68,6 @@ let scene, camera, renderer, controls, pathTracer
 let switchGLTF = null
 let keycapOBJ = null
 let animationFrameId
-const iconImageCache = new Map()
 
 onMounted(async () => {
   initThreeJS()
@@ -453,124 +452,19 @@ const buildProceduralDeck = () => {
       
       // Label Rendering (Canvas Texture)
       const canvas = document.createElement('canvas')
-      canvas.width = 256
-      canvas.height = 256
-      const ctx = canvas.getContext('2d')
-      
-      // Background
+      canvas.width = TEXTURE_SIZE
+      canvas.height = TEXTURE_SIZE
       const style = resolveLabelStyle(label, globalStyle.value)
-      let bgColor = style.backgroundColor || 'transparent'
-      if (bgColor === 'transparent') bgColor = '#ffffff'
-      if (bgColor.length === 9) bgColor = bgColor.substring(0, 7)
-      
-      if (labelMaterial.value !== 'transparent') {
-        ctx.fillStyle = bgColor
-        ctx.fillRect(0, 0, 256, 256)
-      } else {
-        ctx.clearRect(0, 0, 256, 256)
-      }
-      
-      // Text/Icon
-      let textColor = style.textColor || '#000000'
-      if (textColor.length === 9) textColor = textColor.substring(0, 7)
-      let iconColor = style.iconColor || '#000000'
-      if (iconColor.length === 9) iconColor = iconColor.substring(0, 7)
-      ctx.fillStyle = textColor
-      ctx.textAlign = 'center'
-      ctx.textBaseline = 'middle'
-      
-      // 2D Preview renders in DOM pixels where ~53px = 14mm. Our canvas is 256x256. Scale factor is approx 4.8.
-      const PX_SCALE = 4.8
-      
-      // Emulate the CSS Flexbox (flex-direction: column) base layout positions
-      let tBaseY = 128
-      let iBaseY = 128
-      if (label.text && label.icon) {
-        iBaseY = 96  // Push icon up
-        tBaseY = 186 // Push text down
-      }
-      
-      if (label.text) {
-        const tX = (label.textOffsetX || 0) * PX_SCALE
-        const tY = (label.textOffsetY || 0) * PX_SCALE
-        const tSize = style.textSize * PX_SCALE
-        
-        ctx.save()
-        ctx.translate(128 + tX, tBaseY + tY)
-        ctx.font = `bold ${tSize}px sans-serif`
-        ctx.textBaseline = 'middle'
-        ctx.fillStyle = textColor // Ensure text uses textColor!
-        ctx.fillText(emojify(label.text), 0, 0)
-        ctx.restore()
-      } 
-      if (label.icon) {
-        const isIconify = label.icon.includes(':') && !label.icon.startsWith(':')
-        if (isIconify) {
-          const parts = label.icon.split(':')
-          if (parts.length === 2) {
-            const iX = (label.iconOffsetX || 0) * PX_SCALE
-            const iY = (label.iconOffsetY || 0) * PX_SCALE
-            const iSize = style.iconSize * PX_SCALE
-            
-            const drawIcon = (image) => {
-              ctx.save()
-              ctx.translate(128 + iX, iBaseY + iY)
-              ctx.scale(label.iconFlipH ? -1 : 1, label.iconFlipV ? -1 : 1)
-              ctx.drawImage(image, -iSize/2, -iSize/2, iSize, iSize)
-              ctx.restore()
-              labelTex.needsUpdate = true
-              if (pathTracer && highQualityRender.value) pathTracer.updateCamera()
-            }
-
-            loadIconImage(label.icon, iconColor)
-              .then(drawIcon)
-              .catch(err => console.warn(`3D preview: could not load icon ${label.icon}`, err))
-          }
-        } else {
-          // Native Emoji Rendering
-          const iX = (label.iconOffsetX || 0) * PX_SCALE
-          const iY = (label.iconOffsetY || 0) * PX_SCALE
-          const iSize = style.iconSize * PX_SCALE
-          
-          ctx.save()
-          ctx.translate(128 + iX, iBaseY + iY)
-          ctx.scale(label.iconFlipH ? -1 : 1, label.iconFlipV ? -1 : 1)
-          ctx.font = `${iSize}px sans-serif`
-          ctx.textBaseline = 'middle'
-          ctx.fillStyle = iconColor
-          ctx.fillText(emojify(label.icon), 0, 0)
-          ctx.restore()
-        }
-      } else if (label.image) {
-        // Custom Image Rendering
-        const iX = (label.iconOffsetX || 0) * PX_SCALE
-        const iY = (label.iconOffsetY || 0) * PX_SCALE
-        const iSize = style.iconSize * PX_SCALE
-
-        const drawCustomImage = (image) => {
-          ctx.save()
-          ctx.translate(128 + iX, iBaseY + iY)
-          ctx.scale(label.iconFlipH ? -1 : 1, label.iconFlipV ? -1 : 1)
-          ctx.drawImage(image, -iSize/2, -iSize/2, iSize, iSize)
-          ctx.restore()
-          labelTex.needsUpdate = true
-          if (pathTracer && highQualityRender.value) pathTracer.updateCamera()
-        }
-
-        if (iconImageCache.has(label.image)) {
-          drawCustomImage(iconImageCache.get(label.image))
-        } else {
-          const img = new Image()
-          img.crossOrigin = 'Anonymous'
-          img.onload = () => {
-            iconImageCache.set(label.image, img)
-            drawCustomImage(img)
-          }
-          img.src = label.image
-        }
-      }
-
       const labelTex = new THREE.CanvasTexture(canvas)
+      drawLabelTexture(canvas.getContext('2d'), label, style, {
+        opaque: labelMaterial.value !== 'transparent',
+        loadIcon: loadIconImage,
+        loadImage: loadImageElement
+      })?.then(() => {
+        // An icon or image finished drawing after the texture was created
+        labelTex.needsUpdate = true
+        if (pathTracer && highQualityRender.value) pathTracer.updateCamera()
+      })
       let matConfig = { 
         map: labelTex, 
         transparent: false, // MUST BE FALSE so the clear cover's transmission shader includes it in the opaque pass!
