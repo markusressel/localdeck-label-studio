@@ -60,7 +60,7 @@ import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js'
 import { WebGLPathTracer, GradientEquirectTexture, DenoiseMaterial } from 'three-gpu-pathtracer'
 import { FullScreenQuad } from 'three/examples/jsm/postprocessing/Pass.js'
 import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js'
-import { denoiseSigma } from '../utils/pathTracing.js'
+import { denoiseSigma, clampFireflies } from '../utils/pathTracing.js'
 import { useStore } from '../composables/useStore'
 import { resolveLabelStyle } from '../utils/labelStyle.js'
 import { loadIconImage, loadImageElement } from '../utils/iconImage.js'
@@ -272,6 +272,15 @@ const initThreeJS = () => {
   // ninth of a sample per frame, which capped convergence at the display rate.
   pathTracer.tiles.set(1, 1)
 
+  // Clamp single extremely bright paths (fireflies) in the full and the low-res
+  // path tracer. These are internals of three-gpu-pathtracer, hence the check.
+  for (const tracer of [pathTracer._pathTracer, pathTracer._lowResPathTracer]) {
+    const { source, replaced } = clampFireflies(tracer.material.fragmentShader, 25)
+    if (replaced === 0) console.warn('3D preview: firefly clamp not applied, the three-gpu-pathtracer shader changed')
+    tracer.material.fragmentShader = source
+    tracer.material.needsUpdate = true
+  }
+
   // Edge-preserving denoising of the first noisy samples, fading out as they converge
   denoiseQuad = new FullScreenQuad(new DenoiseMaterial({
     map: null,
@@ -473,7 +482,10 @@ const buildProceduralDeck = () => {
         roughness: 0.05,
         transmission: 1.0,
         ior: 1.5,
-        thickness: 0.5,
+        // Thin-walled: light passes the 0.5mm wall without bending. With a solid
+        // refracting cover around the LED, the path tracer could only reach the
+        // LED through it by chance, which showed as dots everywhere.
+        thickness: 0,
         side: THREE.DoubleSide,
         transparent: true,
         depthWrite: false
