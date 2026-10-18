@@ -2,7 +2,9 @@ import * as emoji from 'node-emoji'
 
 export const isEmoji = (str) => {
   if (!str) return false
-  return /\p{Extended_Pictographic}/u.test(str) || emoji.has(str)
+  if (/\p{Extended_Pictographic}/u.test(str)) return true
+  // Shortcodes only count with colons (:fire:); bare words like "lock" are search terms
+  return /^:[\w+-]+:$/.test(str) && emoji.has(str)
 }
 
 // Replace :shortcode: sequences with their emoji
