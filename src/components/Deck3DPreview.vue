@@ -51,7 +51,7 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js'
-import * as emoji from 'node-emoji'
+import { emojify } from '../utils/emojiUtils.js'
 import { WebGLPathTracer } from 'three-gpu-pathtracer'
 import { useStore } from '../composables/useStore'
 import { resolveLabelStyle } from '../utils/labelStyle.js'
@@ -496,7 +496,7 @@ const buildProceduralDeck = () => {
         ctx.font = `bold ${tSize}px sans-serif`
         ctx.textBaseline = 'middle'
         ctx.fillStyle = textColor // Ensure text uses textColor!
-        ctx.fillText(emoji.emojify(label.text), 0, 0)
+        ctx.fillText(emojify(label.text), 0, 0)
         ctx.restore()
       } 
       if (label.icon) {
@@ -544,7 +544,7 @@ const buildProceduralDeck = () => {
           ctx.font = `${iSize}px sans-serif`
           ctx.textBaseline = 'middle'
           ctx.fillStyle = iconColor
-          ctx.fillText(emoji.emojify(label.icon), 0, 0)
+          ctx.fillText(emojify(label.icon), 0, 0)
           ctx.restore()
         }
       } else if (label.image) {

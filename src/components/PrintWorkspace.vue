@@ -172,7 +172,6 @@ import NumberStepper from './NumberStepper.vue'
 import CustomCheckbox from './CustomCheckbox.vue'
 import AlertBox from './AlertBox.vue'
 import { computed } from 'vue'
-import * as emoji from 'node-emoji'
 
 import { isEmoji } from '../utils/emojiUtils.js'
 

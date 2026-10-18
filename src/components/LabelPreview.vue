@@ -42,7 +42,7 @@
               :icon="label.icon"
             />
             <span v-else :class="{ 'force-flat-icon': shouldForceFlatColor }">
-              {{ emoji.emojify(label.icon) }}
+              {{ emojify(label.icon) }}
             </span>
           </div>
           <div 
@@ -68,9 +68,8 @@
 <script setup>
 import { Icon } from '@iconify/vue'
 import { computed, ref, onMounted, onUpdated, nextTick, onUnmounted } from 'vue'
-import * as emoji from 'node-emoji'
 
-import { isEmoji } from '../utils/emojiUtils.js'
+import { isEmoji, emojify } from '../utils/emojiUtils.js'
 import { isColorTransparent } from '../utils/colorUtils.js'
 import { resolveLabelStyle } from '../utils/labelStyle.js'
 import { useStore } from '../composables/useStore.js'
@@ -126,7 +125,7 @@ const formattedLabelText = computed(() => {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
     
-  text = emoji.emojify(text);
+  text = emojify(text);
   return text.replace(/:([a-zA-Z0-9\-:]+):/g, '<Icon icon="$1" />')
 })
 

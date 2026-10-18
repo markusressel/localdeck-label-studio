@@ -56,7 +56,6 @@
 import { Icon } from '@iconify/vue'
 import CustomInput from './CustomInput.vue'
 import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
-import * as emoji from 'node-emoji'
 
 import Fuse from 'fuse.js'
 
@@ -89,7 +88,7 @@ const popularEmojis = [
 ]
 const displayedEmojis = ref([...popularEmojis])
 
-const allEmojis = emoji.search('')
+const allEmojis = searchEmojis('')
 const emojiFuse = new Fuse(allEmojis, {
   keys: ['name'],
   threshold: 0.4,
@@ -97,7 +96,7 @@ const emojiFuse = new Fuse(allEmojis, {
 })
 
 // Simple check if string contains an emoji (non-ascii roughly)
-import { isEmoji } from '../utils/emojiUtils.js'
+import { isEmoji, emojify, searchEmojis } from '../utils/emojiUtils.js'
 
 watch(() => props.modelValue, (newVal) => {
   if (newVal !== searchQuery.value) {
@@ -117,7 +116,7 @@ watch(searchQuery, (newVal) => {
   }
   
   // Auto-resolve emoji shortcodes like :traffic_light:
-  const emojified = emoji.emojify(newVal)
+  const emojified = emojify(newVal)
   if (emojified !== newVal && isEmoji(emojified)) {
     emit('update:modelValue', emojified)
     searchQuery.value = emojified

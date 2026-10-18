@@ -207,15 +207,11 @@ import IconPicker from './IconPicker.vue'
 import NumberStepper from './NumberStepper.vue'
 import CustomInput from './CustomInput.vue'
 import CustomSlider from './CustomSlider.vue'
-import * as emoji from 'node-emoji'
+import { isEmoji } from '../utils/emojiUtils.js'
 import { useStore } from '../composables/useStore'
 import { isColorTransparent } from '../utils/colorUtils.js'
 import { resolveLabelStyle } from '../utils/labelStyle.js'
 
-const isEmoji = (str) => {
-  if (!str) return false
-  return /\p{Extended_Pictographic}/u.test(str) || emoji.has(str)
-}
 
 const props = defineProps({
   modelValue: {
