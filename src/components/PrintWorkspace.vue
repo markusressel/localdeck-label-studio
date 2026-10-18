@@ -165,6 +165,7 @@
 <script setup>
 import { Icon } from '@iconify/vue'
 import { useStore } from '../composables/useStore.js'
+import { usePrintCanvas } from '../composables/usePrintCanvas.js'
 import LabelPreview from './LabelPreview.vue'
 import CustomSelect from './CustomSelect.vue'
 import NumberStepper from './NumberStepper.vue'
@@ -182,12 +183,6 @@ const {
   printOffsetY,
   selectedPrintIds,
   printGrid,
-  printDraggedSlot,
-  printDragTarget,
-  previewContentRef,
-  printSelectionBox,
-  selectedPrintSlots,
-  paperSheetRef,
   labels,
   labelWidth,
   labelHeight,
@@ -206,17 +201,25 @@ const {
   totalPrintSlots,
   cols,
   printChecklistItems,
-  onPrintDragStart,
   onDragEnd,
-  onPrintDrop,
   getLabelById,
   getLabelByOccurrenceId,
-  printLabels,
+  printLabels
+} = useStore()
+
+const {
+  previewContentRef,
+  paperSheetRef,
+  printDragTarget,
+  selectedPrintSlots,
+  printSelectionBox,
+  onPrintDragStart,
+  onPrintDrop,
   startPanOrSelect,
   doPanOrSelect,
   endPanOrSelect,
   handleZoom
-} = useStore()
+} = usePrintCanvas()
 
 const pageCssSize = computed(() => {
   return `${paperDimensions.value.w}mm ${paperDimensions.value.h}mm`

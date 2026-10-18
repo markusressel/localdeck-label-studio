@@ -65,7 +65,6 @@ const {
   importData,
   exportData,
   printLabels,
-  spacePressed,
   loadState,
   seedDefaultLabels,
   labels,
@@ -73,15 +72,6 @@ const {
 } = store
 
 onMounted(() => {
-  window.addEventListener('keydown', (e) => {
-    if (e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
-      e.preventDefault()
-      spacePressed.value = true
-    }
-  })
-  window.addEventListener('keyup', (e) => {
-    if (e.code === 'Space') spacePressed.value = false
-  })
   const loaded = loadState()
   if (!loaded) {
     seedDefaultLabels()
