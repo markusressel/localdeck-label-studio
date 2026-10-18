@@ -22,12 +22,7 @@ describe('LabelPreview.vue', () => {
         height: 14,
         scale: 1,
         material: 'transparent',
-        globalLightColor: '#ff0000',
-        globalLightBrightness: 80,
-        globalTextSize: 10,
-        globalTextColor: '#000000',
-        globalIconSize: 24,
-        globalIconColor: '#000000',
+        globals: { lightColor: '#ff0000', lightBrightness: 80, textSize: 10, textColor: '#000000', iconSize: 24, iconColor: '#000000' },
         printMode: false,
         darkRoom: false
       }
@@ -49,12 +44,7 @@ describe('LabelPreview.vue', () => {
         height: 14,
         scale: 1,
         material: 'transparent',
-        globalLightColor: '#ff0000',
-        globalLightBrightness: 80,
-        globalTextSize: 10,
-        globalTextColor: '#000000',
-        globalIconSize: 24,
-        globalIconColor: '#000000',
+        globals: { lightColor: '#ff0000', lightBrightness: 80, textSize: 10, textColor: '#000000', iconSize: 24, iconColor: '#000000' },
         printMode: false,
         darkRoom: true
       }
@@ -73,12 +63,7 @@ describe('LabelPreview.vue', () => {
         height: 14,
         scale: 1,
         material: 'transparent',
-        globalLightColor: '#ff0000',
-        globalLightBrightness: 80,
-        globalTextSize: 10,
-        globalTextColor: '#000000',
-        globalIconSize: 24,
-        globalIconColor: '#000000',
+        globals: { lightColor: '#ff0000', lightBrightness: 80, textSize: 10, textColor: '#000000', iconSize: 24, iconColor: '#000000' },
         printMode: true,
         darkRoom: true // Even if true, printMode should override
       }
@@ -105,12 +90,7 @@ describe('LabelPreview.vue', () => {
         height: 14,
         scale: 1,
         material: 'transparent',
-        globalLightColor: '#ff0000',
-        globalLightBrightness: 80,
-        globalTextSize: 10,
-        globalTextColor: '#000000',
-        globalIconSize: 24,
-        globalIconColor: '#000000',
+        globals: { lightColor: '#ff0000', lightBrightness: 80, textSize: 10, textColor: '#000000', iconSize: 24, iconColor: '#000000' },
         printMode: false,
         darkRoom: false
       }

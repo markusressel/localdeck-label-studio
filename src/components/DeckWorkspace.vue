@@ -105,15 +105,6 @@
               :height="labelHeight"
               :scale="1.5"
               :material="labelMaterial"
-              :globalLightColor="globalLightColor"
-              :globalLightBrightness="globalLightBrightness"
-              :globalLightEffect="globalLightEffect"
-              :globalTextSize="globalTextSize"
-              :globalTextColor="globalTextColor"
-              :globalIconSize="globalIconSize"
-              :globalIconColor="globalIconColor"
-              :globalIconFlatten="globalIconFlatten"
-              :globalBackgroundColor="globalBackgroundColor"
               :printMode="false"
               :darkRoom="darkRoom"
             />
@@ -178,15 +169,6 @@
           :height="labelHeight"
           :scale="zoomLevel"
           :material="labelMaterial"
-          :globalLightColor="globalLightColor"
-          :globalLightBrightness="globalLightBrightness"
-          :globalLightEffect="globalLightEffect"
-          :globalTextSize="globalTextSize"
-          :globalTextColor="globalTextColor"
-          :globalIconSize="globalIconSize"
-          :globalIconColor="globalIconColor"
-          :globalIconFlatten="globalIconFlatten"
-          :globalBackgroundColor="globalBackgroundColor"
           :printMode="false"
           :darkRoom="darkRoom"
         />
@@ -293,12 +275,6 @@ const {
   globalLightColor,
   globalLightBrightness,
   globalLightEffect,
-  globalTextSize,
-  globalTextColor,
-  globalIconSize,
-  globalIconColor,
-  globalIconFlatten,
-  globalBackgroundColor,
   zoomLevel,
   darkRoom,
   preview2dLedIntensity,

@@ -74,7 +74,7 @@ import { isColorTransparent } from '../utils/colorUtils.js'
 import { resolveLabelStyle } from '../utils/labelStyle.js'
 import { useStore } from '../composables/useStore.js'
 
-const { preview2dLedIntensity, preview2dTranslucency, preview2dFalloff, updateLabel } = useStore()
+const { preview2dLedIntensity, preview2dTranslucency, preview2dFalloff, updateLabel, globalStyle } = useStore()
 
 const props = defineProps({
   label: { type: Object, required: true },
@@ -82,30 +82,13 @@ const props = defineProps({
   height: { type: Number, required: true },
   scale: { type: Number, default: 1 },
   material: { type: String, default: 'transparent' },
-  globalLightColor: { type: String, default: '#10b981' },
-  globalLightBrightness: { type: Number, default: 80 },
-  globalLightEffect: { type: String, default: 'static' },
-  globalTextSize: { type: Number, default: 10 },
-  globalTextColor: { type: String, default: '#000000' },
-  globalIconSize: { type: Number, default: 24 },
-  globalIconColor: { type: String, default: '#000000' },
-  globalIconFlatten: { type: Boolean, default: false },
-  globalBackgroundColor: { type: String, default: 'transparent' },
+  // Overrides for the global label settings; defaults to the store's globalStyle
+  globals: { type: Object, default: null },
   printMode: { type: Boolean, default: false },
   darkRoom: { type: Boolean, default: false }
 })
 
-const style = computed(() => resolveLabelStyle(props.label, {
-  textSize: props.globalTextSize,
-  textColor: props.globalTextColor,
-  iconSize: props.globalIconSize,
-  iconColor: props.globalIconColor,
-  iconFlatten: props.globalIconFlatten,
-  backgroundColor: props.globalBackgroundColor,
-  lightColor: props.globalLightColor,
-  lightBrightness: props.globalLightBrightness,
-  lightEffect: props.globalLightEffect
-}))
+const style = computed(() => resolveLabelStyle(props.label, { ...globalStyle.value, ...props.globals }))
 
 const effectiveLightEffect = computed(() => style.value.lightEffect)
 const effectiveLightColor = computed(() => effectiveLightEffect.value === 'rainbow' ? '#ff0000' : style.value.lightColor)

@@ -102,15 +102,6 @@
                   :height="labelHeight"
                   :scale="printZoom"
                   :material="labelMaterial"
-                  :globalLightColor="globalLightColor"
-                  :globalLightBrightness="globalLightBrightness"
-                  :globalLightEffect="globalLightEffect"
-                  :globalTextSize="globalTextSize"
-                  :globalTextColor="globalTextColor"
-                  :globalIconSize="globalIconSize"
-                  :globalIconColor="globalIconColor"
-                  :globalIconFlatten="globalIconFlatten"
-                  :globalBackgroundColor="globalBackgroundColor"
                   :printMode="true"
                   :darkRoom="darkRoom"
                   draggable="true"
@@ -185,15 +176,6 @@ const {
   labelWidth,
   labelHeight,
   labelMaterial,
-  globalLightColor,
-  globalLightBrightness,
-  globalLightEffect,
-  globalTextSize,
-  globalTextColor,
-  globalIconSize,
-  globalIconColor,
-  globalIconFlatten,
-  globalBackgroundColor,
   darkRoom,
   paperDimensions,
   totalPrintSlots,
