@@ -3,6 +3,7 @@
     class="sidebar-resizer" 
     :class="{ 'is-resizing': isResizing }" 
     @mousedown.prevent="startResize"
+    @dblclick="emit('reset')"
   >
     <div class="resizer-line"></div>
   </div>
@@ -11,7 +12,7 @@
 <script setup>
 import { ref, onUnmounted } from 'vue'
 
-const emit = defineEmits(['resize'])
+const emit = defineEmits(['resize', 'reset'])
 
 const isResizing = ref(false)
 const lastY = ref(0)

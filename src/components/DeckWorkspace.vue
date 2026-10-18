@@ -1,8 +1,8 @@
 <template>
-  <div class="grid-section" style="background: transparent; border: none; overflow: hidden; gap: 1.5rem;">
+  <div class="grid-section" ref="sectionRef" style="background: transparent; border: none; overflow: hidden; gap: 1.5rem;">
     <!-- LocalDeck Preview -->
-    <div class="deck-preview-panel" :style="{ flex: `0 0 ${deckPanelHeight}px`, minHeight: '200px', display: 'flex', flexDirection: 'column', background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '12px', overflow: 'hidden' }">
-      <div class="section-header device-header">
+    <div class="deck-preview-panel" ref="panelRef" :style="{ flex: `0 0 ${shownPanelHeight}px`, minHeight: '200px', display: 'flex', flexDirection: 'column', background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '12px', overflow: 'hidden' }">
+      <div class="section-header device-header" ref="panelHeaderRef">
       <CustomSelect v-model="activeDeckId" :options="deckOptions" style="width: 200px; font-weight: 600;" />
       <div style="display: flex; gap: 0.25rem; margin-left: 0.5rem;">
         <button class="icon-btn" @click="promptAddDeck" title="Add New Deck"><Icon icon="mdi:plus" /></button>
@@ -73,7 +73,7 @@
           </div>
         </div>
       </div>
-      <div class="localdeck-device">
+      <div class="localdeck-device" ref="deviceRef">
         <div class="device-grid" :style="{ gridTemplateColumns: `repeat(${matrixWidth}, max-content)` }">
           <div 
             v-for="i in totalMatrixSlots"
@@ -115,7 +115,7 @@
 
     </div>
     
-    <DragHandle @resize="onResize" />
+    <DragHandle @resize="onResize" @reset="deckPanelHeight = null" title="Drag to resize, double-click to fit the deck" />
 
     <!-- Label Library -->
     <div class="library-panel" style="flex: 1; min-height: 200px; display: flex; flex-direction: column; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; overflow: hidden;">
@@ -189,7 +189,7 @@
 <script setup>
 import { Icon } from '@iconify/vue'
 import { useStore } from '../composables/useStore.js'
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import LabelPreview from './LabelPreview.vue'
 import ColorPicker from './ColorPicker.vue'
 import CustomSelect from './CustomSelect.vue'
@@ -198,21 +198,53 @@ import CustomSlider from './CustomSlider.vue'
 import DragHandle from './DragHandle.vue'
 import NumberStepper from './NumberStepper.vue'
 
-const deckPanelHeight = ref(400)
 const show2dSettings = ref(false)
-const onResize = (delta) => {
-  const newHeight = deckPanelHeight.value + delta;
-  const minHeight = 200;
-  const maxHeight = window.innerHeight - 300;
-  deckPanelHeight.value = Math.max(minHeight, Math.min(newHeight, maxHeight));
-}
 
 const store = useStore()
 const {
   decks,
   activeDeckId,
   activeDeck,
+  deckPanelHeight,
 } = store
+
+const MIN_PANEL_HEIGHT = 200
+// The label library below the deck keeps at least this much, gaps and drag handle included
+const LIBRARY_MIN_SPACE = 150
+const sectionRef = ref(null)
+const sectionHeight = ref(window.innerHeight)
+const measureSection = () => { if (sectionRef.value) sectionHeight.value = sectionRef.value.clientHeight }
+const clampPanelHeight = (h) => Math.max(MIN_PANEL_HEIGHT, Math.min(h, sectionHeight.value - LIBRARY_MIN_SPACE))
+
+// Height that shows the whole deck: header, device and its margins, panel border
+const panelRef = ref(null)
+const panelHeaderRef = ref(null)
+const deviceRef = ref(null)
+const fitHeight = ref(400)
+const measureFitHeight = () => {
+  if (!panelRef.value || !panelHeaderRef.value || !deviceRef.value) return
+  const deviceStyle = getComputedStyle(deviceRef.value)
+  const border = panelRef.value.offsetHeight - panelRef.value.clientHeight
+  fitHeight.value = Math.ceil(
+    panelHeaderRef.value.offsetHeight + deviceRef.value.offsetHeight +
+    parseFloat(deviceStyle.marginTop) + parseFloat(deviceStyle.marginBottom) + border
+  )
+}
+let deviceObserver = null
+onMounted(() => {
+  measureFitHeight()
+  measureSection()
+  deviceObserver = new ResizeObserver(() => { measureFitHeight(); measureSection() })
+  deviceObserver.observe(deviceRef.value)
+  deviceObserver.observe(sectionRef.value)
+})
+onUnmounted(() => deviceObserver?.disconnect())
+
+// A dragged height is saved; until then the panel fits the deck
+const shownPanelHeight = computed(() => clampPanelHeight(deckPanelHeight.value ?? fitHeight.value))
+const onResize = (delta) => {
+  deckPanelHeight.value = clampPanelHeight(shownPanelHeight.value + delta)
+}
 
 const promptAddDeck = () => {
   const name = prompt("Enter a name for the new LocalDeck configuration:", "New Deck")
@@ -282,7 +314,6 @@ const {
   onDropLibrary
 } = store
 
-import { onMounted, onUnmounted } from 'vue'
 
 const handleKeydown = (e) => {
   if (e.key === 'Delete' || e.key === 'Backspace') {

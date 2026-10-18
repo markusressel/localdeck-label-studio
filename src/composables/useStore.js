@@ -39,6 +39,8 @@ export function createStore({ storage = globalThis.localStorage } = {}) {
 
   const globalBackgroundColor = ref('transparent')
   const zoomLevel = ref(2)
+  // Height of the deck preview panel in px; null fits it to the deck
+  const deckPanelHeight = ref(null)
   const darkRoom = ref(false)
 
   const preview2dLedIntensity = ref(1.0)
@@ -238,6 +240,7 @@ export function createStore({ storage = globalThis.localStorage } = {}) {
     globalIconFlatten,
     globalBackgroundColor,
     zoomLevel,
+    deckPanelHeight,
     darkRoom,
     preview2dLedIntensity,
     preview2dTranslucency,
@@ -567,6 +570,7 @@ export function createStore({ storage = globalThis.localStorage } = {}) {
     preview2dTranslucency,
     preview2dFalloff,
     zoomLevel,
+    deckPanelHeight,
     darkRoom,
     labels,
     isDragging,

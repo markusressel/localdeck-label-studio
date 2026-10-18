@@ -5,7 +5,8 @@
 
     <Teleport to="body">
     <Transition name="fade-scale">
-      <div class="picker-dropdown" v-if="isOpen" :style="dropdownStyle" ref="dropdownRef">
+      <div class="picker-dropdown" :class="{ 'is-above': dropdownAbove }" v-if="isOpen" :style="dropdownStyle" ref="dropdownRef">
+      <div class="picker-body" ref="bodyRef">
         <!-- Color Circle -->
         <div class="color-circle-container" style="display: flex; justify-content: center; align-items: center; margin-bottom: 0.5rem;">
           <div class="color-circle" ref="circleRef" @mousedown="onCircleMouseDown">
@@ -78,13 +79,14 @@
           </div>
         </div>
       </div>
+      </div>
     </Transition>
     </Teleport>
   </div>
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onUnmounted, reactive, computed } from 'vue'
+import { ref, watch, onMounted, onUnmounted, reactive, computed, nextTick } from 'vue'
 import NumberStepper from './NumberStepper.vue'
 
 const props = defineProps({
@@ -100,10 +102,12 @@ const pickerRef = ref(null)
 const circleRef = ref(null)
 const valueRef = ref(null)
 const dropdownRef = ref(null)
+const bodyRef = ref(null)
 const alphaRef = ref(null)
 const alpha = ref(1)
 const isOpen = ref(false)
-const dropdownStyle = reactive({ top: '0px', left: '0px', transform: 'translateX(-50%)' })
+const dropdownStyle = reactive({ top: '0px', left: '0px', maxHeight: 'none', '--arrow-x': '50%' })
+const dropdownAbove = ref(false)
 const circlePointerStyle = computed(() => {
   const angle = (hsv.h - 90) * (Math.PI / 180)
   const radiusPercent = hsv.s / 100 * 50
@@ -256,16 +260,40 @@ const selectColor = (color) => {
   updateFromHex(color)
 }
 
+const VIEWPORT_MARGIN = 8
+const ANCHOR_GAP = 8
+
+// Open below the swatch, or above it when there is more room there, and keep
+// the dropdown inside the window; it scrolls when it fits neither way
 const updatePosition = () => {
-  if (!pickerRef.value) return
-  const rect = pickerRef.value.getBoundingClientRect()
-  dropdownStyle.top = (rect.bottom + 8) + 'px'
-  dropdownStyle.left = (rect.left + rect.width / 2) + 'px'
+  if (!pickerRef.value || !dropdownRef.value || !bodyRef.value) return
+  const anchor = pickerRef.value.getBoundingClientRect()
+  const dropdown = dropdownRef.value
+  // The body scrolls, so its scrollHeight is the full content height; add the dropdown's border
+  const height = bodyRef.value.scrollHeight + (dropdown.offsetHeight - dropdown.clientHeight)
+  const width = dropdown.offsetWidth
+
+  const spaceBelow = window.innerHeight - anchor.bottom - ANCHOR_GAP - VIEWPORT_MARGIN
+  const spaceAbove = anchor.top - ANCHOR_GAP - VIEWPORT_MARGIN
+  dropdownAbove.value = height > spaceBelow && spaceAbove > spaceBelow
+  const space = dropdownAbove.value ? spaceAbove : spaceBelow
+  const shownHeight = Math.min(height, space)
+
+  dropdownStyle.maxHeight = space + 'px'
+  dropdownStyle.top = (dropdownAbove.value ? anchor.top - ANCHOR_GAP - shownHeight : anchor.bottom + ANCHOR_GAP) + 'px'
+
+  const center = anchor.left + anchor.width / 2
+  const left = Math.max(VIEWPORT_MARGIN, Math.min(center - width / 2, window.innerWidth - VIEWPORT_MARGIN - width))
+  dropdownStyle.left = left + 'px'
+  // Keep the arrow pointing at the swatch when the dropdown is shifted sideways
+  dropdownStyle['--arrow-x'] = (center - left) + 'px'
 }
 
-const toggleDropdown = () => {
+const toggleDropdown = async () => {
   isOpen.value = !isOpen.value
   if (isOpen.value) {
+    // Measure the dropdown once it is rendered
+    await nextTick()
     updatePosition()
     window.addEventListener('scroll', updatePosition, true)
     window.addEventListener('resize', updatePosition)
@@ -412,7 +440,16 @@ onUnmounted(() => document.removeEventListener('mousedown', handleClickOutside))
   border-radius: 12px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.6);
   z-index: 99999;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Scrolls inside the dropdown, so the arrow outside it is not clipped */
+.picker-body {
   padding: 1rem;
+  min-height: 0;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -422,13 +459,22 @@ onUnmounted(() => document.removeEventListener('mousedown', handleClickOutside))
   content: '';
   position: absolute;
   top: -6px;
-  left: 50%;
+  left: var(--arrow-x);
   transform: translateX(-50%) rotate(45deg);
   width: 10px;
   height: 10px;
   background: var(--card-bg);
   border-left: 1px solid var(--card-border);
   border-top: 1px solid var(--card-border);
+}
+
+.picker-dropdown.is-above::before {
+  top: auto;
+  bottom: -6px;
+  border-left: none;
+  border-top: none;
+  border-right: 1px solid var(--card-border);
+  border-bottom: 1px solid var(--card-border);
 }
 
 .color-circle {
@@ -631,10 +677,14 @@ onUnmounted(() => document.removeEventListener('mousedown', handleClickOutside))
   transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   transform-origin: top center;
 }
+.picker-dropdown.is-above.fade-scale-enter-active,
+.picker-dropdown.is-above.fade-scale-leave-active {
+  transform-origin: bottom center;
+}
 .fade-scale-enter-from,
 .fade-scale-leave-to {
   opacity: 0;
-  transform: translateX(-50%) scale(0.95) !important;
+  transform: scale(0.95);
 }
 </style>
 
