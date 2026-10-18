@@ -210,8 +210,7 @@
 <script setup>
 import { Icon } from '@iconify/vue'
 import { useStore } from '../composables/useStore.js'
-import Deck3DPreview from './Deck3DPreview.vue'
-import { ref, computed } from 'vue'
+import { ref, computed, defineAsyncComponent } from 'vue'
 import LabelPreview from './LabelPreview.vue'
 import ColorPicker from './ColorPicker.vue'
 import CustomSelect from './CustomSelect.vue'
@@ -219,6 +218,9 @@ import CustomInput from './CustomInput.vue'
 import CustomSlider from './CustomSlider.vue'
 import CustomSwitch from './CustomSwitch.vue'
 import DragHandle from './DragHandle.vue'
+
+// Loaded on demand: three.js + path tracer make up most of the bundle
+const Deck3DPreview = defineAsyncComponent(() => import('./Deck3DPreview.vue'))
 
 const deckPanelHeight = ref(400)
 const show2dSettings = ref(false)
