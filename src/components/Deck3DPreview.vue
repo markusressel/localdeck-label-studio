@@ -56,7 +56,7 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js'
-import { WebGLPathTracer } from 'three-gpu-pathtracer'
+import { WebGLPathTracer, GradientEquirectTexture } from 'three-gpu-pathtracer'
 import { useStore } from '../composables/useStore'
 import { resolveLabelStyle } from '../utils/labelStyle.js'
 import { loadIconImage, loadImageElement } from '../utils/iconImage.js'
@@ -74,8 +74,10 @@ const showSettings = ref(false)
 const { matrixWidth, matrixHeight, labels, decks, activeDeckId, getLabelAtSlot, globalStyle, darkRoom, highQualityRender, caseColor, labelMaterial, switchBodyColor, switchStemColor, previewLedIntensity, previewCapTranslucency, previewCapAttenuation, previewRoomLight } = useStore()
 
 let scene, camera, renderer, controls, pathTracer
-// Soft studio-like reflections for the room light; created once
+// Soft studio-like reflections for the room light; created once. The path
+// tracer needs an equirectangular environment instead of the PMREM one.
 let roomEnvironment
+let pathTracedRoomEnvironment
 let switchGLTF = null
 let keycapOBJ = null
 let animationFrameId
@@ -214,6 +216,8 @@ onUnmounted(() => {
   window.removeEventListener('resize', onWindowResize)
   disposeOwnedResources()
   if (roomEnvironment) roomEnvironment.dispose()
+  if (pathTracedRoomEnvironment) pathTracedRoomEnvironment.dispose()
+  if (pathTracer) pathTracer.dispose()
   if (renderer) renderer.dispose()
 })
 
@@ -246,6 +250,18 @@ const initThreeJS = () => {
   controls.dampingFactor = 0.05
 
   pathTracer = new WebGLPathTracer(renderer)
+  pathTracer.bounces = 8
+  pathTracer.transmissiveBounces = 12
+  pathTracer.filterGlossyFactor = 0.5
+  pathTracer.dynamicLowRes = true // fast low-res preview while the camera moves
+  controls.addEventListener('change', () => {
+    if (highQualityRender.value) pathTracer.updateCamera()
+  })
+
+  pathTracedRoomEnvironment = new GradientEquirectTexture()
+  pathTracedRoomEnvironment.topColor.set(0xffffff)
+  pathTracedRoomEnvironment.bottomColor.set(0x404040)
+  pathTracedRoomEnvironment.update()
 
   // Resize handler
   window.addEventListener('resize', onWindowResize)
@@ -263,7 +279,8 @@ const buildProceduralDeck = () => {
   // Image-based light from a room environment gives the plastic shape and gloss;
   // a flat ambient light only washed everything out to white.
   const roomLevel = darkRoom.value ? 0 : previewRoomLight.value / 100
-  scene.environment = roomEnvironment
+  const pathTraced = highQualityRender.value
+  scene.environment = pathTraced ? pathTracedRoomEnvironment : roomEnvironment
   // Mostly the desk lamp, with a little room fill so shadows stay visible but not black
   scene.environmentIntensity = roomLevel * 0.35
   const dirIntensity = roomLevel * 2.2
@@ -382,21 +399,32 @@ const buildProceduralDeck = () => {
   const capShadow = stemShadow({ diffusion: 2 })
   const backlight = labelBacklight(labelMaterial.value)
 
-  // Frosted white keycap base. Opaque: it glows from the inside instead of
-  // using transmission, which shimmers in WebGL.
-  // Slightly off-white so lit plastic doesn't clip to pure white; a light clear coat gives the plastic sheen
+  // Frosted white keycap base, slightly off-white so lit plastic doesn't clip to
+  // pure white, with a light clear coat for the plastic sheen.
+  // Rasterized, it is opaque and glows from the inside (transmission shimmers in
+  // WebGL). Path traced, it is real translucent plastic the LED shines through:
+  // Translucency is its transmission, Falloff Dist. how far light gets inside it.
   const createCapBaseMaterial = () => new THREE.MeshPhysicalMaterial({
     color: 0xe6e6e6,
     roughness: 0.45,
     metalness: 0.0,
     clearcoat: 0.3,
-    clearcoatRoughness: 0.35
+    clearcoatRoughness: 0.35,
+    ...(pathTraced && {
+      roughness: 0.7,
+      transmission: previewCapTranslucency.value,
+      thickness: 1.5,
+      ior: 1.45,
+      attenuationColor: new THREE.Color(0xffffff),
+      attenuationDistance: previewCapAttenuation.value,
+      side: THREE.DoubleSide
+    })
   })
   const unlitCapBaseMat = own(createCapBaseMaterial())
 
   // Clear snap-on cover. Path tracing mode keeps the physical glass material;
   // otherwise a faint glossy shell whose edges pick up the LED color.
-  const createCapClearMaterial = () => highQualityRender.value
+  const createCapClearMaterial = () => pathTraced
     ? new THREE.MeshPhysicalMaterial({
         color: 0xffffff,
         metalness: 0.0,
@@ -438,17 +466,15 @@ const buildProceduralDeck = () => {
       const ledMaterials = []
       let capBaseMat = unlitCapBaseMat
       let capClearMat = unlitCapClearMat
-      if (isLit) {
+      if (isLit && !pathTraced) {
         capBaseMat = own(addLedFalloff(createCapBaseMaterial(), {
           ledPosition,
           falloffMm: capFalloffMm,
           occlusion: { towards: keyCenter, ...capShadow }
         }))
         ledMaterials.push({ material: capBaseMat, gain: ledGain * previewCapTranslucency.value })
-        if (!highQualityRender.value) {
-          capClearMat = own(addLedFalloff(createCapClearMaterial(), { ledPosition, falloffMm: capFalloffMm * 2, rim: true }))
-          ledMaterials.push({ material: capClearMat, gain: ledGain * 0.8 })
-        }
+        capClearMat = own(addLedFalloff(createCapClearMaterial(), { ledPosition, falloffMm: capFalloffMm * 2, rim: true }))
+        ledMaterials.push({ material: capClearMat, gain: ledGain * 0.8 })
       }
 
       // Switch Base (Cherry MX GLTF)
@@ -547,10 +573,21 @@ const buildProceduralDeck = () => {
       })?.then(() => {
         // An icon or image finished drawing after the texture was created
         labelTex.needsUpdate = true
-        if (pathTracer && highQualityRender.value) pathTracer.updateCamera()
+        if (pathTraced) pathTracer.updateMaterials()
       })
 
-      const labelMat = own(new THREE.MeshStandardMaterial({
+      // Path traced, the label is a thin translucent sheet the LED shines through,
+      // tinted by the print (ink blocks the light)
+      const labelMat = own(pathTraced ? new THREE.MeshPhysicalMaterial({
+        map: labelTex,
+        side: THREE.DoubleSide,
+        alphaTest: 0.5,
+        transmission: backlight.transmittance,
+        thickness: 0,
+        ior: 1.5,
+        roughness: labelMaterial.value === 'transparent' ? 0.15 : 0.9,
+        metalness: 0.0
+      }) : new THREE.MeshStandardMaterial({
         map: labelTex,
         // Backlight passes through the print: ink blocks it, blank paper or film lets it through
         emissiveMap: labelTex,
@@ -566,7 +603,7 @@ const buildProceduralDeck = () => {
         polygonOffsetFactor: -1,
         polygonOffsetUnits: -1
       }))
-      if (isLit) {
+      if (isLit && !pathTraced) {
         // The label receives the same light as the cap top below it, times what the
         // material lets through: blank film then matches the cap seen through it,
         // and paper or ink can never be brighter than that
@@ -588,7 +625,21 @@ const buildProceduralDeck = () => {
       labelMesh.receiveShadow = true
       scene.add(labelMesh)
 
-      if (isLit) {
+      if (isLit && pathTraced) {
+        // A real light source. MX switches have a window above the LED in the top
+        // of the housing, so the LED sits there, south of the stem, which casts
+        // its shadow over the upper part of the label. Effects show a still frame.
+        const led = ledStateAt(style, 0)
+        const ledLight = own(new THREE.PointLight(
+          new THREE.Color(led.r, led.g, led.b),
+          led.intensity * previewLedIntensity.value,
+          0,
+          2
+        ))
+        // Just inside the cap's cavity, so it cannot end up enclosed by the opaque housing mesh
+        ledLight.position.set(x, capBaseY + 0.5, z + 5)
+        scene.add(ledLight)
+      } else if (isLit) {
         const key = { style, animated: isAnimatedEffect(style), materials: ledMaterials }
         applyLed(key, performance.now() / 1000)
         ledKeys.push(key)
@@ -598,6 +649,9 @@ const buildProceduralDeck = () => {
 
   // Adjust camera to look at center
   controls.target.set(0, 0, 0)
+
+  // Builds the BVH of the whole scene; rebuilt on every change
+  if (pathTraced) pathTracer.setScene(scene, camera)
 }
 
 const animate = () => {
@@ -607,7 +661,11 @@ const animate = () => {
     if (key.animated) applyLed(key, timeS)
   }
   controls.update()
-  renderer.render(scene, camera)
+  if (highQualityRender.value && pathTracer.scene) {
+    pathTracer.renderSample()
+  } else {
+    renderer.render(scene, camera)
+  }
 }
 
 // Watch for changes to rebuild deck
