@@ -41,6 +41,8 @@ export function createStore({ storage = globalThis.localStorage } = {}) {
   const zoomLevel = ref(2)
   // Height of the deck preview panel in px; null fits it to the deck
   const deckPanelHeight = ref(null)
+  // Height of the sidebar's Project Settings panel in px, while a label is being edited
+  const globalPanelHeight = ref(400)
   const darkRoom = ref(false)
 
   const preview2dLedIntensity = ref(1.0)
@@ -241,6 +243,7 @@ export function createStore({ storage = globalThis.localStorage } = {}) {
     globalBackgroundColor,
     zoomLevel,
     deckPanelHeight,
+    globalPanelHeight,
     darkRoom,
     preview2dLedIntensity,
     preview2dTranslucency,
@@ -571,6 +574,7 @@ export function createStore({ storage = globalThis.localStorage } = {}) {
     preview2dFalloff,
     zoomLevel,
     deckPanelHeight,
+    globalPanelHeight,
     darkRoom,
     labels,
     isDragging,

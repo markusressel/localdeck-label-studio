@@ -161,13 +161,11 @@ const {
   selectedItemIndex,
   duplicateSelected,
   removeSelected,
-  labels
+  labels,
+  globalPanelHeight
 } = useStore()
 
-import { ref } from 'vue'
 import DragHandle from './DragHandle.vue'
-
-const globalPanelHeight = ref(400) // Default height in px
 
 const onResize = (delta) => {
   const newHeight = globalPanelHeight.value + delta;
