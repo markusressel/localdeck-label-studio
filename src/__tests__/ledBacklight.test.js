@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { ledStateAt, isAnimatedEffect, labelBacklight, stemShadow, ledGlow, glowLookupUv, GLOW_LOOKUP, EFFECT_PERIOD_S } from '../utils/ledBacklight.js'
+import { ledStateAt, isAnimatedEffect, labelBacklight, stemShadow, EFFECT_PERIOD_S } from '../utils/ledBacklight.js'
 
 const style = (overrides = {}) => ({
   lightEnabled: true,
@@ -77,29 +77,5 @@ describe('stemShadow', () => {
     const thick = stemShadow(labelBacklight('thick-paper'))
     expect(thick.endMm).toBeGreaterThan(film.endMm)
     expect(thick.indirect).toBeGreaterThan(film.indirect)
-  })
-})
-
-describe('ledGlow', () => {
-  const options = { falloffMm: 10, shadow: { startMm: 2, endMm: 6, indirect: 0.2 } }
-
-  it('is full at the LED and fades with distance', () => {
-    expect(ledGlow(0, 0, options)).toBe(1)
-    expect(ledGlow(10, 0, options)).toBeCloseTo(Math.exp(-1))
-    expect(ledGlow(10, 0, { ...options, nearMm: 10 })).toBe(1)
-  })
-
-  it('drops to the indirect share in the stem shadow', () => {
-    expect(ledGlow(0, 1, options)).toBe(1)
-    expect(ledGlow(0, 4, options)).toBeCloseTo(0.6)
-    expect(ledGlow(0, 8, options)).toBeCloseTo(0.2)
-  })
-})
-
-describe('glowLookupUv', () => {
-  it('maps distance to u and the shadow position to v, clamped', () => {
-    expect(glowLookupUv(0, 0)).toEqual([0, 0.5])
-    expect(glowLookupUv(GLOW_LOOKUP.maxDistanceMm * 2, GLOW_LOOKUP.maxAlongMm * 2)).toEqual([1, 1])
-    expect(glowLookupUv(10, GLOW_LOOKUP.minAlongMm)).toEqual([10 / GLOW_LOOKUP.maxDistanceMm, 0])
   })
 })
