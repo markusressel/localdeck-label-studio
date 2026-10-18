@@ -59,6 +59,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js'
 import { WebGLPathTracer, GradientEquirectTexture, DenoiseMaterial } from 'three-gpu-pathtracer'
 import { FullScreenQuad } from 'three/examples/jsm/postprocessing/Pass.js'
+import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js'
 import { denoiseSigma } from '../utils/pathTracing.js'
 import { useStore } from '../composables/useStore'
 import { resolveLabelStyle } from '../utils/labelStyle.js'
@@ -258,6 +259,10 @@ const initThreeJS = () => {
   controls.enableDamping = true
   controls.dampingFactor = 0.05
 
+  // The path traced LEDs are area lights; the rasterized preview shown before the
+  // first samples needs these lookup tables to render them
+  RectAreaLightUniformsLib.init()
+
   pathTracer = new WebGLPathTracer(renderer)
   pathTracer.bounces = 6
   pathTracer.transmissiveBounces = 10
@@ -446,11 +451,10 @@ const buildProceduralDeck = () => {
     clearcoat: 0.3,
     clearcoatRoughness: 0.35,
     ...(pathTraced && {
-      roughness: 0.7,
-      // Fully transmissive, dimmed by absorption inside the plastic: shadow rays then
-      // lose light deterministically instead of being randomly blocked at each
-      // surface, which converges much faster
-      transmission: 1.0,
+      // Milky plastic: mostly scattering, letting a blurred part of the light through.
+      // Fully transmissive plastic looked like frosted glass, showing the stem inside.
+      roughness: 1.0,
+      transmission: 0.55,
       thickness: 1.5,
       ior: 1.45,
       attenuationColor: new THREE.Color().setScalar(previewCapTranslucency.value),
@@ -668,15 +672,23 @@ const buildProceduralDeck = () => {
         // A real light source. MX switches have a window above the LED in the top
         // of the housing, so the LED sits there, south of the stem, which casts
         // its shadow over the upper part of the label. Effects show a still frame.
+        // A 3mm disc facing up rather than a point light: a point light makes surfaces
+        // millimeters away extremely bright (1/distance^2), and every path bouncing off
+        // them became a firefly that never averaged out. Its luminance is chosen so the
+        // light straight up matches LED Intensity (candela = luminance * area).
         const led = ledStateAt(style, 0)
-        const ledLight = own(new THREE.PointLight(
+        const ledDiameterMm = 3
+        const ledAreaMm2 = Math.PI * (ledDiameterMm / 2) ** 2
+        const ledLight = own(new THREE.RectAreaLight(
           new THREE.Color(led.r, led.g, led.b),
-          led.intensity * previewLedIntensity.value,
-          0,
-          2
+          (led.intensity * previewLedIntensity.value) / ledAreaMm2,
+          ledDiameterMm,
+          ledDiameterMm
         ))
+        ledLight.isCircular = true // three-gpu-pathtracer renders it as a disc
         // Just inside the cap's cavity, so it cannot end up enclosed by the opaque housing mesh
         ledLight.position.set(x, capBaseY + 0.5, z + 5)
+        ledLight.lookAt(x, capBaseY + 10, z + 5)
         scene.add(ledLight)
       } else if (isLit) {
         const key = { style, animated: isAnimatedEffect(style), materials: ledMaterials }
