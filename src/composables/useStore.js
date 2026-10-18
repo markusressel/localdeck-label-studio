@@ -352,6 +352,12 @@ export function createStore({ storage = globalThis.localStorage } = {}) {
     return newId
   }
 
+  // Apply changes to a label in place, keeping its identity for everything that references it
+  const updateLabel = (id, patch) => {
+    const label = labels.value.find(l => l.id === id)
+    if (label) Object.assign(label, patch)
+  }
+
   const fillMatrix = () => {
     const deck = activeDeck.value
     if (!deck.slots) deck.slots = {}
@@ -578,6 +584,7 @@ export function createStore({ storage = globalThis.localStorage } = {}) {
     loadStateFromObject,
     getStateObject,
     addLabel,
+    updateLabel,
     fillMatrix,
     seedDefaultLabels,
     matrixWidth,

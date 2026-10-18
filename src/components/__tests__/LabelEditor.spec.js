@@ -1,37 +1,38 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import LabelEditor from '../LabelEditor.vue'
+import { useStore } from '../../composables/useStore.js'
 
 describe('LabelEditor.vue', () => {
-  it('updates the modelValue when input changes', async () => {
-    const label = {
-      id: '1',
-      text: 'Old Text',
-      icon: 'mdi:home',
-      textSize: null,
-      textColor: null,
-      iconSize: null,
-      iconColor: null,
-      lightColor: null,
-      lightBrightness: null
-    }
+  let store
+  let label
 
-    const wrapper = mount(LabelEditor, {
-      props: {
-        modelValue: label,
-        'onUpdate:modelValue': (e) => wrapper.setProps({ modelValue: e })
-      }
-    })
+  beforeEach(() => {
+    store = useStore()
+    store.labels.value = []
+    const id = store.addLabel({ text: 'Old Text', icon: 'mdi:home' })
+    label = store.labels.value.find(l => l.id === id)
+  })
 
-    // Find the textarea for text content (updated to textarea earlier)
-    const textarea = wrapper.find('textarea')
-    expect(textarea.exists()).toBe(true)
-    
-    // Simulate user typing
-    await textarea.setValue('New Text')
+  const mountEditor = () => mount(LabelEditor, { props: { label } })
 
-    // Since we mutate the object directly in v-model for complex nested objects in our app,
-    // we just check if the passed object was mutated
+  it('writes text edits to the store label in place', async () => {
+    const wrapper = mountEditor()
+    await wrapper.find('textarea').setValue('New Text')
+    expect(store.labels.value[0]).toBe(label)
     expect(label.text).toBe('New Text')
+  })
+
+  it('applies the black label preset through the store', async () => {
+    store.globalTextSize.value = 12
+    store.updateLabel(label.id, { backgroundColor: '#ffffff' }) // presets show with the override on
+    const wrapper = mountEditor()
+    const button = wrapper.findAll('button').find(b => /black/i.test(b.text()))
+    expect(button).toBeDefined()
+    await button.trigger('click')
+    expect(label.backgroundColor).toBe('#000000')
+    expect(label.textColor).toBe('#ffffff')
+    expect(label.iconColor).toBe('#ffffff')
+    expect(label.textSize).toBe(12)
   })
 })

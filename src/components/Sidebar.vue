@@ -136,7 +136,7 @@
       
       <div class="panel-content" style="padding: 0; display: flex; flex-direction: column;">
         <div style="padding: 1.5rem; flex: 1;">
-          <LabelEditor v-model="labels[selectedItemIndex]" :key="labels[selectedItemIndex].id" />
+          <LabelEditor :label="labels[selectedItemIndex]" :key="labels[selectedItemIndex].id" />
           
           <div style="margin-top: 1.5rem;">
             <button class="primary" style="width: 100%; background: var(--danger); border-color: var(--danger); display: flex; align-items: center; justify-content: center; gap: 0.5rem;" @click="removeSelected">

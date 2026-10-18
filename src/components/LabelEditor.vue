@@ -16,9 +16,9 @@
       <div class="control-group">
         <div style="display: flex; gap: 0.75rem; align-items: stretch; margin-bottom: 0.5rem;">
           <div class="large-icon-preview" :style="{ color: isColorTransparent(effectiveIconColor) ? '#fff' : effectiveIconColor }">
-            <template v-if="modelValue.icon">
-              <span v-if="isEmoji(modelValue.icon)" class="emoji-large" :class="{ 'force-flat-icon': shouldForceFlatColor }">{{ modelValue.icon }}</span>
-              <Icon :icon="modelValue.icon" v-else class="svg-large" :class="{ 'force-flat-icon': shouldForceFlatColor }" />
+            <template v-if="label.icon">
+              <span v-if="isEmoji(label.icon)" class="emoji-large" :class="{ 'force-flat-icon': shouldForceFlatColor }">{{ label.icon }}</span>
+              <Icon :icon="label.icon" v-else class="svg-large" :class="{ 'force-flat-icon': shouldForceFlatColor }" />
             </template>
             <div v-else class="placeholder-icon">
               <Icon icon="mdi:image-outline" />
@@ -27,23 +27,23 @@
           
           <div class="icon-overrides" v-if="useCustomIcon" style="display: flex; flex-direction: column; gap: 0.5rem; flex: 1; justify-content: center;">
             <div style="display: flex; gap: 0.5rem; align-items: center;">
-              <NumberStepper v-model="modelValue.iconSize" :min="10" :max="64" :defaultVal="globalIconSize" title="Icon Size" />
-              <ColorPicker v-model="modelValue.iconColor" style="flex: 1; border-radius: 8px;" title="Icon Color" />
+              <NumberStepper :modelValue="label.iconSize" @update:modelValue="update({ iconSize: $event })" :min="10" :max="64" :defaultVal="globalIconSize" title="Icon Size" />
+              <ColorPicker :modelValue="label.iconColor" @update:modelValue="update({ iconColor: $event })" style="flex: 1; border-radius: 8px;" title="Icon Color" />
               <button @click="useCustomIcon = false" class="icon-btn danger-text" title="Reset Overrides" style="align-self: flex-start; border: 1px dashed var(--card-border); border-radius: 8px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.15);">
                  <Icon icon="mdi:close" style="font-size: 1.1rem;" />
               </button>
             </div>
             <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 0.25rem;">
               <span style="font-size: 0.75rem; color: var(--text-muted);">Flatten to solid silhouette</span>
-              <CustomSwitch v-model="modelValue.iconFlatten" title="Forces complex/multi-colored icons into a flat shape" />
+              <CustomSwitch :modelValue="label.iconFlatten" @update:modelValue="update({ iconFlatten: $event })" title="Forces complex/multi-colored icons into a flat shape" />
             </div>
             <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 0.25rem;">
               <span style="font-size: 0.75rem; color: var(--text-muted);">Flip Horizontal</span>
-              <CustomSwitch v-model="modelValue.iconFlipH" />
+              <CustomSwitch :modelValue="label.iconFlipH" @update:modelValue="update({ iconFlipH: $event })" />
             </div>
             <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 0.25rem;">
               <span style="font-size: 0.75rem; color: var(--text-muted);">Flip Vertical</span>
-              <CustomSwitch v-model="modelValue.iconFlipV" />
+              <CustomSwitch :modelValue="label.iconFlipV" @update:modelValue="update({ iconFlipV: $event })" />
             </div>
           </div>
           
@@ -55,7 +55,7 @@
           </div>
         </div>
 
-        <IconPicker v-model="modelValue.icon" />
+        <IconPicker :modelValue="label.icon" @update:modelValue="update({ icon: $event })" />
         
         <div class="file-upload-wrapper mt-2">
           <input type="file" accept="image/*" @change="handleFileUpload" id="image-upload" class="file-input" />
@@ -63,7 +63,7 @@
             <Icon icon="mdi:upload" /> Or upload custom image
           </label>
         </div>
-        <div v-if="modelValue.image" class="mt-2 text-sm text-center" style="color: var(--text-muted);">
+        <div v-if="label.image" class="mt-2 text-sm text-center" style="color: var(--text-muted);">
           Custom image loaded. <a href="#" @click.prevent="clearImage" class="danger-text">Remove</a>
         </div>
       </div>
@@ -80,7 +80,7 @@
         </span>
       </div>
       <div class="control-group">
-        <CustomInput v-model="modelValue.text" multiline placeholder="Press Enter for new lines..." rows="2" />
+        <CustomInput :modelValue="label.text" @update:modelValue="update({ text: $event })" multiline placeholder="Press Enter for new lines..." rows="2" />
       </div>
       
       <div class="control-row">
@@ -91,11 +91,11 @@
         <div class="control-row mt-2" v-if="useCustomText">
           <div class="control-group half">
             <label>Text Size (px)</label>
-            <NumberStepper v-model="modelValue.textSize" :min="6" :max="32" :step="1" :defaultVal="globalTextSize" />
+            <NumberStepper :modelValue="label.textSize" @update:modelValue="update({ textSize: $event })" :min="6" :max="32" :step="1" :defaultVal="globalTextSize" />
           </div>
           <div class="control-group half">
             <label>Text Color</label>
-            <ColorPicker v-model="modelValue.textColor" />
+            <ColorPicker :modelValue="label.textColor" @update:modelValue="update({ textColor: $event })" />
           </div>
         </div>
       </Transition>
@@ -113,7 +113,7 @@
         <div class="control-row mt-2" v-if="useCustomBg">
           <div class="control-group">
             <label>Background Color</label>
-            <ColorPicker v-model="modelValue.backgroundColor" />
+            <ColorPicker :modelValue="label.backgroundColor" @update:modelValue="update({ backgroundColor: $event })" />
           </div>
           <div class="control-group" style="flex: 1;">
             <label>Quick Presets</label>
@@ -149,18 +149,18 @@
               <div class="control-row mt-2">
                 <div class="control-group half">
                   <label>Brightness</label>
-                  <CustomSlider v-model="modelValue.lightBrightness" :min="0" :max="100" showValue />
+                  <CustomSlider :modelValue="label.lightBrightness" @update:modelValue="update({ lightBrightness: $event })" :min="0" :max="100" showValue />
                 </div>
                 <div class="control-group half">
                   <label>Color</label>
-                  <ColorPicker v-model="modelValue.lightColor" />
+                  <ColorPicker :modelValue="label.lightColor" @update:modelValue="update({ lightColor: $event })" />
                 </div>
               </div>
               <div class="control-row mt-2">
                 <div class="control-group" style="width: 100%;">
                   <label>Effect</label>
                   <CustomSelect 
-                    v-model="modelValue.lightEffect" 
+                    :modelValue="label.lightEffect" @update:modelValue="update({ lightEffect: $event })" 
                     :options="[
                       { value: null, label: 'Global Default' },
                       { value: 'static', label: 'Static' },
@@ -213,163 +213,134 @@ import { isColorTransparent } from '../utils/colorUtils.js'
 import { resolveLabelStyle } from '../utils/labelStyle.js'
 
 
+// The store's label object; all edits go through the store's updateLabel()
 const props = defineProps({
-  modelValue: {
+  label: {
     type: Object,
     required: true
   }
 })
-
-const emit = defineEmits(['update:modelValue'])
 const { 
   globalIconColor, 
   globalIconSize, 
   globalTextSize, 
   globalTextColor, 
   globalBackgroundColor,
-  globalStyle
+  globalStyle,
+  updateLabel
 } = useStore()
 
-const style = computed(() => resolveLabelStyle(props.modelValue, globalStyle.value))
+const update = (patch) => updateLabel(props.label.id, patch)
+
+const style = computed(() => resolveLabelStyle(props.label, globalStyle.value))
 const effectiveIconColor = computed(() => style.value.iconColor)
 const shouldForceFlatColor = computed(() => style.value.iconFlatten)
 
 const contrastProxy = computed({
-  get: () => props.modelValue.contrast ?? 100,
+  get: () => props.label.contrast ?? 100,
   set: (val) => {
-    emit('update:modelValue', { ...props.modelValue, contrast: val === 100 ? null : val })
+    update({ contrast: val === 100 ? null : val })
   }
 })
 
 const saturationProxy = computed({
-  get: () => props.modelValue.saturation ?? 100,
+  get: () => props.label.saturation ?? 100,
   set: (val) => {
-    emit('update:modelValue', { ...props.modelValue, saturation: val === 100 ? null : val })
+    update({ saturation: val === 100 ? null : val })
   }
 })
 
 const useCustomText = computed({
-  get: () => props.modelValue.textSize !== null && props.modelValue.textSize !== undefined,
+  get: () => props.label.textSize !== null && props.label.textSize !== undefined,
   set: (val) => {
-    if (val) {
-      props.modelValue.textSize = globalTextSize.value
-      props.modelValue.textColor = globalTextColor.value
-    } else {
-      props.modelValue.textSize = null
-      props.modelValue.textColor = null
-    }
+    update(val
+      ? { textSize: globalTextSize.value, textColor: globalTextColor.value }
+      : { textSize: null, textColor: null })
   }
 })
 
 const useCustomIcon = computed({
-  get: () => props.modelValue.iconSize !== null && props.modelValue.iconSize !== undefined,
+  get: () => props.label.iconSize !== null && props.label.iconSize !== undefined,
   set: (val) => {
-    if (val) {
-      props.modelValue.iconSize = globalIconSize.value
-      props.modelValue.iconColor = globalIconColor.value
-    } else {
-      props.modelValue.iconSize = null
-      props.modelValue.iconColor = null
-    }
+    update(val
+      ? { iconSize: globalIconSize.value, iconColor: globalIconColor.value }
+      : { iconSize: null, iconColor: null })
   }
 })
 
 const hasIconPositioning = computed(() => {
-  const l = props.modelValue
+  const l = props.label
   return (l.iconOffsetX && l.iconOffsetX !== 0) || (l.iconOffsetY && l.iconOffsetY !== 0)
 })
 
 const hasTextPositioning = computed(() => {
-  const l = props.modelValue
+  const l = props.label
   return (l.textOffsetX && l.textOffsetX !== 0) || (l.textOffsetY && l.textOffsetY !== 0)
 })
 
-const resetIconPositioning = () => {
-  const updated = { ...props.modelValue }
-  updated.iconOffsetX = 0
-  updated.iconOffsetY = 0
-  emit('update:modelValue', updated)
-}
+const resetIconPositioning = () => update({ iconOffsetX: 0, iconOffsetY: 0 })
 
-const resetTextPositioning = () => {
-  const updated = { ...props.modelValue }
-  updated.textOffsetX = 0
-  updated.textOffsetY = 0
-  emit('update:modelValue', updated)
-}
+const resetTextPositioning = () => update({ textOffsetX: 0, textOffsetY: 0 })
 
 const useCustomBg = computed({
-  get: () => props.modelValue.backgroundColor !== null && props.modelValue.backgroundColor !== undefined,
+  get: () => props.label.backgroundColor !== null && props.label.backgroundColor !== undefined,
   set: (val) => {
-    if (val) {
-      props.modelValue.backgroundColor = globalBackgroundColor.value || '#000000'
-    } else {
-      props.modelValue.backgroundColor = null
-    }
+    update({ backgroundColor: val ? (globalBackgroundColor.value || '#000000') : null })
   }
 })
 
-const setBlackLabel = () => {
-  const updated = { ...props.modelValue }
-  updated.backgroundColor = '#000000'
-  updated.iconColor = '#ffffff'
-  updated.iconSize = updated.iconSize ?? globalIconSize.value
-  updated.textColor = '#ffffff'
-  updated.textSize = updated.textSize ?? globalTextSize.value
-  emit('update:modelValue', updated)
-}
+const setBlackLabel = () => update({
+  backgroundColor: '#000000',
+  iconColor: '#ffffff',
+  iconSize: props.label.iconSize ?? globalIconSize.value,
+  textColor: '#ffffff',
+  textSize: props.label.textSize ?? globalTextSize.value
+})
 
 const cachedLightColor = ref('#10b981')
 const cachedLightBrightness = ref(80)
 const cachedLightEffect = ref('static')
 
 const lightEnabled = computed({
-  get: () => props.modelValue.lightEnabled !== false,
-  set: (val) => { props.modelValue.lightEnabled = val }
+  get: () => props.label.lightEnabled !== false,
+  set: (val) => update({ lightEnabled: val })
 })
 
 const useCustomLight = computed({
-  get: () => props.modelValue.lightColor !== null && props.modelValue.lightColor !== undefined,
+  get: () => props.label.lightColor !== null && props.label.lightColor !== undefined,
   set: (val) => {
     if (val) {
-      props.modelValue.lightColor = cachedLightColor.value
-      props.modelValue.lightBrightness = cachedLightBrightness.value
-      props.modelValue.lightEffect = cachedLightEffect.value
+      update({
+        lightColor: cachedLightColor.value,
+        lightBrightness: cachedLightBrightness.value,
+        lightEffect: cachedLightEffect.value
+      })
     } else {
-      if (props.modelValue.lightColor !== null) {
-        cachedLightColor.value = props.modelValue.lightColor
-        cachedLightBrightness.value = props.modelValue.lightBrightness
-        cachedLightEffect.value = props.modelValue.lightEffect
+      // Remember the override so re-enabling restores it
+      if (props.label.lightColor !== null) {
+        cachedLightColor.value = props.label.lightColor
+        cachedLightBrightness.value = props.label.lightBrightness
+        cachedLightEffect.value = props.label.lightEffect
       }
-      props.modelValue.lightColor = null
-      props.modelValue.lightBrightness = null
-      props.modelValue.lightEffect = null
+      update({ lightColor: null, lightBrightness: null, lightEffect: null })
     }
   }
 })
 
-const resetLight = () => {
-  props.modelValue.lightColor = '#10b981'
-  props.modelValue.lightBrightness = 80
-  props.modelValue.lightEffect = 'static'
-}
+const resetLight = () => update({ lightColor: '#10b981', lightBrightness: 80, lightEffect: 'static' })
 
 const handleFileUpload = (event) => {
   const file = event.target.files[0]
   if (file) {
     const reader = new FileReader()
     reader.onload = (e) => {
-      const updated = { ...props.modelValue, image: e.target.result }
-      emit('update:modelValue', updated)
+      update({ image: e.target.result })
     }
     reader.readAsDataURL(file)
   }
 }
 
-const clearImage = () => {
-  const updated = { ...props.modelValue, image: null }
-  emit('update:modelValue', updated)
-}
+const clearImage = () => update({ image: null })
 </script>
 
 <style scoped>

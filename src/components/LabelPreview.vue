@@ -74,7 +74,7 @@ import { isColorTransparent } from '../utils/colorUtils.js'
 import { resolveLabelStyle } from '../utils/labelStyle.js'
 import { useStore } from '../composables/useStore.js'
 
-const { preview2dLedIntensity, preview2dTranslucency, preview2dFalloff } = useStore()
+const { preview2dLedIntensity, preview2dTranslucency, preview2dFalloff, updateLabel } = useStore()
 
 const props = defineProps({
   label: { type: Object, required: true },
@@ -178,8 +178,7 @@ const onMouseDown = (e, target) => {
     if (Math.abs(newX) < 2) { newX = 0; snappedX.value = true } else snappedX.value = false
     if (Math.abs(newY) < 2) { newY = 0; snappedY.value = true } else snappedY.value = false
 
-    props.label[target + 'OffsetX'] = newX
-    props.label[target + 'OffsetY'] = newY
+    updateLabel(props.label.id, { [target + 'OffsetX']: newX, [target + 'OffsetY']: newY })
   }
 
   const onMouseUp = () => {
