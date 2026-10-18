@@ -47,14 +47,15 @@ describe('isAnimatedEffect', () => {
 })
 
 describe('labelBacklight', () => {
-  it('lets less light through and scatters more for thicker materials', () => {
+  it('lets less light through and diffuses more for thicker materials', () => {
     const film = labelBacklight('transparent')
     const thin = labelBacklight('thin-paper')
     const thick = labelBacklight('thick-paper')
     expect(film.transmittance).toBeGreaterThan(thin.transmittance)
     expect(thin.transmittance).toBeGreaterThan(thick.transmittance)
-    expect(film.scatterPx).toBe(0)
-    expect(thick.scatterPx).toBeGreaterThan(thin.scatterPx)
+    expect(film.diffusion).toBe(1)
+    expect(thin.diffusion).toBeGreaterThan(film.diffusion)
+    expect(thick.diffusion).toBeGreaterThan(thin.diffusion)
   })
 
   it('falls back to film for unknown materials', () => {

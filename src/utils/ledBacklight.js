@@ -3,12 +3,13 @@
 // Duration of one breathing or rainbow cycle; matches the 2D preview animations
 export const EFFECT_PERIOD_S = 3
 
-// How much LED light each label material lets through, and how far the
-// light scatters inside it (in label texture pixels, 256px = one label)
+// How much LED light each label material lets through, and how much it evens
+// out the light by scattering it (a multiplier on the LED falloff distance).
+// The print sits on the surface, so the label itself stays sharp either way.
 const LABEL_BACKLIGHT = {
-  transparent: { transmittance: 0.9, scatterPx: 0 },
-  'thin-paper': { transmittance: 0.45, scatterPx: 6 },
-  'thick-paper': { transmittance: 0.18, scatterPx: 14 }
+  transparent: { transmittance: 0.9, diffusion: 1 },
+  'thin-paper': { transmittance: 0.45, diffusion: 1.6 },
+  'thick-paper': { transmittance: 0.18, diffusion: 2.5 }
 }
 
 export const labelBacklight = (material) => LABEL_BACKLIGHT[material] ?? LABEL_BACKLIGHT.transparent

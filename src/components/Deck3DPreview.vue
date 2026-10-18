@@ -22,7 +22,12 @@
           </div>
           
           <div class="setting-divider"></div>
-          
+
+          <div class="setting-field">
+            <label>Room Light</label>
+            <CustomSlider v-model="previewRoomLight" :min="0" :max="100" showValue />
+          </div>
+
           <div class="setting-field">
             <label>LED Intensity</label>
             <NumberStepper v-model="previewLedIntensity" :min="100" :max="10000" :step="100" :defaultVal="3000" />
@@ -59,14 +64,18 @@ import { drawLabelTexture, TEXTURE_SIZE } from '../utils/labelTexture.js'
 import { ledStateAt, isAnimatedEffect, labelBacklight } from '../utils/ledBacklight.js'
 import { addLedFalloff } from '../utils/ledMaterials.js'
 import NumberStepper from './NumberStepper.vue'
+import CustomSlider from './CustomSlider.vue'
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
 
 const containerRef = ref(null)
 const isLoading = ref(true)
 const showSettings = ref(false)
 
-const { matrixWidth, matrixHeight, labels, decks, activeDeckId, getLabelAtSlot, globalStyle, darkRoom, highQualityRender, caseColor, labelMaterial, switchBodyColor, switchStemColor, previewLedIntensity, previewCapTranslucency, previewCapAttenuation } = useStore()
+const { matrixWidth, matrixHeight, labels, decks, activeDeckId, getLabelAtSlot, globalStyle, darkRoom, highQualityRender, caseColor, labelMaterial, switchBodyColor, switchStemColor, previewLedIntensity, previewCapTranslucency, previewCapAttenuation, previewRoomLight } = useStore()
 
 let scene, camera, renderer, controls, pathTracer
+// Soft studio-like reflections for the room light; created once
+let roomEnvironment
 let switchGLTF = null
 let keycapOBJ = null
 let animationFrameId
@@ -204,6 +213,7 @@ onUnmounted(() => {
   if (animationFrameId) cancelAnimationFrame(animationFrameId)
   window.removeEventListener('resize', onWindowResize)
   disposeOwnedResources()
+  if (roomEnvironment) roomEnvironment.dispose()
   if (renderer) renderer.dispose()
 })
 
@@ -221,10 +231,15 @@ const initThreeJS = () => {
   renderer.setSize(w, h)
   renderer.shadowMap.enabled = true
   renderer.shadowMap.type = THREE.PCFShadowMap
-  renderer.toneMapping = THREE.ACESFilmicToneMapping
+  // Neutral keeps bright LED colors closer to their hue; ACES pushed them towards white
+  renderer.toneMapping = THREE.NeutralToneMapping
   renderer.toneMappingExposure = 1.0
 
   containerRef.value.appendChild(renderer.domElement)
+
+  const pmrem = new THREE.PMREMGenerator(renderer)
+  roomEnvironment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
+  pmrem.dispose()
 
   controls = new OrbitControls(camera, renderer.domElement)
   controls.enableDamping = true
@@ -244,17 +259,16 @@ const onWindowResize = () => {
 }
 
 const buildProceduralDeck = () => {
-  // Dynamic Room Lighting based on Dark Room toggle
-  // In Dark Room, all ambient light is killed. In Light Room, it's very bright.
-  const ambientIntensity = darkRoom.value ? 0.0 : 0.8
-  const dirIntensity = darkRoom.value ? 0.0 : 2.5
+  // Room lighting: off in the dark room, otherwise scaled by the Room Light setting.
+  // Image-based light from a room environment gives the plastic shape and gloss;
+  // a flat ambient light only washed everything out to white.
+  const roomLevel = darkRoom.value ? 0 : previewRoomLight.value / 100
+  scene.environment = roomEnvironment
+  scene.environmentIntensity = roomLevel * 0.8
+  const dirIntensity = roomLevel * 1.5
   
   // Dynamically set background color to match the room state
   scene.background = new THREE.Color(darkRoom.value ? '#000000' : '#1a1a1c')
-
-  // Add ambient light
-  const ambientLight = own(new THREE.AmbientLight(0xffffff, ambientIntensity))
-  scene.add(ambientLight)
 
   // Add directional light ("desk lamp")
   const dirLight = own(new THREE.DirectionalLight(0xffffff, dirIntensity))
@@ -354,7 +368,14 @@ const buildProceduralDeck = () => {
 
   // Frosted white keycap base. Opaque: it glows from the inside instead of
   // using transmission, which shimmers in WebGL.
-  const createCapBaseMaterial = () => new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.55, metalness: 0.0 })
+  // Slightly off-white so lit plastic doesn't clip to pure white; a light clear coat gives the plastic sheen
+  const createCapBaseMaterial = () => new THREE.MeshPhysicalMaterial({
+    color: 0xe6e6e6,
+    roughness: 0.45,
+    metalness: 0.0,
+    clearcoat: 0.3,
+    clearcoatRoughness: 0.35
+  })
   const unlitCapBaseMat = own(createCapBaseMaterial())
 
   // Clear snap-on cover. Path tracing mode keeps the physical glass material;
@@ -486,48 +507,30 @@ const buildProceduralDeck = () => {
         scene.add(capClear)
       }
       
-      // Label Rendering (Canvas Texture)
+      // Label Rendering (Canvas Texture), drawn at 2x for a sharp print up close
       const canvas = document.createElement('canvas')
-      canvas.width = TEXTURE_SIZE
-      canvas.height = TEXTURE_SIZE
+      canvas.width = TEXTURE_SIZE * 2
+      canvas.height = TEXTURE_SIZE * 2
+      const ctx = canvas.getContext('2d')
+      ctx.scale(2, 2)
       const labelTex = own(new THREE.CanvasTexture(canvas))
       labelTex.colorSpace = THREE.SRGBColorSpace
+      labelTex.anisotropy = renderer.capabilities.getMaxAnisotropy()
 
-      // What the LED light looks like after passing through the label: the
-      // label itself, blurred by how much the material scatters light
-      let backlightTex = labelTex
-      let refreshBacklight = () => {}
-      if (backlight.scatterPx > 0) {
-        const backlightCanvas = document.createElement('canvas')
-        backlightCanvas.width = TEXTURE_SIZE
-        backlightCanvas.height = TEXTURE_SIZE
-        const backlightCtx = backlightCanvas.getContext('2d')
-        backlightTex = own(new THREE.CanvasTexture(backlightCanvas))
-        backlightTex.colorSpace = THREE.SRGBColorSpace
-        refreshBacklight = () => {
-          backlightCtx.clearRect(0, 0, TEXTURE_SIZE, TEXTURE_SIZE)
-          backlightCtx.filter = `blur(${backlight.scatterPx}px)`
-          backlightCtx.drawImage(canvas, 0, 0)
-          backlightCtx.filter = 'none'
-          backlightTex.needsUpdate = true
-        }
-      }
-
-      drawLabelTexture(canvas.getContext('2d'), label, style, {
+      drawLabelTexture(ctx, label, style, {
         opaque: labelMaterial.value !== 'transparent',
         loadIcon: loadIconImage,
         loadImage: loadImageElement
       })?.then(() => {
         // An icon or image finished drawing after the texture was created
         labelTex.needsUpdate = true
-        refreshBacklight()
         if (pathTracer && highQualityRender.value) pathTracer.updateCamera()
       })
-      refreshBacklight()
 
       const labelMat = own(new THREE.MeshStandardMaterial({
         map: labelTex,
-        emissiveMap: backlightTex,
+        // Backlight passes through the print: ink blocks it, blank paper or film lets it through
+        emissiveMap: labelTex,
         emissive: 0x000000,
         transparent: false, // Must stay opaque so the clear cover's transmission shader includes it
         side: THREE.DoubleSide,
@@ -541,8 +544,8 @@ const buildProceduralDeck = () => {
         polygonOffsetUnits: -1
       }))
       if (isLit) {
-        // Light reaching the label has already been diffused by the cap, so it fades more gently
-        addLedFalloff(labelMat, { ledPosition, falloffMm: capFalloffMm * 2, nearMm: labelPlaneY - ledPosition.y })
+        // Light reaching the label was diffused by the cap (and paper), so it fades more gently
+        addLedFalloff(labelMat, { ledPosition, falloffMm: capFalloffMm * 2 * backlight.diffusion, nearMm: labelPlaneY - ledPosition.y })
         ledMaterials.push({ material: labelMat, gain: ledGain * backlight.transmittance })
       }
 
@@ -579,7 +582,7 @@ const animate = () => {
 
 // Watch for changes to rebuild deck
 let rebuildTimeout = null
-watch([matrixWidth, matrixHeight, labels, decks, activeDeckId, globalStyle, darkRoom, highQualityRender, caseColor, labelMaterial, switchBodyColor, switchStemColor, previewLedIntensity, previewCapTranslucency, previewCapAttenuation], () => {
+watch([matrixWidth, matrixHeight, labels, decks, activeDeckId, globalStyle, darkRoom, highQualityRender, caseColor, labelMaterial, switchBodyColor, switchStemColor, previewLedIntensity, previewCapTranslucency, previewCapAttenuation, previewRoomLight], () => {
   if (rebuildTimeout) clearTimeout(rebuildTimeout)
   rebuildTimeout = setTimeout(() => {
     // Very crude rebuild: clear scene and rebuild

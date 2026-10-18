@@ -47,6 +47,7 @@ export function createStore({ storage = globalThis.localStorage } = {}) {
   const previewLedIntensity = ref(3000)
   const previewCapTranslucency = ref(0.9)
   const previewCapAttenuation = ref(2.0)
+  const previewRoomLight = ref(60) // 3D room light brightness in %, when the room lights are on
 
   const preview2dLedIntensity = ref(0.0)
   const preview2dTranslucency = ref(1.0)
@@ -252,6 +253,7 @@ export function createStore({ storage = globalThis.localStorage } = {}) {
     previewLedIntensity,
     previewCapTranslucency,
     previewCapAttenuation,
+    previewRoomLight,
     preview2dLedIntensity,
     preview2dTranslucency,
     preview2dFalloff,
@@ -571,6 +573,7 @@ export function createStore({ storage = globalThis.localStorage } = {}) {
     previewLedIntensity,
     previewCapTranslucency,
     previewCapAttenuation,
+    previewRoomLight,
     preview2dLedIntensity,
     preview2dTranslucency,
     preview2dFalloff,
