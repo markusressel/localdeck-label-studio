@@ -385,7 +385,8 @@ const innerStyle = computed(() => {
   content: '';
   position: absolute;
   inset: -1mm;
-  border-radius: 3px;
+  /* Outer radius minus the 1mm lip leaves the label window slightly rounded */
+  border-radius: 1.6mm;
   border: 1mm solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.25) inset, 0 0.4mm 0.6mm rgba(0, 0, 0, 0.12) inset;
 }
