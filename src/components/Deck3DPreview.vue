@@ -370,8 +370,9 @@ const buildProceduralDeck = () => {
       const x = gridStartX + c * 20
       const z = gridStartZ + r * 20
       const index = (r * matrixWidth.value) + c
-      // Empty slots render a blank cap
-      const label = getLabelAtSlot(index) || {}
+      // Empty slots render a blank, unlit cap
+      const slotLabel = getLabelAtSlot(index)
+      const label = slotLabel || {}
 
       // Switch Base (Cherry MX GLTF)
       if (switchGLTF) {
@@ -596,7 +597,7 @@ const buildProceduralDeck = () => {
       scene.add(labelMesh)
 
       // LED Light
-      if (style.lightEnabled) {
+      if (slotLabel && style.lightEnabled) {
         let color = style.lightColor || '#10b981'
         if (color.length === 9) color = color.substring(0, 7)
         const b = style.lightBrightness / 100
