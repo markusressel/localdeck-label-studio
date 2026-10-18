@@ -230,7 +230,7 @@ const initThreeJS = () => {
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
   renderer.setSize(w, h)
   renderer.shadowMap.enabled = true
-  renderer.shadowMap.type = THREE.PCFShadowMap
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap
   // Neutral keeps bright LED colors closer to their hue; ACES pushed them towards white
   renderer.toneMapping = THREE.NeutralToneMapping
   renderer.toneMappingExposure = 1.0
@@ -264,18 +264,32 @@ const buildProceduralDeck = () => {
   // a flat ambient light only washed everything out to white.
   const roomLevel = darkRoom.value ? 0 : previewRoomLight.value / 100
   scene.environment = roomEnvironment
-  scene.environmentIntensity = roomLevel * 0.8
-  const dirIntensity = roomLevel * 1.5
+  // Mostly the desk lamp, with a little room fill so shadows stay visible but not black
+  scene.environmentIntensity = roomLevel * 0.35
+  const dirIntensity = roomLevel * 2.2
   
   // Dynamically set background color to match the room state
   scene.background = new THREE.Color(darkRoom.value ? '#000000' : '#1a1a1c')
 
   // Add directional light ("desk lamp")
+  // Desk lamp to the upper right of the deck (+x is right, -z is the far side)
+  const deckExtent = Math.max(matrixWidth.value, matrixHeight.value) * 10 + 30
   const dirLight = own(new THREE.DirectionalLight(0xffffff, dirIntensity))
-  dirLight.position.set(50, 100, 50)
+  dirLight.position.set(deckExtent + 60, 160, -(deckExtent + 40))
   dirLight.castShadow = true
   dirLight.shadow.mapSize.width = 2048
   dirLight.shadow.mapSize.height = 2048
+  // The default shadow camera covers only +-5mm; cover the whole deck
+  const shadowCamera = dirLight.shadow.camera
+  shadowCamera.left = -deckExtent
+  shadowCamera.right = deckExtent
+  shadowCamera.top = deckExtent
+  shadowCamera.bottom = -deckExtent
+  shadowCamera.near = 1
+  shadowCamera.far = 600
+  shadowCamera.updateProjectionMatrix()
+  dirLight.shadow.bias = -0.0005
+  dirLight.shadow.normalBias = 0.05
   scene.add(dirLight)
 
   // PCB Base
@@ -363,7 +377,9 @@ const buildProceduralDeck = () => {
   // distance from the LED, and the label's own texture decides how much light
   // passes through it (ink blocks it, paper scatters and dims it).
   const ledGain = previewLedIntensity.value / 1500
-  const capFalloffMm = previewCapAttenuation.value * 5
+  const capFalloffMm = previewCapAttenuation.value * 8
+  // The frosted cap scatters strongly, so its stem shadow is soft
+  const capShadow = stemShadow({ diffusion: 2 })
   const backlight = labelBacklight(labelMaterial.value)
 
   // Frosted white keycap base. Opaque: it glows from the inside instead of
@@ -418,11 +434,16 @@ const buildProceduralDeck = () => {
       const isLit = !!slotLabel && style.lightEnabled
       // The switch LED sits on the PCB at the south edge of the housing
       const ledPosition = new THREE.Vector3(x, 3, z + 5)
+      const keyCenter = new THREE.Vector3(x, 3, z)
       const ledMaterials = []
       let capBaseMat = unlitCapBaseMat
       let capClearMat = unlitCapClearMat
       if (isLit) {
-        capBaseMat = own(addLedFalloff(createCapBaseMaterial(), { ledPosition, falloffMm: capFalloffMm }))
+        capBaseMat = own(addLedFalloff(createCapBaseMaterial(), {
+          ledPosition,
+          falloffMm: capFalloffMm,
+          occlusion: { towards: keyCenter, ...capShadow }
+        }))
         ledMaterials.push({ material: capBaseMat, gain: ledGain * previewCapTranslucency.value })
         if (!highQualityRender.value) {
           capClearMat = own(addLedFalloff(createCapClearMaterial(), { ledPosition, falloffMm: capFalloffMm * 2, rim: true }))
@@ -473,9 +494,11 @@ const buildProceduralDeck = () => {
             if (child.name.includes('obj1')) {
               child.material = capBaseMat
               child.castShadow = true
+              child.receiveShadow = true
               whiteCapMesh = child
             } else if (child.name.includes('obj2')) {
               child.material = capClearMat
+              child.receiveShadow = true
               // Lift the clear cover slightly to guarantee physical clearance for the label
               child.position.y += 0.5 
             }
@@ -544,12 +567,13 @@ const buildProceduralDeck = () => {
         polygonOffsetUnits: -1
       }))
       if (isLit) {
-        // Light reaching the label was diffused by the cap (and paper), so it fades more gently
+        // The label receives the same light as the cap top below it, times what the
+        // material lets through: blank film then matches the cap seen through it,
+        // and paper or ink can never be brighter than that
         addLedFalloff(labelMat, {
           ledPosition,
-          falloffMm: capFalloffMm * 2 * backlight.diffusion,
-          nearMm: labelPlaneY - ledPosition.y,
-          occlusion: { towards: new THREE.Vector3(x, labelPlaneY, z), ...stemShadow(backlight) }
+          falloffMm: capFalloffMm,
+          occlusion: { towards: keyCenter, ...stemShadow(backlight) }
         })
         ledMaterials.push({ material: labelMat, gain: ledGain * backlight.transmittance })
       }
@@ -561,6 +585,7 @@ const buildProceduralDeck = () => {
       labelMesh.rotation.x = -Math.PI / 2
       labelMesh.position.set(x, labelPlaneY, z)
       labelMesh.renderOrder = 999 // Force it to render on top of the opaque cap
+      labelMesh.receiveShadow = true
       scene.add(labelMesh)
 
       if (isLit) {
