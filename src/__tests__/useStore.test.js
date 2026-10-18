@@ -207,4 +207,37 @@ describe('useStore', () => {
     store.syncPrintGrid()
     expect(store.printGrid.value.slice(0, 2)).toEqual([null, 'deck-default-slot-1'])
   })
+
+  it('reorders the library', () => {
+    const a = store.addLabel({ text: 'A' })
+    const b = store.addLabel({ text: 'B' })
+    const c = store.addLabel({ text: 'C' })
+    store.moveLibraryLabel(c, a)
+    expect(store.labels.value.map(l => l.id)).toEqual([c, a, b])
+  })
+
+  it('stamps library labels and moves slot labels', () => {
+    const a = store.addLabel({ text: 'A' }, 0)
+    store.placeLabelInSlot(a, 1) // from the library
+    expect(store.activeDeck.value.slots).toEqual({ 0: a, 1: a })
+    store.placeLabelInSlot(a, 5, 1) // from slot 1
+    expect(store.activeDeck.value.slots).toEqual({ 0: a, 5: a })
+  })
+
+  it('adds, renames and removes decks', () => {
+    const first = store.addDeck('First')
+    const second = store.addDeck('Second')
+    expect(first).not.toBe(second)
+    expect(store.activeDeckId.value).toBe(second)
+
+    store.renameDeck(first, 'Renamed')
+    store.renameDeck(first, '') // ignored
+    expect(store.decks.value.find(d => d.id === first).name).toBe('Renamed')
+
+    expect(store.removeDeck(second)).toBe(true)
+    expect(store.activeDeckId.value).toBe('default')
+    expect(store.removeDeck('default')).toBe(true)
+    expect(store.removeDeck(first)).toBe(false) // the last deck stays
+    expect(store.decks.value.map(d => d.id)).toEqual([first])
+  })
 })

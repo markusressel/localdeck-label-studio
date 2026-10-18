@@ -474,49 +474,68 @@ export function createStore({ storage = globalThis.localStorage } = {}) {
     dragOverTarget.value = null
   }
 
+  // Library labels are stamped onto the slot (they can be on several slots);
+  // labels from another slot (fromSlot = its index) move there, swapping with any occupant
+  const placeLabelInSlot = (labelId, targetSlotIndex, fromSlot = null) => {
+    if (!labels.value.some(l => l.id === labelId)) return
+    const deck = activeDeck.value
+    if (!deck.slots) deck.slots = {}
+    const targetLabel = getLabelAtSlot(targetSlotIndex)
+
+    if (fromSlot === null) {
+      deck.slots[targetSlotIndex] = labelId
+    } else if (targetLabel && targetLabel.id !== labelId) {
+      deck.slots[fromSlot] = targetLabel.id
+      deck.slots[targetSlotIndex] = labelId
+    } else if (!targetLabel) {
+      delete deck.slots[fromSlot]
+      deck.slots[targetSlotIndex] = labelId
+    }
+  }
+
+  // Reorder the library: move a label to another label's position
+  const moveLibraryLabel = (labelId, targetLabelId) => {
+    const draggedIndex = labels.value.findIndex(l => l.id === labelId)
+    const targetIndex = labels.value.findIndex(l => l.id === targetLabelId)
+    if (draggedIndex === -1 || targetIndex === -1 || draggedIndex === targetIndex) return
+    const [draggedLabel] = labels.value.splice(draggedIndex, 1)
+    labels.value.splice(targetIndex, 0, draggedLabel)
+  }
+
   const onDropDeckSlot = (e, targetSlotIndex) => {
     dragOverTarget.value = null
     const draggedId = e.dataTransfer.getData('text/plain')
-    const source = e.dataTransfer.getData('source')
     if (!draggedId) return
-
-    const draggedLabel = labels.value.find(l => l.id === draggedId)
-    if (!draggedLabel) return
-
-    const targetLabel = getLabelAtSlot(targetSlotIndex)
-
-    const deck = activeDeck.value
-    if (!deck.slots) deck.slots = {}
-
-    if (source === 'library') {
-      deck.slots[targetSlotIndex] = draggedId
-    } else {
-      const currentSlot = parseInt(source)
-      if (targetLabel && targetLabel.id !== draggedId) {
-        deck.slots[currentSlot] = targetLabel.id
-        deck.slots[targetSlotIndex] = draggedId
-      } else if (!targetLabel) {
-        delete deck.slots[currentSlot]
-        deck.slots[targetSlotIndex] = draggedId
-      }
-    }
+    const source = e.dataTransfer.getData('source')
+    placeLabelInSlot(draggedId, targetSlotIndex, source === 'library' ? null : parseInt(source))
   }
 
   const onDropLibrary = (e, targetLabel) => {
     dragOverTarget.value = null
     const draggedId = e.dataTransfer.getData('text/plain')
-    if (!draggedId) return
+    if (draggedId) moveLibraryLabel(draggedId, targetLabel.id)
+  }
 
-    const draggedIndex = labels.value.findIndex(l => l.id === draggedId)
-    const targetIndex = labels.value.findIndex(l => l.id === targetLabel.id)
+  const addDeck = (name) => {
+    const id = generateId()
+    decks.value.push({ id, name, width: 6, height: 4, slots: {} })
+    activeDeckId.value = id
+    return id
+  }
 
-    if (draggedIndex === -1 || targetIndex === -1 || draggedIndex === targetIndex) return
+  const renameDeck = (id, name) => {
+    const deck = decks.value.find(d => d.id === id)
+    if (deck && name) deck.name = name
+  }
 
-    const draggedLabel = labels.value[draggedIndex]
-
-    // Library: Fluid list insertion
-    labels.value.splice(draggedIndex, 1)
-    labels.value.splice(targetIndex, 0, draggedLabel)
+  // The last deck cannot be removed; switches to the first remaining deck
+  const removeDeck = (id) => {
+    if (decks.value.length <= 1) return false
+    const idx = decks.value.findIndex(d => d.id === id)
+    if (idx === -1) return false
+    decks.value.splice(idx, 1)
+    if (activeDeckId.value === id) activeDeckId.value = decks.value[0].id
+    return true
   }
 
   const getLabelById = (id) => labels.value.find(l => l.id === id)
@@ -601,6 +620,11 @@ export function createStore({ storage = globalThis.localStorage } = {}) {
     onDragEnd,
     onDropDeckSlot,
     onDropLibrary,
+    placeLabelInSlot,
+    moveLibraryLabel,
+    addDeck,
+    renameDeck,
+    removeDeck,
     getLabelById,
     getLabelByOccurrenceId,
     fileInput,

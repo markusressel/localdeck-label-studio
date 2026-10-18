@@ -5,9 +5,9 @@
       <div class="section-header device-header">
       <CustomSelect v-model="activeDeckId" :options="deckOptions" style="width: 200px; font-weight: 600;" />
       <div style="display: flex; gap: 0.25rem; margin-left: 0.5rem;">
-        <button class="icon-btn" @click="addDeck" title="Add New Deck"><Icon icon="mdi:plus" /></button>
-        <button class="icon-btn" @click="renameDeck" title="Rename Deck"><Icon icon="mdi:pencil" /></button>
-        <button class="icon-btn" @click="removeDeck" :disabled="decks.length <= 1" title="Delete Deck" :style="{ opacity: decks.length <= 1 ? 0.3 : 1 }"><Icon icon="mdi:trash-can-outline" /></button>
+        <button class="icon-btn" @click="promptAddDeck" title="Add New Deck"><Icon icon="mdi:plus" /></button>
+        <button class="icon-btn" @click="promptRenameDeck" title="Rename Deck"><Icon icon="mdi:pencil" /></button>
+        <button class="icon-btn" @click="confirmRemoveDeck" :disabled="decks.length <= 1" title="Delete Deck" :style="{ opacity: decks.length <= 1 ? 0.3 : 1 }"><Icon icon="mdi:trash-can-outline" /></button>
       </div>
 
       <div class="spacer"></div>
@@ -221,12 +221,9 @@ const {
   activeDeck,
 } = store
 
-const addDeck = () => {
+const promptAddDeck = () => {
   const name = prompt("Enter a name for the new LocalDeck configuration:", "New Deck")
-  if (!name) return
-  const id = Date.now().toString()
-  decks.value.push({ id, name, width: 6, height: 4, slots: {} })
-  activeDeckId.value = id
+  if (name) store.addDeck(name)
 }
 
 const deckOptions = computed(() => decks.value.map(d => ({ value: d.id, label: d.name })))
@@ -253,18 +250,16 @@ const getButtonIndex = (slotIndex) => {
   return ((h - 1 - row) * w) + col + 1
 }
 
-const renameDeck = () => {
+const promptRenameDeck = () => {
   if (!activeDeck.value) return
   const name = prompt("Enter a new name for this LocalDeck:", activeDeck.value.name)
-  if (name) activeDeck.value.name = name
+  store.renameDeck(activeDeck.value.id, name)
 }
 
-const removeDeck = () => {
+const confirmRemoveDeck = () => {
   if (decks.value.length <= 1) return
   if (confirm(`Are you sure you want to delete the configuration "${activeDeck.value.name}"?`)) {
-    const idx = decks.value.findIndex(d => d.id === activeDeckId.value)
-    decks.value.splice(idx, 1)
-    activeDeckId.value = decks.value[0].id
+    store.removeDeck(activeDeck.value.id)
   }
 }
 
