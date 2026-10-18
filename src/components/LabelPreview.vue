@@ -378,7 +378,7 @@ const innerStyle = computed(() => {
   inset: 0;
   z-index: 1;
   border-radius: 2px;
-  box-shadow: 0 0 0 0.5mm rgba(0, 0, 0, 0.3) inset, 0 0 1mm 0.5mm rgba(0, 0, 0, 0.18) inset;
+  box-shadow: 0 0 0.6mm 0.25mm rgba(0, 0, 0, 0.3) inset, 0 0 1.4mm 0.4mm rgba(0, 0, 0, 0.15) inset;
   pointer-events: none;
 }
 
@@ -391,7 +391,7 @@ const innerStyle = computed(() => {
   position: absolute;
   inset: 0;
   z-index: 1;
-  background: radial-gradient(circle at 50% calc(50% - 0.8mm), rgba(0, 0, 0, 0.3) 2mm, transparent 2.4mm);
+  background: radial-gradient(circle at 50% calc(50% - 0.8mm), rgba(0, 0, 0, 0.3) 1.2mm, rgba(0, 0, 0, 0.15) 2.2mm, transparent 3.2mm);
   pointer-events: none;
 }
 
