@@ -632,7 +632,6 @@ const animate = () => {
 }
 
 // Watch for changes to rebuild deck
-console.log('3D preview refs:', { matrixWidth, matrixHeight, labels, globalLightColor, globalLightBrightness })
 let rebuildTimeout = null
 watch([matrixWidth, matrixHeight, labels, globalStyle, darkRoom, highQualityRender, caseColor, labelMaterial, switchBodyColor, switchStemColor, previewLedIntensity, previewCapTranslucency, previewCapAttenuation], () => {
   if (rebuildTimeout) clearTimeout(rebuildTimeout)
