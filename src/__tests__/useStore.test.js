@@ -1,25 +1,37 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { useStore } from '../composables/useStore.js'
+import { nextTick } from 'vue'
+import { createStore } from '../composables/useStore.js'
+
+const createMemoryStorage = () => {
+  const data = new Map()
+  return {
+    getItem: (key) => (data.has(key) ? data.get(key) : null),
+    setItem: (key, value) => data.set(key, String(value)),
+    removeItem: (key) => data.delete(key)
+  }
+}
 
 describe('useStore', () => {
   let store
 
   beforeEach(() => {
-    localStorage.clear()
-    store = useStore()
-    
-    // Reset singleton state
-    store.labels.value = []
-    store.decks.value = [{
-      id: 'default',
-      name: 'Main Deck',
-      width: 6,
-      height: 4,
-      slots: {}
-    }]
-    store.activeDeckId.value = 'default'
-    store.printOffsetY.value = 0
-    store.printZoom.value = 1
+    store = createStore({ storage: createMemoryStorage() })
+  })
+
+  it('creates independent instances', () => {
+    const other = createStore({ storage: createMemoryStorage() })
+    store.addLabel({ text: 'Only here' })
+    expect(store.labels.value.length).toBe(1)
+    expect(other.labels.value.length).toBe(0)
+  })
+
+  it('autosaves to its own storage', async () => {
+    const storage = createMemoryStorage()
+    const saving = createStore({ storage })
+    saving.addLabel({ text: 'Saved' })
+    await nextTick()
+    const saved = JSON.parse(storage.getItem('localdeck-labels'))
+    expect(saved.labels.map(l => l.text)).toEqual(['Saved'])
   })
 
   it('adds a new label correctly', () => {
@@ -135,8 +147,6 @@ describe('useStore', () => {
   })
 
   it('handles drag and drop logic for labels', () => {
-    store.labels.value = []
-    store.decks.value[0].slots = {}
     const id1 = store.addLabel({ text: 'Drag Me' })
     const id2 = store.addLabel({ text: 'Deck Label' }, 0)
     
