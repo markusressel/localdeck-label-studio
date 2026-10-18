@@ -1,7 +1,10 @@
 <template>
   <div class="deck-3d-preview" ref="containerRef">
     <div v-if="isLoading" class="loading-overlay">Initializing 3D Engine...</div>
-    <div v-if="highQualityRender && !isLoading" class="sample-count">{{ pathTracedSamples }} samples ({{ pathTracedSamplesPerFrame }} per frame)</div>
+    <div v-if="highQualityRender && !isLoading" class="sample-count">
+      {{ pathTracedSamples }} samples ({{ pathTracedSamplesPerFrame }} per frame)
+      <span v-if="isSoftwareRenderer" class="software-warning">· WebGL is running without GPU acceleration ({{ gpuName }})</span>
+    </div>
     
     <div class="floating-controls">
       <div class="settings-dropdown">
@@ -76,6 +79,8 @@ const isLoading = ref(true)
 const showSettings = ref(false)
 const pathTracedSamples = ref(0)
 const pathTracedSamplesPerFrame = ref(1)
+const gpuName = ref('')
+const isSoftwareRenderer = ref(false)
 
 const { matrixWidth, matrixHeight, labels, decks, activeDeckId, getLabelAtSlot, globalStyle, darkRoom, highQualityRender, caseColor, labelMaterial, switchBodyColor, switchStemColor, previewLedIntensity, previewCapTranslucency, previewCapAttenuation, previewRoomLight } = useStore()
 
@@ -251,6 +256,14 @@ const initThreeJS = () => {
   renderer.toneMappingExposure = 1.0
 
   containerRef.value.appendChild(renderer.domElement)
+
+  // Which GPU WebGL really uses: browsers fall back to a software renderer when
+  // GPU acceleration is disabled, which makes path tracing very slow
+  const gl = renderer.getContext()
+  const debugInfo = gl.getExtension('WEBGL_debug_renderer_info')
+  gpuName.value = debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER)
+  isSoftwareRenderer.value = /swiftshader|llvmpipe|software|softpipe/i.test(gpuName.value)
+  console.info(`3D preview: WebGL renderer: ${gpuName.value}`)
 
   const pmrem = new THREE.PMREMGenerator(renderer)
   roomEnvironment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
@@ -784,6 +797,9 @@ watch([matrixWidth, matrixHeight, labels, decks, activeDeckId, globalStyle, dark
   font-size: 0.75rem;
   color: var(--text-muted);
   pointer-events: none;
+}
+.software-warning {
+  color: #f59e0b;
 }
 .loading-overlay {
   position: absolute;
