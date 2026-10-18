@@ -383,16 +383,15 @@ const innerStyle = computed(() => {
 }
 
 /*
- * Film only: the shadow of the switch stem mount in the middle, a 5.5 mm round
- * post around the open MX cross. It blocks about as much light as the rim.
+ * Film only: the shadow of the switch stem mount, a round post slightly above
+ * the middle. It blocks about as much light as the rim.
  */
 .keycap-outer.material-transparent:not(.is-print-mode) .label-insert::after {
   content: '';
   position: absolute;
   inset: 0;
   z-index: 1;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 55 55'%3E%3Cpath fill-rule='evenodd' fill='%23000' fill-opacity='0.3' d='M0 27.5a27.5 27.5 0 1 0 55 0a27.5 27.5 0 1 0-55 0ZM21.5 7.5h12v14h14v12h-14v14h-12v-14h-14v-12h14Z'/%3E%3C/svg%3E") center / 5.5mm 5.5mm no-repeat;
-  filter: blur(0.25mm);
+  background: radial-gradient(circle at 50% calc(50% - 0.8mm), rgba(0, 0, 0, 0.3) 2mm, transparent 2.4mm);
   pointer-events: none;
 }
 
