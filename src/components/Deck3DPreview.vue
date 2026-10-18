@@ -25,17 +25,17 @@
           
           <div class="setting-field">
             <label>LED Intensity (cd)</label>
-            <input type="number" v-model.number="previewLedIntensity" min="100" max="10000" step="100" />
+            <NumberStepper v-model="previewLedIntensity" :min="100" :max="10000" :step="100" :defaultVal="3000" />
           </div>
           
           <div class="setting-row-multi">
             <div class="setting-field half">
               <label>Translucency</label>
-              <input type="number" v-model.number="previewCapTranslucency" min="0" max="1" step="0.05" />
+              <NumberStepper v-model="previewCapTranslucency" :min="0" :max="1" :step="0.05" :defaultVal="0.9" />
             </div>
             <div class="setting-field half">
               <label>Falloff Dist.</label>
-              <input type="number" v-model.number="previewCapAttenuation" min="0.1" max="10.0" step="0.1" />
+              <NumberStepper v-model="previewCapAttenuation" :min="0.1" :max="10" :step="0.1" :defaultVal="2" />
             </div>
           </div>
         </div>
@@ -55,6 +55,7 @@ import { emojify } from '../utils/emojiUtils.js'
 import { WebGLPathTracer } from 'three-gpu-pathtracer'
 import { useStore } from '../composables/useStore'
 import { resolveLabelStyle } from '../utils/labelStyle.js'
+import NumberStepper from './NumberStepper.vue'
 
 const containerRef = ref(null)
 const isLoading = ref(true)

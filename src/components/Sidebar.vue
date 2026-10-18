@@ -48,7 +48,7 @@
             <div class="control-row" style="margin-top: 0.5rem">
               <div class="control-group half">
                 <label>Text Size (px)</label>
-                <input type="number" v-model.number="globalTextSize" min="6" max="32" />
+                <NumberStepper v-model="globalTextSize" :min="6" :max="32" :step="1" :defaultVal="10" />
               </div>
               <div class="control-group half">
                 <label>Text Color</label>
@@ -59,7 +59,7 @@
             <div class="control-row" style="margin-top: 0.5rem">
               <div class="control-group half">
                 <label>Icon Size (px)</label>
-                <input type="number" v-model.number="globalIconSize" min="10" max="64" />
+                <NumberStepper v-model="globalIconSize" :min="10" :max="64" :step="1" :defaultVal="24" />
               </div>
               <div class="control-group half">
                 <label>Icon Color</label>

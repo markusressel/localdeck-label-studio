@@ -91,7 +91,7 @@
         <div class="control-row mt-2" v-if="useCustomText">
           <div class="control-group half">
             <label>Text Size (px)</label>
-            <input type="number" v-model.number="modelValue.textSize" min="6" max="32" />
+            <NumberStepper v-model="modelValue.textSize" :min="6" :max="32" :step="1" :defaultVal="globalTextSize" />
           </div>
           <div class="control-group half">
             <label>Text Color</label>
@@ -393,8 +393,7 @@ const clearImage = () => {
 }
 
 .control-group input[type="text"],
-.text-input-area,
-.control-group input[type="number"] {
+.text-input-area {
   width: 100%;
 }
 

@@ -59,17 +59,17 @@
             
             <div class="setting-field">
               <label>LED Intensity (0-2)</label>
-              <input type="number" v-model.number="preview2dLedIntensity" min="0" max="2" step="0.05" />
+              <NumberStepper v-model="preview2dLedIntensity" :min="0" :max="2" :step="0.05" :defaultVal="0" />
             </div>
             
             <div class="setting-row-multi">
               <div class="setting-field half">
                 <label>Translucency</label>
-                <input type="number" v-model.number="preview2dTranslucency" min="0" max="1" step="0.01" />
+                <NumberStepper v-model="preview2dTranslucency" :min="0" :max="1" :step="0.01" :defaultVal="1" />
               </div>
               <div class="setting-field half">
                 <label>Diffusion (px)</label>
-                <input type="number" v-model.number="preview2dFalloff" min="0" max="20" step="1" />
+                <NumberStepper v-model="preview2dFalloff" :min="0" :max="20" :step="1" :defaultVal="0" />
               </div>
             </div>
 
@@ -219,6 +219,7 @@ import CustomInput from './CustomInput.vue'
 import CustomSlider from './CustomSlider.vue'
 import CustomSwitch from './CustomSwitch.vue'
 import DragHandle from './DragHandle.vue'
+import NumberStepper from './NumberStepper.vue'
 
 // Loaded on demand: three.js + path tracer make up most of the bundle
 const Deck3DPreview = defineAsyncComponent(() => import('./Deck3DPreview.vue'))
