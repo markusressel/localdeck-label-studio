@@ -257,7 +257,6 @@ export function createStore({ storage = globalThis.localStorage } = {}) {
     preview2dFalloff,
     selectedId,
     printFormat,
-    printZoom,
     printOffsetY,
     selectedPrintIds,
     printGrid

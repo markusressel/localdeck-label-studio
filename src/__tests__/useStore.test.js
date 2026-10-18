@@ -60,23 +60,24 @@ describe('useStore', () => {
 
   it('saves and loads state persistence accurately', () => {
     store.printOffsetY.value = 18
-    store.printZoom.value = 1.5
     store.labelWidth.value = 15
     store.darkRoom.value = false
     
     store.saveState()
     
     store.printOffsetY.value = 0
-    store.printZoom.value = 1
     store.labelWidth.value = 10
     store.darkRoom.value = true
     
     store.loadState()
     
     expect(store.printOffsetY.value).toBe(18)
-    expect(store.printZoom.value).toBe(1.5)
     expect(store.labelWidth.value).toBe(15)
     expect(store.darkRoom.value).toBe(false)
+  })
+
+  it('does not save the print zoom, which is fitted on every open', () => {
+    expect(store.getStateObject()).not.toHaveProperty('printZoom')
   })
 
   it('seeds every empty deck slot with a starter label', () => {

@@ -1,6 +1,10 @@
 import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { useStore } from './useStore.js'
 
+const MM_TO_PX = 96 / 25.4
+const MIN_ZOOM = 0.3
+const MAX_ZOOM = 4
+
 /**
  * Interaction state of the print sheet: panning, wheel zoom, box selection and
  * dragging labels between print slots. Local to PrintWorkspace; only the
@@ -14,6 +18,7 @@ export function usePrintCanvas() {
     printChecklistItems,
     printGrid,
     printZoom,
+    paperDimensions,
     cols,
     rows,
     totalPrintSlots,
@@ -74,19 +79,36 @@ export function usePrintCanvas() {
     window.removeEventListener('afterprint', onAfterPrint)
   })
 
-  // Entering print preview: default to printing the active deck, then center the sheet
+  // Zoom so the whole sheet fits the visible area, then scroll it to the center
+  const fitSheetToView = () => {
+    const el = previewContentRef.value
+    if (!el) return
+    const margin = 96 // px around the sheet: container padding plus some breathing room
+    const sheetW = paperDimensions.value.w * MM_TO_PX
+    const sheetH = paperDimensions.value.h * MM_TO_PX
+    const fit = Math.min((el.clientWidth - margin) / sheetW, (el.clientHeight - margin) / sheetH)
+    printZoom.value = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, Math.round(fit * 100) / 100))
+  }
+
+  const centerSheet = () => {
+    const el = previewContentRef.value
+    if (!el) return
+    el.scrollLeft = (el.scrollWidth - el.clientWidth) / 2
+    el.scrollTop = (el.scrollHeight - el.clientHeight) / 2
+  }
+
+  // Entering print preview: default to printing the active deck, then fit and center the sheet
   watch(previewMode, async (newVal) => {
     if (newVal && selectedPrintIds.value.length === 0) {
       selectedPrintIds.value = printChecklistItems.value.filter(item => item.id.startsWith(`deck-${activeDeckId.value}`)).map(item => item.id)
     }
     if (newVal) {
       syncPrintGrid()
-      await nextTick()
-      if (previewContentRef.value) {
-        const el = previewContentRef.value
-        el.scrollLeft = (el.scrollWidth - el.clientWidth) / 2
-        el.scrollTop = (el.scrollHeight - el.clientHeight) / 2
-      }
+      await nextTick() // sidebars rendered, so the visible area has its final size
+      fitSheetToView()
+      await nextTick() // sheet re-rendered at the new zoom
+      // Wait for the browser to lay out the new sizes before measuring scroll extents
+      requestAnimationFrame(centerSheet)
     }
   })
 
@@ -214,7 +236,7 @@ export function usePrintCanvas() {
     const oldZoom = printZoom.value
     const zoomStep = 0.1
     const delta = e.deltaY < 0 ? zoomStep : -zoomStep
-    const newZoom = Math.min(4, Math.max(0.3, oldZoom + delta))
+    const newZoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, oldZoom + delta))
     if (newZoom === oldZoom) return
 
     const paperRect = paperSheetRef.value.getBoundingClientRect()
