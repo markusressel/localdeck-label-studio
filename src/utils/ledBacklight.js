@@ -67,3 +67,44 @@ export function ledStateAt(style, timeS) {
   }
   return { ...hexToRgb(style.lightColor), intensity: brightness }
 }
+
+const smoothstep = (edge0, edge1, x) => {
+  const t = Math.min(Math.max((x - edge0) / (edge1 - edge0), 0), 1)
+  return t * t * (3 - 2 * t)
+}
+
+/**
+ * Relative LED light level at a point of the cap or label, the same model the
+ * rasterized preview applies in its shader (see addLedFalloff()): it fades
+ * with the distance from the LED and drops to an indirect share in the
+ * shadow of the switch stem.
+ *
+ * @param {number} distanceMm - 3D distance from the LED
+ * @param {number} alongMm - distance from the LED towards the key center, in the horizontal plane
+ * @param {object} options
+ * @param {number} options.falloffMm
+ * @param {number} [options.nearMm]
+ * @param {{ startMm: number, endMm: number, indirect: number }} options.shadow - see stemShadow()
+ * @returns {number} 0..1
+ */
+export function ledGlow(distanceMm, alongMm, { falloffMm, nearMm = 0, shadow }) {
+  const falloff = Math.exp(-Math.max(distanceMm - nearMm, 0) / falloffMm)
+  const shadowed = smoothstep(shadow.startMm, shadow.endMm, alongMm)
+  return falloff * (1 + (shadow.indirect - 1) * shadowed)
+}
+
+// Range of the glow lookup texture used by the path tracer
+export const GLOW_LOOKUP = { maxDistanceMm: 40, minAlongMm: -15, maxAlongMm: 15 }
+
+/**
+ * Texture coordinates of a point in the glow lookup texture: u is the distance
+ * from the LED, v the position along the stem shadow.
+ *
+ * @param {number} distanceMm
+ * @param {number} alongMm
+ * @returns {[number, number]}
+ */
+export const glowLookupUv = (distanceMm, alongMm) => [
+  Math.min(distanceMm / GLOW_LOOKUP.maxDistanceMm, 1),
+  Math.min(Math.max((alongMm - GLOW_LOOKUP.minAlongMm) / (GLOW_LOOKUP.maxAlongMm - GLOW_LOOKUP.minAlongMm), 0), 1)
+]

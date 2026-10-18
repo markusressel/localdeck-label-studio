@@ -59,13 +59,12 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js'
 import { WebGLPathTracer, GradientEquirectTexture, DenoiseMaterial } from 'three-gpu-pathtracer'
 import { FullScreenQuad } from 'three/examples/jsm/postprocessing/Pass.js'
-import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js'
-import { denoiseSigma, clampFireflies, fireflyClampFor, FIREFLY_CLAMP_UNIFORM } from '../utils/pathTracing.js'
+import { denoiseSigma } from '../utils/pathTracing.js'
 import { useStore } from '../composables/useStore'
 import { resolveLabelStyle } from '../utils/labelStyle.js'
 import { loadIconImage, loadImageElement } from '../utils/iconImage.js'
 import { drawLabelTexture, TEXTURE_SIZE } from '../utils/labelTexture.js'
-import { ledStateAt, isAnimatedEffect, labelBacklight, stemShadow } from '../utils/ledBacklight.js'
+import { ledStateAt, isAnimatedEffect, labelBacklight, stemShadow, ledGlow, glowLookupUv, GLOW_LOOKUP, EFFECT_PERIOD_S } from '../utils/ledBacklight.js'
 import { addLedFalloff } from '../utils/ledMaterials.js'
 import NumberStepper from './NumberStepper.vue'
 import CustomSlider from './CustomSlider.vue'
@@ -97,6 +96,87 @@ const own = (resource) => {
 const disposeOwnedResources = () => {
   ownedResources.forEach(resource => resource.dispose())
   ownedResources.length = 0
+}
+
+// Path tracing glow: the LED light inside a cap can only be found by chance
+// by a path tracer, which never converges. Instead the cap and label glow
+// from their own surfaces with the same model as the rasterized preview,
+// stored in textures: a lookup texture for the caps, indexed by per-vertex
+// coordinates, and the label's print multiplied by its glow.
+
+// Lookup texture of ledGlow(): u is the distance from the LED, v the position along the stem shadow
+const createGlowLookupTexture = (glowOptions) => {
+  const width = 128
+  const height = 64
+  const canvas = document.createElement('canvas')
+  canvas.width = width
+  canvas.height = height
+  const ctx = canvas.getContext('2d')
+  const image = ctx.createImageData(width, height)
+  const alongRange = GLOW_LOOKUP.maxAlongMm - GLOW_LOOKUP.minAlongMm
+  for (let row = 0; row < height; row++) {
+    // Canvas textures are flipped: the top row is v = 1
+    const along = GLOW_LOOKUP.minAlongMm + (1 - (row + 0.5) / height) * alongRange
+    for (let column = 0; column < width; column++) {
+      const distance = ((column + 0.5) / width) * GLOW_LOOKUP.maxDistanceMm
+      const level = Math.round(255 * ledGlow(distance, along, glowOptions))
+      const offset = (row * width + column) * 4
+      image.data[offset] = image.data[offset + 1] = image.data[offset + 2] = level
+      image.data[offset + 3] = 255
+    }
+  }
+  ctx.putImageData(image, 0, 0)
+  const texture = own(new THREE.CanvasTexture(canvas))
+  texture.colorSpace = THREE.NoColorSpace // linear light levels
+  return texture
+}
+
+// Give a mesh its own geometry whose uv attribute indexes the glow lookup texture
+const assignGlowUvs = (mesh, ledPosition, keyCenter) => {
+  mesh.geometry = own(mesh.geometry.clone())
+  mesh.updateMatrixWorld(true)
+  const positions = mesh.geometry.attributes.position
+  const uvs = new Float32Array(positions.count * 2)
+  const direction = keyCenter.clone().sub(ledPosition).setY(0).normalize()
+  const point = new THREE.Vector3()
+  for (let i = 0; i < positions.count; i++) {
+    point.fromBufferAttribute(positions, i).applyMatrix4(mesh.matrixWorld)
+    const along = (point.x - ledPosition.x) * direction.x + (point.z - ledPosition.z) * direction.z
+    const [u, v] = glowLookupUv(point.distanceTo(ledPosition), along)
+    uvs[i * 2] = u
+    uvs[i * 2 + 1] = v
+  }
+  mesh.geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2))
+}
+
+// Glow mask of a label lying flat at labelCenter, rows from north to south like the print
+const createLabelGlowMask = (labelCenter, sizeMm, ledPosition, glowOptions) => {
+  const resolution = 64
+  const canvas = document.createElement('canvas')
+  canvas.width = resolution
+  canvas.height = resolution
+  const ctx = canvas.getContext('2d')
+  const image = ctx.createImageData(resolution, resolution)
+  const direction = labelCenter.clone().sub(ledPosition).setY(0).normalize()
+  const point = new THREE.Vector3()
+  for (let row = 0; row < resolution; row++) {
+    for (let column = 0; column < resolution; column++) {
+      point.set(
+        labelCenter.x + ((column + 0.5) / resolution - 0.5) * sizeMm,
+        labelCenter.y,
+        labelCenter.z + ((row + 0.5) / resolution - 0.5) * sizeMm
+      )
+      const along = (point.x - ledPosition.x) * direction.x + (point.z - ledPosition.z) * direction.z
+      const glow = ledGlow(point.distanceTo(ledPosition), along, glowOptions)
+      // The label texture is sRGB, so encode the linear light level
+      const level = Math.round(255 * Math.pow(glow, 1 / 2.2))
+      const offset = (row * resolution + column) * 4
+      image.data[offset] = image.data[offset + 1] = image.data[offset + 2] = level
+      image.data[offset + 3] = 255
+    }
+  }
+  ctx.putImageData(image, 0, 0)
+  return canvas
 }
 
 // Lit keys: their style and the materials their LED drives, each with a gain
@@ -259,10 +339,6 @@ const initThreeJS = () => {
   controls.enableDamping = true
   controls.dampingFactor = 0.05
 
-  // The path traced LEDs are area lights; the rasterized preview shown before the
-  // first samples needs these lookup tables to render them
-  RectAreaLightUniformsLib.init()
-
   pathTracer = new WebGLPathTracer(renderer)
   pathTracer.bounces = 6
   pathTracer.transmissiveBounces = 10
@@ -272,15 +348,6 @@ const initThreeJS = () => {
   // ninth of a sample per frame, which capped convergence at the display rate.
   pathTracer.tiles.set(1, 1)
 
-  // Clamp single extremely bright paths (fireflies) in the full and the low-res
-  // path tracer. These are internals of three-gpu-pathtracer, hence the check.
-  for (const tracer of [pathTracer._pathTracer, pathTracer._lowResPathTracer]) {
-    const { source, replaced } = clampFireflies(tracer.material.fragmentShader)
-    if (replaced === 0) console.warn('3D preview: firefly clamp not applied, the three-gpu-pathtracer shader changed')
-    tracer.material.fragmentShader = source
-    tracer.material.uniforms[FIREFLY_CLAMP_UNIFORM] = { value: fireflyClampFor(previewLedIntensity.value) }
-    tracer.material.needsUpdate = true
-  }
 
   // Edge-preserving denoising of the first noisy samples, fading out as they converge
   denoiseQuad = new FullScreenQuad(new DenoiseMaterial({
@@ -450,27 +517,15 @@ const buildProceduralDeck = () => {
   const backlight = labelBacklight(labelMaterial.value)
 
   // Frosted white keycap base, slightly off-white so lit plastic doesn't clip to
-  // pure white, with a light clear coat for the plastic sheen.
-  // Rasterized, it is opaque and glows from the inside (transmission shimmers in
-  // WebGL). Path traced, it is real translucent plastic the LED shines through:
-  // Translucency is its transmission, Falloff Dist. how far light gets inside it.
+  // pure white, with a light clear coat for the plastic sheen. Opaque in both
+  // modes: it glows from the inside (transmission shimmers in WebGL, and hides
+  // the light from the path tracer).
   const createCapBaseMaterial = () => new THREE.MeshPhysicalMaterial({
     color: 0xe6e6e6,
     roughness: 0.45,
     metalness: 0.0,
     clearcoat: 0.3,
-    clearcoatRoughness: 0.35,
-    ...(pathTraced && {
-      // Milky plastic: mostly scattering, letting a blurred part of the light through.
-      // Fully transmissive plastic looked like frosted glass, showing the stem inside.
-      roughness: 1.0,
-      transmission: 0.55,
-      thickness: 1.5,
-      ior: 1.45,
-      attenuationColor: new THREE.Color().setScalar(previewCapTranslucency.value),
-      attenuationDistance: previewCapAttenuation.value,
-      side: THREE.DoubleSide
-    })
+    clearcoatRoughness: 0.35
   })
   const unlitCapBaseMat = own(createCapBaseMaterial())
 
@@ -483,9 +538,8 @@ const buildProceduralDeck = () => {
         roughness: 0.05,
         transmission: 1.0,
         ior: 1.5,
-        // Thin-walled: light passes the 0.5mm wall without bending. With a solid
-        // refracting cover around the LED, the path tracer could only reach the
-        // LED through it by chance, which showed as dots everywhere.
+        // Thin-walled: light passes the 0.5mm wall without bending, which a
+        // cover this thin barely does, and which converges faster
         thickness: 0,
         side: THREE.DoubleSide,
         transparent: true,
@@ -503,6 +557,8 @@ const buildProceduralDeck = () => {
   const unlitCapClearMat = own(createCapClearMaterial())
 
   ledKeys = []
+  const labelGlowOptions = { falloffMm: capFalloffMm, shadow: stemShadow(backlight) }
+  const capGlowTexture = pathTraced ? createGlowLookupTexture({ falloffMm: capFalloffMm, shadow: capShadow }) : null
 
   // Build grid
   for (let r = 0; r < matrixHeight.value; r++) {
@@ -530,6 +586,10 @@ const buildProceduralDeck = () => {
         ledMaterials.push({ material: capBaseMat, gain: ledGain * previewCapTranslucency.value })
         capClearMat = own(addLedFalloff(createCapClearMaterial(), { ledPosition, falloffMm: capFalloffMm * 2, rim: true }))
         ledMaterials.push({ material: capClearMat, gain: ledGain * 0.8 })
+      } else if (isLit) {
+        capBaseMat = own(createCapBaseMaterial())
+        capBaseMat.emissiveMap = capGlowTexture
+        ledMaterials.push({ material: capBaseMat, gain: ledGain * previewCapTranslucency.value })
       }
 
       // Switch Base (Cherry MX GLTF)
@@ -589,6 +649,7 @@ const buildProceduralDeck = () => {
         
         // Calculate exact mathematical top of the white cap after placement
         capClone.updateMatrixWorld(true)
+        if (whiteCapMesh && isLit && pathTraced) assignGlowUvs(whiteCapMesh, ledPosition, keyCenter)
         if (whiteCapMesh) {
           const box1 = new THREE.Box3().setFromObject(whiteCapMesh)
           // Place label EXACTLY 0.1 units above the highest point of the white cap
@@ -621,6 +682,28 @@ const buildProceduralDeck = () => {
       labelTex.colorSpace = THREE.SRGBColorSpace
       labelTex.anisotropy = renderer.capabilities.getMaxAnisotropy()
 
+      // Path traced, the glow is baked: the print multiplied by the label's glow mask
+      const planeWidth = 10 * Math.sqrt(2) // Match top width of cap
+      const labelSizeMm = planeWidth - 1
+      let glowTex = null
+      let refreshGlow = () => {}
+      if (pathTraced && isLit) {
+        const glowCanvas = document.createElement('canvas')
+        glowCanvas.width = canvas.width
+        glowCanvas.height = canvas.height
+        const glowCtx = glowCanvas.getContext('2d')
+        const mask = createLabelGlowMask(new THREE.Vector3(x, labelPlaneY, z), labelSizeMm, ledPosition, labelGlowOptions)
+        glowTex = own(new THREE.CanvasTexture(glowCanvas))
+        glowTex.colorSpace = THREE.SRGBColorSpace
+        refreshGlow = () => {
+          glowCtx.globalCompositeOperation = 'copy'
+          glowCtx.drawImage(canvas, 0, 0)
+          glowCtx.globalCompositeOperation = 'multiply'
+          glowCtx.drawImage(mask, 0, 0, glowCanvas.width, glowCanvas.height)
+          glowTex.needsUpdate = true
+        }
+      }
+
       drawLabelTexture(ctx, label, style, {
         opaque: labelMaterial.value !== 'transparent',
         loadIcon: loadIconImage,
@@ -628,20 +711,18 @@ const buildProceduralDeck = () => {
       })?.then(() => {
         // An icon or image finished drawing after the texture was created
         labelTex.needsUpdate = true
+        refreshGlow()
         if (pathTraced) pathTracer.updateMaterials()
       })
+      refreshGlow()
 
-      // Path traced, the label is a thin translucent sheet the LED shines through,
-      // tinted by the print (ink blocks the light)
       const labelMat = own(pathTraced ? new THREE.MeshPhysicalMaterial({
         map: labelTex,
+        emissiveMap: glowTex,
+        emissive: 0x000000,
         side: THREE.DoubleSide,
-        alphaTest: 0.5,
-        transmission: backlight.transmittance,
-        thickness: 0,
-        ior: 1.5,
-        // Printed ink is matte; a near-mirror film lit by a point light only makes fireflies
-        roughness: labelMaterial.value === 'transparent' ? 0.4 : 0.9,
+        alphaTest: 0.5, // Cuts out blank film so the glowing cap shows through
+        roughness: 0.9,
         metalness: 0.0
       }) : new THREE.MeshStandardMaterial({
         map: labelTex,
@@ -669,11 +750,12 @@ const buildProceduralDeck = () => {
           occlusion: { towards: keyCenter, ...stemShadow(backlight) }
         })
         ledMaterials.push({ material: labelMat, gain: ledGain * backlight.transmittance })
+      } else if (isLit) {
+        ledMaterials.push({ material: labelMat, gain: ledGain * backlight.transmittance })
       }
 
       // Plane for label
-      const planeWidth = 10 * Math.sqrt(2) // Match top width of cap
-      const labelGeo = own(new THREE.PlaneGeometry(planeWidth - 1, planeWidth - 1))
+      const labelGeo = own(new THREE.PlaneGeometry(labelSizeMm, labelSizeMm))
       const labelMesh = new THREE.Mesh(labelGeo, labelMat)
       labelMesh.rotation.x = -Math.PI / 2
       labelMesh.position.set(x, labelPlaneY, z)
@@ -682,27 +764,10 @@ const buildProceduralDeck = () => {
       scene.add(labelMesh)
 
       if (isLit && pathTraced) {
-        // A real light source. MX switches have a window above the LED in the top
-        // of the housing, so the LED sits there, south of the stem, which casts
-        // its shadow over the upper part of the label. Effects show a still frame.
-        // A 3mm disc facing up rather than a point light: a point light makes surfaces
-        // millimeters away extremely bright (1/distance^2), and every path bouncing off
-        // them became a firefly that never averaged out. Its luminance is chosen so the
-        // light straight up matches LED Intensity (candela = luminance * area).
-        const led = ledStateAt(style, 0)
-        const ledDiameterMm = 3
-        const ledAreaMm2 = Math.PI * (ledDiameterMm / 2) ** 2
-        const ledLight = own(new THREE.RectAreaLight(
-          new THREE.Color(led.r, led.g, led.b),
-          (led.intensity * previewLedIntensity.value) / ledAreaMm2,
-          ledDiameterMm,
-          ledDiameterMm
-        ))
-        ledLight.isCircular = true // three-gpu-pathtracer renders it as a disc
-        // Just inside the cap's cavity, so it cannot end up enclosed by the opaque housing mesh
-        ledLight.position.set(x, capBaseY + 0.5, z + 5)
-        ledLight.lookAt(x, capBaseY + 10, z + 5)
-        scene.add(ledLight)
+        // Path traced frames accumulate over time, so effects show a still frame:
+        // breathing at its peak, rainbow at red
+        const stillTimeS = style.lightEffect === 'breathing' ? EFFECT_PERIOD_S / 2 : 0
+        applyLed({ style, materials: ledMaterials }, stillTimeS)
       } else if (isLit) {
         const key = { style, animated: isAnimatedEffect(style), materials: ledMaterials }
         applyLed(key, performance.now() / 1000)
@@ -715,13 +780,7 @@ const buildProceduralDeck = () => {
   controls.target.set(0, 0, 0)
 
   // Builds the BVH of the whole scene; rebuilt on every change
-  if (pathTraced) {
-    for (const tracer of [pathTracer._pathTracer, pathTracer._lowResPathTracer]) {
-      const clamp = tracer.material.uniforms[FIREFLY_CLAMP_UNIFORM]
-      if (clamp) clamp.value = fireflyClampFor(previewLedIntensity.value)
-    }
-    pathTracer.setScene(scene, camera)
-  }
+  if (pathTraced) pathTracer.setScene(scene, camera)
 }
 
 const animate = () => {
