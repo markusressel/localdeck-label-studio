@@ -231,15 +231,12 @@ const innerStyle = computed(() => {
   box-shadow: 0 4px 15px rgba(0,0,0,0.8), 0 2px 4px rgba(0,0,0,0.6);
 }
 
+/* The LED hotspot at the bottom edge: visible through film, hidden by paper */
 .keycap-led-glow {
   position: absolute;
-  bottom: -15%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 150%;
-  height: 120%;
-  background: radial-gradient(circle at 50% 100%, #ffffff 0%, var(--led-color) 20%, transparent calc(40% + var(--p2d-falloff) * 5%));
-  opacity: var(--led-brightness);
+  inset: 0;
+  background: radial-gradient(ellipse 35% 22% at 50% 100%, #ffffff 0%, var(--led-color) 35%, transparent 100%);
+  opacity: calc(var(--led-brightness) * var(--p2d-translucency));
   pointer-events: none;
   z-index: 1;
   mix-blend-mode: screen;
@@ -319,12 +316,21 @@ const innerStyle = computed(() => {
   box-shadow: none;
 }
 
-/* Diffused LED glowing THROUGH the paper */
+/*
+ * LED light passing through the label. The LED sits below the bottom edge and
+ * the switch stem blocks its direct path to the upper part, so mainly the lower
+ * third is lit. Paper scatters the light a bit further up, but lets less through.
+ */
 .diffused-led-glow {
   position: absolute;
   inset: 0;
   border-radius: 6px;
-  background: radial-gradient(circle at 50% 90%, var(--led-color) 0%, transparent calc(40% + var(--p2d-falloff) * 5%));
+  background: radial-gradient(
+    ellipse calc(60% + var(--p2d-falloff) * 2%) calc(38% + var(--p2d-falloff) * 1.5%) at 50% 100%,
+    var(--led-color) 0%,
+    color-mix(in srgb, var(--led-color) 35%, transparent) 55%,
+    transparent 100%
+  );
   z-index: 1;
   pointer-events: none;
   transition: opacity 0.3s, filter 0.3s;
@@ -440,21 +446,18 @@ const innerStyle = computed(() => {
 }
 
 /* RGB Light Effects */
+/* Effects scale each layer's own resting opacity, so they work for every material */
 @keyframes breathing-glow {
-  0%, 100% { opacity: calc(var(--led-brightness) * 0.2); }
-  50% { opacity: var(--led-brightness); }
+  0%, 100% { opacity: calc(var(--led-brightness) * var(--p2d-translucency) * 0.2); }
+  50% { opacity: calc(var(--led-brightness) * var(--p2d-translucency)); }
 }
 @keyframes breathing-plastic {
   0%, 100% { opacity: calc(var(--led-brightness) * 1.2 * 0.2); }
   50% { opacity: calc(var(--led-brightness) * 1.2); }
 }
-@keyframes breathing-diffused-thin {
-  0%, 100% { opacity: calc(var(--led-brightness) * 0.9 * 0.2); }
-  50% { opacity: calc(var(--led-brightness) * 0.9); }
-}
-@keyframes breathing-diffused-thick {
-  0%, 100% { opacity: calc(var(--led-brightness) * 0.65 * 0.2); }
-  50% { opacity: calc(var(--led-brightness) * 0.65); }
+@keyframes breathing-diffused {
+  0%, 100% { opacity: calc(var(--led-brightness) * var(--p2d-intensity) * 0.2); }
+  50% { opacity: calc(var(--led-brightness) * var(--p2d-intensity)); }
 }
 
 .effect-breathing .keycap-led-glow {
@@ -463,13 +466,8 @@ const innerStyle = computed(() => {
 .effect-breathing .plastic-cap::before {
   animation: breathing-plastic 3s infinite ease-in-out;
 }
-.effect-breathing.material-thin-paper .diffused-led-glow,
-.effect-breathing .material-thin-paper .diffused-led-glow {
-  animation: breathing-diffused-thin 3s infinite ease-in-out;
-}
-.effect-breathing.material-thick-paper .diffused-led-glow,
-.effect-breathing .material-thick-paper .diffused-led-glow {
-  animation: breathing-diffused-thick 3s infinite ease-in-out;
+.effect-breathing .diffused-led-glow {
+  animation: breathing-diffused 3s infinite ease-in-out;
 }
 
 @keyframes rainbow-glow {
@@ -480,13 +478,9 @@ const innerStyle = computed(() => {
   0% { filter: drop-shadow(0 0 4px var(--led-color)) hue-rotate(0deg); }
   100% { filter: drop-shadow(0 0 4px var(--led-color)) hue-rotate(360deg); }
 }
-@keyframes rainbow-diffused-thin {
-  0% { filter: blur(5px) hue-rotate(0deg); }
-  100% { filter: blur(5px) hue-rotate(360deg); }
-}
-@keyframes rainbow-diffused-thick {
-  0% { filter: blur(10px) hue-rotate(0deg); }
-  100% { filter: blur(10px) hue-rotate(360deg); }
+@keyframes rainbow-diffused {
+  0% { filter: blur(calc(var(--p2d-falloff) * 1px)) hue-rotate(0deg); }
+  100% { filter: blur(calc(var(--p2d-falloff) * 1px)) hue-rotate(360deg); }
 }
 
 .effect-rainbow .keycap-led-glow {
@@ -495,13 +489,8 @@ const innerStyle = computed(() => {
 .effect-rainbow .plastic-cap::before {
   animation: rainbow-plastic 3s infinite linear;
 }
-.effect-rainbow.material-thin-paper .diffused-led-glow,
-.effect-rainbow .material-thin-paper .diffused-led-glow {
-  animation: rainbow-diffused-thin 3s infinite linear;
-}
-.effect-rainbow.material-thick-paper .diffused-led-glow,
-.effect-rainbow .material-thick-paper .diffused-led-glow {
-  animation: rainbow-diffused-thick 3s infinite linear;
+.effect-rainbow .diffused-led-glow {
+  animation: rainbow-diffused 3s infinite linear;
 }
 </style>
 

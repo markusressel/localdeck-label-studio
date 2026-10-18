@@ -49,24 +49,25 @@ export function createStore({ storage = globalThis.localStorage } = {}) {
   const previewCapAttenuation = ref(2.0)
   const previewRoomLight = ref(60) // 3D room light brightness in %, when the room lights are on
 
-  const preview2dLedIntensity = ref(0.0)
+  const preview2dLedIntensity = ref(1.0)
   const preview2dTranslucency = ref(1.0)
   const preview2dFalloff = ref(0.0)
 
+  // 2D preview presets per label material: intensity is how much light gets
+  // through the label (film most, thick paper least), translucency how visible
+  // the LED hotspot stays, falloff how far the material scatters the light
+  const PREVIEW_2D_PRESETS = {
+    transparent: { preview2dLedIntensity: 1.0, preview2dTranslucency: 1.0, preview2dFalloff: 0.0 },
+    'thin-paper': { preview2dLedIntensity: 0.55, preview2dTranslucency: 0.15, preview2dFalloff: 5.0 },
+    'thick-paper': { preview2dLedIntensity: 0.3, preview2dTranslucency: 0.02, preview2dFalloff: 10.0 }
+  }
+
   watch(labelMaterial, (newMat) => {
-    if (newMat === 'transparent') {
-      preview2dLedIntensity.value = 0.0
-      preview2dTranslucency.value = 1.0
-      preview2dFalloff.value = 0.0
-    } else if (newMat === 'thin-paper') {
-      preview2dLedIntensity.value = 0.9
-      preview2dTranslucency.value = 0.15
-      preview2dFalloff.value = 5.0
-    } else if (newMat === 'thick-paper') {
-      preview2dLedIntensity.value = 0.65
-      preview2dTranslucency.value = 0.02
-      preview2dFalloff.value = 10.0
-    }
+    const preset = PREVIEW_2D_PRESETS[newMat]
+    if (!preset) return
+    preview2dLedIntensity.value = preset.preview2dLedIntensity
+    preview2dTranslucency.value = preset.preview2dTranslucency
+    preview2dFalloff.value = preset.preview2dFalloff
   })
 
   const labels = ref([])
@@ -228,7 +229,7 @@ export function createStore({ storage = globalThis.localStorage } = {}) {
   const generateId = () => Math.random().toString(36).substr(2, 9)
 
   const STORAGE_KEY = 'localdeck-labels'
-  const STATE_VERSION = 1
+  const STATE_VERSION = 2
 
   // Persisted settings, keyed by their name in the saved JSON. This map drives
   // save, load, export/import and autosave, so new settings only need adding here.
@@ -283,6 +284,11 @@ export function createStore({ storage = globalThis.localStorage } = {}) {
         delete l.deckSlot
         delete l.print
       })
+    },
+    (data) => {
+      // The 2D presets were wrong (film let no light through); reset the saved
+      // 2D render values to the corrected preset of the saved material
+      Object.assign(data, PREVIEW_2D_PRESETS[data.material] ?? PREVIEW_2D_PRESETS.transparent)
     }
   ]
 

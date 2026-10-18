@@ -61,7 +61,7 @@ import { useStore } from '../composables/useStore'
 import { resolveLabelStyle } from '../utils/labelStyle.js'
 import { loadIconImage, loadImageElement } from '../utils/iconImage.js'
 import { drawLabelTexture, TEXTURE_SIZE } from '../utils/labelTexture.js'
-import { ledStateAt, isAnimatedEffect, labelBacklight } from '../utils/ledBacklight.js'
+import { ledStateAt, isAnimatedEffect, labelBacklight, stemShadow } from '../utils/ledBacklight.js'
 import { addLedFalloff } from '../utils/ledMaterials.js'
 import NumberStepper from './NumberStepper.vue'
 import CustomSlider from './CustomSlider.vue'
@@ -545,7 +545,12 @@ const buildProceduralDeck = () => {
       }))
       if (isLit) {
         // Light reaching the label was diffused by the cap (and paper), so it fades more gently
-        addLedFalloff(labelMat, { ledPosition, falloffMm: capFalloffMm * 2 * backlight.diffusion, nearMm: labelPlaneY - ledPosition.y })
+        addLedFalloff(labelMat, {
+          ledPosition,
+          falloffMm: capFalloffMm * 2 * backlight.diffusion,
+          nearMm: labelPlaneY - ledPosition.y,
+          occlusion: { towards: new THREE.Vector3(x, labelPlaneY, z), ...stemShadow(backlight) }
+        })
         ledMaterials.push({ material: labelMat, gain: ledGain * backlight.transmittance })
       }
 

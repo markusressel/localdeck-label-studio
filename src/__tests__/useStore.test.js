@@ -113,7 +113,7 @@ describe('useStore', () => {
   it('round-trips every persisted setting through export and import', () => {
     store.addLabel({ text: 'Keep' }, 0)
     const exported = JSON.parse(JSON.stringify(store.getStateObject()))
-    expect(exported.version).toBe(1)
+    expect(exported.version).toBe(2)
 
     store.globalTextSize.value = 99
     store.caseColor.value = '#123456'
@@ -122,6 +122,28 @@ describe('useStore', () => {
 
     expect(store.loadStateFromObject(exported)).toBe(true)
     expect(JSON.parse(JSON.stringify(store.getStateObject()))).toEqual(exported)
+  })
+
+  it('resets 2D render values from version 1 saves to the corrected presets', () => {
+    store.loadStateFromObject({ version: 1, material: 'transparent', preview2dLedIntensity: 0, preview2dTranslucency: 1, preview2dFalloff: 0, labels: [{ id: 'a' }] })
+    expect(store.preview2dLedIntensity.value).toBe(1)
+
+    store.loadStateFromObject({ version: 1, material: 'thick-paper', preview2dLedIntensity: 0.65, labels: [{ id: 'a' }] })
+    expect(store.preview2dLedIntensity.value).toBe(0.3)
+    expect(store.preview2dFalloff.value).toBe(10)
+  })
+
+  it('lets film through more light than paper in the 2D preview', async () => {
+    const intensityFor = async (material) => {
+      store.labelMaterial.value = material
+      await nextTick()
+      return store.preview2dLedIntensity.value
+    }
+    const thick = await intensityFor('thick-paper')
+    const thin = await intensityFor('thin-paper')
+    const film = await intensityFor('transparent')
+    expect(film).toBeGreaterThan(thin)
+    expect(thin).toBeGreaterThan(thick)
   })
 
   it('migrates unversioned saves once', () => {

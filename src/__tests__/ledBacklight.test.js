@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { ledStateAt, isAnimatedEffect, labelBacklight, EFFECT_PERIOD_S } from '../utils/ledBacklight.js'
+import { ledStateAt, isAnimatedEffect, labelBacklight, stemShadow, EFFECT_PERIOD_S } from '../utils/ledBacklight.js'
 
 const style = (overrides = {}) => ({
   lightEnabled: true,
@@ -60,5 +60,22 @@ describe('labelBacklight', () => {
 
   it('falls back to film for unknown materials', () => {
     expect(labelBacklight('unknown')).toEqual(labelBacklight('transparent'))
+  })
+})
+
+describe('stemShadow', () => {
+  it('lights mainly the lower third of the label directly', () => {
+    const shadow = stemShadow(labelBacklight('transparent'))
+    // The label spans about 13mm from the LED side; the lower third ends near 3mm
+    expect(shadow.startMm).toBeLessThanOrEqual(3)
+    expect(shadow.endMm).toBeLessThan(13 / 2)
+    expect(shadow.indirect).toBeLessThan(0.2)
+  })
+
+  it('lets scattering materials spread more light into the shadow', () => {
+    const film = stemShadow(labelBacklight('transparent'))
+    const thick = stemShadow(labelBacklight('thick-paper'))
+    expect(thick.endMm).toBeGreaterThan(film.endMm)
+    expect(thick.indirect).toBeGreaterThan(film.indirect)
   })
 })

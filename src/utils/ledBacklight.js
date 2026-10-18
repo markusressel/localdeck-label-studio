@@ -14,6 +14,20 @@ const LABEL_BACKLIGHT = {
 
 export const labelBacklight = (material) => LABEL_BACKLIGHT[material] ?? LABEL_BACKLIGHT.transparent
 
+/**
+ * Shadow of the switch stem on the label, measured from the LED towards the key
+ * center (the label spans about -1.5mm to 11.5mm). The LED lights mainly the
+ * lower third directly; scattering materials spread light further into the shadow.
+ *
+ * @param {{ diffusion: number }} backlight - see labelBacklight()
+ * @returns {{ startMm: number, endMm: number, indirect: number }}
+ */
+export const stemShadow = ({ diffusion }) => ({
+  startMm: 2.5,
+  endMm: 2.5 + 3.5 * Math.sqrt(diffusion),
+  indirect: Math.min(0.12 * diffusion, 0.5)
+})
+
 const hexToRgb = (hex) => {
   const value = parseInt((hex || '#000000').slice(1, 7), 16)
   return { r: ((value >> 16) & 255) / 255, g: ((value >> 8) & 255) / 255, b: (value & 255) / 255 }
