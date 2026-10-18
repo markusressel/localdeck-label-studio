@@ -205,3 +205,59 @@ const onResize = (delta) => {
   globalPanelHeight.value = Math.max(minHeight, Math.min(newHeight, maxHeight));
 }
 </script>
+
+<!-- Unscoped on purpose: these rules also style child components -->
+<style>
+.sidebar-section {
+  width: 400px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  height: 100%;
+}
+
+.global-panel {
+  flex: none;
+  height: auto;
+}
+
+.detail-panel {
+  flex: 1;
+  min-height: 0;
+}
+
+.editor-panel {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.panel-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--card-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(0,0,0,0.1);
+}
+
+.panel-header h2 {
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.panel-actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.panel-content {
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+}
+</style>

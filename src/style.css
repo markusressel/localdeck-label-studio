@@ -284,3 +284,82 @@ label {
 .setting-row-multi .half {
   flex: 1;
 }
+
+/* Shared layout helpers used across components */
+.settings {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.setting-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.setting-group label {
+  margin-bottom: 0;
+  white-space: nowrap;
+}
+
+.setting-group input[type="number"] {
+  width: 70px;
+}
+.setting-group select {
+  width: auto;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.control-group label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.control-group input[type="number"] {
+  width: 100%;
+}
+
+.control-row {
+  display: flex;
+  gap: 1rem;
+}
+
+.half {
+  flex: 1;
+}
+
+.mt-2 {
+  margin-top: 0.5rem;
+}
+
+.icon-btn {
+  padding: 0.4rem;
+  background: transparent;
+  color: var(--text-muted);
+  box-shadow: none;
+}
+.icon-btn:hover {
+  background: rgba(255,255,255,0.1);
+  color: var(--text-main);
+}
+
+.empty-state {
+  background: var(--card-bg);
+  border: 1px dashed var(--card-border);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 2rem;
+}

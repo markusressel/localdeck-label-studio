@@ -301,3 +301,163 @@ const toggleGroupSelection = (group) => {
   selectedPrintIds.value = newSelection
 }
 </script>
+
+<!-- Unscoped on purpose: these rules also style child components -->
+<style>
+/* Print Area and Preview Mode */
+.label-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2mm;
+  align-content: flex-start;
+}
+
+#print-area {
+  display: flex !important;
+  position: fixed;
+  top: 76px;
+  left: 0;
+  width: 100%;
+  height: calc(100vh - 76px);
+  background: rgba(15, 23, 42, 0.98);
+  z-index: 40;
+  transform: translateY(-120%);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+}
+
+.preview-mode #print-area {
+  transform: translateY(0);
+}
+
+.print-preview-sidebar {
+  width: 320px;
+  background: var(--card-bg);
+  border-right: 1px solid var(--card-border);
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem 0.5rem 0.5rem 1.5rem;
+  gap: 1.5rem;
+  box-shadow: 2px 0 10px rgba(0,0,0,0.5);
+  z-index: 10;
+}
+
+.print-preview-sidebar.right-sidebar {
+  border-right: none;
+  border-left: 1px solid var(--card-border);
+  box-shadow: -2px 0 10px rgba(0,0,0,0.5);
+}
+
+.print-preview-sidebar h2 {
+  font-size: 1.25rem;
+  margin: 0;
+}
+
+.setting-group-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.setting-group-vertical label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+.setting-group-vertical select,
+.setting-group-vertical input[type="number"] {
+  width: 100%;
+  background: rgba(0,0,0,0.2);
+  border: 1px solid var(--card-border);
+  color: white;
+  padding: 0.5rem;
+  border-radius: 4px;
+}
+.setting-group-vertical small {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.print-preview-content {
+  flex: 1;
+  overflow: auto;
+  padding: 2rem;
+  background: var(--bg-color);
+}
+
+.paper-zoom-wrapper {
+  margin: 2rem auto;
+}
+
+.paper-sheet {
+  background: white;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  position: relative;
+  background-image: linear-gradient(#e5e5e5 1px, transparent 1px), linear-gradient(90deg, #e5e5e5 1px, transparent 1px);
+  padding: 5mm; 
+  margin: auto;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.sheet-material-transparent {
+  background-color: #f0f4f8;
+}
+.sheet-material-transparent::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: 
+    linear-gradient(45deg, rgba(0,0,0,0.02) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.02) 75%, rgba(0,0,0,0.02)),
+    linear-gradient(45deg, rgba(0,0,0,0.02) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.02) 75%, rgba(0,0,0,0.02));
+  background-size: 20px 20px;
+  background-position: 0 0, 10px 10px;
+  z-index: 0;
+}
+
+.print-grid-slot {
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: transform 0.1s;
+}
+.print-grid-slot.is-drag-over {
+  background: rgba(16, 185, 129, 0.2);
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+}
+
+.print-grid-slot.is-selected {
+  outline: 2px solid #3b82f6;
+  outline-offset: -2px;
+  background: rgba(59, 130, 246, 0.15);
+}
+
+.print-selection-box {
+  position: absolute;
+  background: rgba(59, 130, 246, 0.2);
+  border: 1px solid #3b82f6;
+  pointer-events: none;
+  z-index: 100;
+}
+
+
+.format-A4 {
+  width: 210mm;
+  min-height: 297mm;
+}
+.format-A4-L {
+  width: 297mm;
+  min-height: 210mm;
+}
+.format-Letter {
+  width: 215.9mm;
+  min-height: 279.4mm;
+}
+
+.paper-sheet .label-grid {
+  position: relative;
+  z-index: 1;
+}
+</style>

@@ -539,3 +539,10 @@ const clearImage = () => {
   background: rgba(16, 185, 129, 0.05) !important;
 }
 </style>
+
+<!-- Unscoped on purpose: these rules also style child components -->
+<style>
+.danger-text:hover {
+  color: var(--danger);
+}
+</style>

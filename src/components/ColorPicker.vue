@@ -637,3 +637,14 @@ onUnmounted(() => document.removeEventListener('mousedown', handleClickOutside))
   transform: translateX(-50%) scale(0.95) !important;
 }
 </style>
+
+<!-- Unscoped on purpose: these rules also style child components -->
+<style>
+.color-picker {
+  height: 38px;
+  padding: 0;
+  border-radius: 6px;
+  width: 100%;
+  cursor: pointer;
+}
+</style>
