@@ -54,17 +54,17 @@
           
           <div class="settings-panel" v-if="show2dSettings">
             
-            <div class="setting-field">
+            <div class="setting-field" title="Scales the light of every LED: cap walls, label and the glow on the case">
               <label>LED Intensity (0-2)</label>
-              <NumberStepper v-model="preview2dLedIntensity" :min="0" :max="2" :step="0.05" :defaultVal="0" />
+              <NumberStepper v-model="preview2dLedIntensity" :min="0" :max="2" :step="0.05" :defaultVal="1" />
             </div>
             
             <div class="setting-row-multi">
-              <div class="setting-field half">
+              <div class="setting-field half" title="How much LED light passes through the label. Set by the label material">
                 <label>Translucency</label>
                 <NumberStepper v-model="preview2dTranslucency" :min="0" :max="1" :step="0.01" :defaultVal="1" />
               </div>
-              <div class="setting-field half">
+              <div class="setting-field half" title="How far the label scatters the light. Set by the label material">
                 <label>Diffusion (px)</label>
                 <NumberStepper v-model="preview2dFalloff" :min="0" :max="20" :step="1" :defaultVal="0" />
               </div>

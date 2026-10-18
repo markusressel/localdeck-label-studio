@@ -231,8 +231,8 @@ const innerStyle = computed(() => {
 .scale-wrapper {
   position: relative;
   transition: width 0.2s ease, height 0.2s ease;
-  /* Current LED output, 0-1 */
-  --led-level: calc(var(--led-brightness, 0) * var(--led-breath));
+  /* Current LED output: 0-1 at intensity 1 */
+  --led-level: calc(var(--led-brightness, 0) * var(--led-breath) * var(--p2d-intensity, 1));
 }
 
 /*
@@ -311,15 +311,13 @@ const innerStyle = computed(() => {
   inset: 2mm;
   border-radius: 2px;
   background: #f2f2f0;
-  box-shadow: 0 0 0 0.3mm rgba(255, 255, 255, 0.6);
   pointer-events: none;
 }
 
 /* Dark room: the insert is lit only from behind by the LED */
 .is-dark-room .insert-base {
   background: color-mix(in srgb, var(--led-color) 15%, #fff);
-  box-shadow: none;
-  filter: brightness(calc(0.05 + var(--led-level) * (0.35 + 0.45 * var(--p2d-intensity))));
+  filter: brightness(min(1.2, calc(0.05 + var(--led-level) * (0.3 + 0.5 * var(--p2d-translucency)))));
 }
 
 /*
@@ -338,16 +336,16 @@ const innerStyle = computed(() => {
     transparent 100%
   );
   pointer-events: none;
-  opacity: calc(var(--led-level) * var(--p2d-intensity) * 0.7);
+  opacity: calc(var(--led-level) * var(--p2d-translucency) * 0.7);
   filter: blur(calc(var(--p2d-falloff) * 0.5px));
 }
 
-/* LED glare at the bottom edge of the label: visible through film, hidden by paper */
+/* LED glare at the bottom edge of the label: visible through film, mostly hidden by paper */
 .keycap-led-glow {
   position: absolute;
   inset: 2mm;
   background: radial-gradient(ellipse 40% 16% at 50% 100%, #fff 0%, var(--led-color) 45%, transparent 100%);
-  opacity: calc(var(--led-level) * var(--p2d-translucency) * 0.8);
+  opacity: calc(var(--led-level) * var(--p2d-translucency) * var(--p2d-translucency) * 0.8);
   mix-blend-mode: screen;
   pointer-events: none;
 }
@@ -382,13 +380,18 @@ const innerStyle = computed(() => {
   background-clip: padding-box;
 }
 
+/* The flat top lip of the cover around the label window, and the window's recess edge */
 .plastic-cap::after {
   content: '';
   position: absolute;
-  inset: 0;
-  border-radius: 2px;
-  border: 1px solid rgba(0, 0, 0, 0.15);
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.3) inset, 0 1px 2px rgba(255,255,255,0.5) inset;
+  inset: -1mm;
+  border-radius: 3px;
+  border: 1mm solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.25) inset, 0 0.4mm 0.6mm rgba(0, 0, 0, 0.12) inset;
+}
+.is-dark-room .plastic-cap::after {
+  border-color: rgba(255, 255, 255, 0.04);
+  box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.5) inset;
 }
 
 .label-insert {

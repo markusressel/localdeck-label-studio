@@ -49,15 +49,14 @@ export function createStore({ storage = globalThis.localStorage } = {}) {
   // through the label (film most, thick paper least), translucency how visible
   // the LED hotspot stays, falloff how far the material scatters the light
   const PREVIEW_2D_PRESETS = {
-    transparent: { preview2dLedIntensity: 1.0, preview2dTranslucency: 1.0, preview2dFalloff: 0.0 },
-    'thin-paper': { preview2dLedIntensity: 0.55, preview2dTranslucency: 0.15, preview2dFalloff: 5.0 },
-    'thick-paper': { preview2dLedIntensity: 0.3, preview2dTranslucency: 0.02, preview2dFalloff: 10.0 }
+    transparent: { preview2dTranslucency: 1.0, preview2dFalloff: 0.0 },
+    'thin-paper': { preview2dTranslucency: 0.5, preview2dFalloff: 4.0 },
+    'thick-paper': { preview2dTranslucency: 0.25, preview2dFalloff: 8.0 }
   }
 
   watch(labelMaterial, (newMat) => {
     const preset = PREVIEW_2D_PRESETS[newMat]
     if (!preset) return
-    preview2dLedIntensity.value = preset.preview2dLedIntensity
     preview2dTranslucency.value = preset.preview2dTranslucency
     preview2dFalloff.value = preset.preview2dFalloff
   })
@@ -221,7 +220,7 @@ export function createStore({ storage = globalThis.localStorage } = {}) {
   const generateId = () => Math.random().toString(36).substr(2, 9)
 
   const STORAGE_KEY = 'localdeck-labels'
-  const STATE_VERSION = 2
+  const STATE_VERSION = 3
 
   // Persisted settings, keyed by their name in the saved JSON. This map drives
   // save, load, export/import and autosave, so new settings only need adding here.
@@ -273,6 +272,12 @@ export function createStore({ storage = globalThis.localStorage } = {}) {
     (data) => {
       // The 2D presets were wrong (film let no light through); reset the saved
       // 2D render values to the corrected preset of the saved material
+      Object.assign(data, PREVIEW_2D_PRESETS[data.material] ?? PREVIEW_2D_PRESETS.transparent)
+    },
+    (data) => {
+      // LED intensity now scales the whole LED output instead of being part of
+      // the material presets, and the presets changed; reset both
+      data.preview2dLedIntensity = 1
       Object.assign(data, PREVIEW_2D_PRESETS[data.material] ?? PREVIEW_2D_PRESETS.transparent)
     }
   ]
