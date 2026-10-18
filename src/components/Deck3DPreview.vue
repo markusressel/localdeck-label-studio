@@ -24,7 +24,7 @@
           <div class="setting-divider"></div>
           
           <div class="setting-field">
-            <label>LED Intensity (cd)</label>
+            <label>LED Intensity</label>
             <NumberStepper v-model="previewLedIntensity" :min="100" :max="10000" :step="100" :defaultVal="3000" />
           </div>
           
@@ -56,6 +56,8 @@ import { useStore } from '../composables/useStore'
 import { resolveLabelStyle } from '../utils/labelStyle.js'
 import { loadIconImage, loadImageElement } from '../utils/iconImage.js'
 import { drawLabelTexture, TEXTURE_SIZE } from '../utils/labelTexture.js'
+import { ledStateAt, isAnimatedEffect, labelBacklight } from '../utils/ledBacklight.js'
+import { addLedFalloff } from '../utils/ledMaterials.js'
 import NumberStepper from './NumberStepper.vue'
 
 const containerRef = ref(null)
@@ -68,6 +70,27 @@ let scene, camera, renderer, controls, pathTracer
 let switchGLTF = null
 let keycapOBJ = null
 let animationFrameId
+
+// GPU resources created by the last build, disposed before the next one
+const ownedResources = []
+const own = (resource) => {
+  ownedResources.push(resource)
+  return resource
+}
+const disposeOwnedResources = () => {
+  ownedResources.forEach(resource => resource.dispose())
+  ownedResources.length = 0
+}
+
+// Lit keys: their style and the materials their LED drives, each with a gain
+let ledKeys = []
+const applyLed = (key, timeS) => {
+  const led = ledStateAt(key.style, timeS)
+  for (const { material, gain } of key.materials) {
+    material.emissive.setRGB(led.r, led.g, led.b)
+    material.emissiveIntensity = led.intensity * gain
+  }
+}
 
 onMounted(async () => {
   initThreeJS()
@@ -179,6 +202,8 @@ const loadModels = () => {
 
 onUnmounted(() => {
   if (animationFrameId) cancelAnimationFrame(animationFrameId)
+  window.removeEventListener('resize', onWindowResize)
+  disposeOwnedResources()
   if (renderer) renderer.dispose()
 })
 
@@ -188,7 +213,8 @@ const initThreeJS = () => {
 
   const w = containerRef.value.clientWidth || 800
   const h = containerRef.value.clientHeight || 600
-  camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 1000)
+  // A near plane of 1mm keeps enough depth precision for the label sitting 0.1mm above the cap
+  camera = new THREE.PerspectiveCamera(45, w / h, 1, 1000)
   camera.position.set(0, 150, 200)
 
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
@@ -227,11 +253,11 @@ const buildProceduralDeck = () => {
   scene.background = new THREE.Color(darkRoom.value ? '#000000' : '#1a1a1c')
 
   // Add ambient light
-  const ambientLight = new THREE.AmbientLight(0xffffff, ambientIntensity)
+  const ambientLight = own(new THREE.AmbientLight(0xffffff, ambientIntensity))
   scene.add(ambientLight)
 
   // Add directional light ("desk lamp")
-  const dirLight = new THREE.DirectionalLight(0xffffff, dirIntensity)
+  const dirLight = own(new THREE.DirectionalLight(0xffffff, dirIntensity))
   dirLight.position.set(50, 100, 50)
   dirLight.castShadow = true
   dirLight.shadow.mapSize.width = 2048
@@ -241,8 +267,8 @@ const buildProceduralDeck = () => {
   // PCB Base
   const pcbWidth = matrixWidth.value * 20
   const pcbHeight = matrixHeight.value * 20
-  const pcbGeo = new THREE.BoxGeometry(pcbWidth, 2, pcbHeight)
-  const pcbMat = new THREE.MeshStandardMaterial({ color: 0x113311, roughness: 0.8 })
+  const pcbGeo = own(new THREE.BoxGeometry(pcbWidth, 2, pcbHeight))
+  const pcbMat = own(new THREE.MeshStandardMaterial({ color: 0x113311, roughness: 0.8 }))
   const pcbMesh = new THREE.Mesh(pcbGeo, pcbMat)
   pcbMesh.receiveShadow = true
   scene.add(pcbMesh)
@@ -297,14 +323,14 @@ const buildProceduralDeck = () => {
     bevelThickness: 1.5
   }
   
-  const caseGeo = new THREE.ExtrudeGeometry(shape, extrudeSettings)
+  const caseGeo = own(new THREE.ExtrudeGeometry(shape, extrudeSettings))
   caseGeo.rotateX(Math.PI / 2) // Now it lies flat on XZ, and extrudes downwards in Y
   
-  const caseMeshMat = new THREE.MeshStandardMaterial({ 
+  const caseMeshMat = own(new THREE.MeshStandardMaterial({ 
     color: caseColor.value, 
     roughness: 0.8, 
     metalness: 0.1 
-  })
+  }))
   const caseMesh = new THREE.Mesh(caseGeo, caseMeshMat)
   // Raised to Y=9 (2mm taller) to fully set the switches into the housing base
   caseMesh.position.set(0, 9, 0) 
@@ -313,41 +339,33 @@ const buildProceduralDeck = () => {
   scene.add(caseMesh)
 
   // Materials
-  const switchMat = new THREE.MeshStandardMaterial({ color: switchBodyColor.value, roughness: 0.7 })
-  const stemMat = new THREE.MeshStandardMaterial({ color: 0xaa2222, roughness: 0.4 })
-  
-  const switchHousingMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.6 })
-  
-  // HIGHLY REALISTIC VOLUMETRIC CAP:
-  // This uses absolute physical optical properties. 
-  // It relies on Transmission (volume), IOR (refraction to hide internals), and Roughness (frosting).
-  // In WebGL this will shimmer (screen-space limitation).
-  // In Path Tracer this will be noisy during movement (true volumetric path-tracing limitation), but will converge to photorealism.
-  const capBaseMat = new THREE.MeshPhysicalMaterial({
-    color: 0xffffff,
-    roughness: 0.5, // Frosted surface
-    metalness: 0.0,
-    transmission: 1.0, // 100% volume
-    ior: 1.5, // Bends light heavily so you cannot clearly see the switch stem inside!
-    thickness: 2.0, // 2mm thick plastic volume
-    attenuationColor: new THREE.Color(0xffffff),
-    attenuationDistance: previewCapAttenuation.value, // Light travels this far before being absorbed
-    side: THREE.DoubleSide,
-    transparent: true,
-    depthWrite: true
-  })
-  
-  // Clear snap-on cover
-  // HYBRID RENDERER TRICK:
-  // In standard WebGL, we use opacity to avoid the multi-transmission culling bug.
-  // In Path Tracer mode, we unleash the true physical transmission shader for perfect refraction!
-  const capClearMat = highQualityRender.value 
+  const switchMat = own(new THREE.MeshStandardMaterial({ color: switchBodyColor.value, roughness: 0.7 }))
+  const stemMat = own(new THREE.MeshStandardMaterial({ color: 0xaa2222, roughness: 0.4 }))
+  const switchHousingMat = own(new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.6 }))
+
+  // Backlight model: instead of point lights inside the switch (which only lit
+  // surfaces facing them and flickered through screen-space transmission), the
+  // LED makes the plastic and the label emit light. Emission fades with the
+  // distance from the LED, and the label's own texture decides how much light
+  // passes through it (ink blocks it, paper scatters and dims it).
+  const ledGain = previewLedIntensity.value / 1500
+  const capFalloffMm = previewCapAttenuation.value * 5
+  const backlight = labelBacklight(labelMaterial.value)
+
+  // Frosted white keycap base. Opaque: it glows from the inside instead of
+  // using transmission, which shimmers in WebGL.
+  const createCapBaseMaterial = () => new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.55, metalness: 0.0 })
+  const unlitCapBaseMat = own(createCapBaseMaterial())
+
+  // Clear snap-on cover. Path tracing mode keeps the physical glass material;
+  // otherwise a faint glossy shell whose edges pick up the LED color.
+  const createCapClearMaterial = () => highQualityRender.value
     ? new THREE.MeshPhysicalMaterial({
         color: 0xffffff,
         metalness: 0.0,
-        roughness: 0.05, // Crystal clear
-        transmission: 1.0, // Perfect glass
-        ior: 1.5, // Refractive index of plastic
+        roughness: 0.05,
+        transmission: 1.0,
+        ior: 1.5,
         thickness: 0.5,
         side: THREE.DoubleSide,
         transparent: true,
@@ -355,13 +373,16 @@ const buildProceduralDeck = () => {
       })
     : new THREE.MeshStandardMaterial({
         color: 0xffffff,
-        metalness: 0.1,
-        roughness: 0.1,
-        opacity: 0.3, // Fakes glass in standard WebGL
+        metalness: 0.0,
+        roughness: 0.05,
+        opacity: 0.15,
         side: THREE.DoubleSide,
         transparent: true,
         depthWrite: false
       })
+  const unlitCapClearMat = own(createCapClearMaterial())
+
+  ledKeys = []
 
   // Build grid
   for (let r = 0; r < matrixHeight.value; r++) {
@@ -372,6 +393,21 @@ const buildProceduralDeck = () => {
       // Empty slots render a blank, unlit cap
       const slotLabel = getLabelAtSlot(index)
       const label = slotLabel || {}
+      const style = resolveLabelStyle(label, globalStyle.value)
+      const isLit = !!slotLabel && style.lightEnabled
+      // The switch LED sits on the PCB at the south edge of the housing
+      const ledPosition = new THREE.Vector3(x, 3, z + 5)
+      const ledMaterials = []
+      let capBaseMat = unlitCapBaseMat
+      let capClearMat = unlitCapClearMat
+      if (isLit) {
+        capBaseMat = own(addLedFalloff(createCapBaseMaterial(), { ledPosition, falloffMm: capFalloffMm }))
+        ledMaterials.push({ material: capBaseMat, gain: ledGain * previewCapTranslucency.value })
+        if (!highQualityRender.value) {
+          capClearMat = own(addLedFalloff(createCapClearMaterial(), { ledPosition, falloffMm: capFalloffMm * 2, rim: true }))
+          ledMaterials.push({ material: capClearMat, gain: ledGain * 0.8 })
+        }
+      }
 
       // Switch Base (Cherry MX GLTF)
       if (switchGLTF) {
@@ -390,12 +426,12 @@ const buildProceduralDeck = () => {
         
         scene.add(mxSwitch)
       } else {
-        const switchMesh = new THREE.Mesh(new THREE.BoxGeometry(14, 8, 14), switchMat)
+        const switchMesh = new THREE.Mesh(own(new THREE.BoxGeometry(14, 8, 14)), switchMat)
         switchMesh.position.set(x, 5, z)
         switchMesh.castShadow = true
         scene.add(switchMesh)
   
-        const stemMesh = new THREE.Mesh(new THREE.BoxGeometry(4, 4, 4), stemMat)
+        const stemMesh = new THREE.Mesh(own(new THREE.BoxGeometry(4, 4, 4)), stemMat)
         stemMesh.position.set(x, 11, z)
         scene.add(stemMesh)
       }
@@ -431,19 +467,19 @@ const buildProceduralDeck = () => {
         if (whiteCapMesh) {
           const box1 = new THREE.Box3().setFromObject(whiteCapMesh)
           // Place label EXACTLY 0.1 units above the highest point of the white cap
-          labelPlaneY = box1.max.y + 0.1; console.log("Calculated labelPlaneY:", labelPlaneY)
+          labelPlaneY = box1.max.y + 0.1
         } else {
           labelPlaneY = capBaseY + keycapOBJ.userData.capHeight
         }
       } else {
-        const baseGeo = new THREE.CylinderGeometry(10, 12, 6, 4)
+        const baseGeo = own(new THREE.CylinderGeometry(10, 12, 6, 4))
         const capBase = new THREE.Mesh(baseGeo, capBaseMat)
         capBase.position.set(x, 15, z)
         capBase.rotation.y = Math.PI / 4
         capBase.castShadow = true
         scene.add(capBase)
 
-        const clearGeo = new THREE.CylinderGeometry(10.5, 11, 2, 4)
+        const clearGeo = own(new THREE.CylinderGeometry(10.5, 11, 2, 4))
         const capClear = new THREE.Mesh(clearGeo, capClearMat)
         capClear.position.set(x, 19, z)
         capClear.rotation.y = Math.PI / 4
@@ -454,8 +490,29 @@ const buildProceduralDeck = () => {
       const canvas = document.createElement('canvas')
       canvas.width = TEXTURE_SIZE
       canvas.height = TEXTURE_SIZE
-      const style = resolveLabelStyle(label, globalStyle.value)
-      const labelTex = new THREE.CanvasTexture(canvas)
+      const labelTex = own(new THREE.CanvasTexture(canvas))
+      labelTex.colorSpace = THREE.SRGBColorSpace
+
+      // What the LED light looks like after passing through the label: the
+      // label itself, blurred by how much the material scatters light
+      let backlightTex = labelTex
+      let refreshBacklight = () => {}
+      if (backlight.scatterPx > 0) {
+        const backlightCanvas = document.createElement('canvas')
+        backlightCanvas.width = TEXTURE_SIZE
+        backlightCanvas.height = TEXTURE_SIZE
+        const backlightCtx = backlightCanvas.getContext('2d')
+        backlightTex = own(new THREE.CanvasTexture(backlightCanvas))
+        backlightTex.colorSpace = THREE.SRGBColorSpace
+        refreshBacklight = () => {
+          backlightCtx.clearRect(0, 0, TEXTURE_SIZE, TEXTURE_SIZE)
+          backlightCtx.filter = `blur(${backlight.scatterPx}px)`
+          backlightCtx.drawImage(canvas, 0, 0)
+          backlightCtx.filter = 'none'
+          backlightTex.needsUpdate = true
+        }
+      }
+
       drawLabelTexture(canvas.getContext('2d'), label, style, {
         opaque: labelMaterial.value !== 'transparent',
         loadIcon: loadIconImage,
@@ -463,47 +520,45 @@ const buildProceduralDeck = () => {
       })?.then(() => {
         // An icon or image finished drawing after the texture was created
         labelTex.needsUpdate = true
+        refreshBacklight()
         if (pathTracer && highQualityRender.value) pathTracer.updateCamera()
       })
-      let matConfig = { 
-        map: labelTex, 
-        transparent: false, // MUST BE FALSE so the clear cover's transmission shader includes it in the opaque pass!
+      refreshBacklight()
+
+      const labelMat = own(new THREE.MeshStandardMaterial({
+        map: labelTex,
+        emissiveMap: backlightTex,
+        emissive: 0x000000,
+        transparent: false, // Must stay opaque so the clear cover's transmission shader includes it
         side: THREE.DoubleSide,
-        depthWrite: true, 
-        alphaTest: 0.5, // Physically cuts out transparent film pixels so we can see the cap underneath!
+        depthWrite: true,
+        alphaTest: 0.5, // Cuts out blank film so the glowing cap shows through
         roughness: 0.9,
-        metalness: 0.0
+        metalness: 0.0,
+        // Keeps the label in front of the cap top it sits 0.1mm above
+        polygonOffset: true,
+        polygonOffsetFactor: -1,
+        polygonOffsetUnits: -1
+      }))
+      if (isLit) {
+        // Light reaching the label has already been diffused by the cap, so it fades more gently
+        addLedFalloff(labelMat, { ledPosition, falloffMm: capFalloffMm * 2, nearMm: labelPlaneY - ledPosition.y })
+        ledMaterials.push({ material: labelMat, gain: ledGain * backlight.transmittance })
       }
-      
-      // We no longer use opacity since transparent=false. The paper is treated as a solid cutout.
-      
-      // MeshStandardMaterial respects lighting so it casts/receives shadows!
-      const labelMat = new THREE.MeshStandardMaterial(matConfig)
-      
+
       // Plane for label
       const planeWidth = 10 * Math.sqrt(2) // Match top width of cap
-      const labelGeo = new THREE.PlaneGeometry(planeWidth - 1, planeWidth - 1)
+      const labelGeo = own(new THREE.PlaneGeometry(planeWidth - 1, planeWidth - 1))
       const labelMesh = new THREE.Mesh(labelGeo, labelMat)
-      // Most keycaps have a ~5 degree slope towards the user
       labelMesh.rotation.x = -Math.PI / 2
       labelMesh.position.set(x, labelPlaneY, z)
       labelMesh.renderOrder = 999 // Force it to render on top of the opaque cap
       scene.add(labelMesh)
 
-      // LED Light
-      if (slotLabel && style.lightEnabled) {
-        let color = style.lightColor || '#10b981'
-        if (color.length === 9) color = color.substring(0, 7)
-        const b = style.lightBrightness / 100
-        
-        // Internal LED placed exactly where the physical switch LED slot is.
-        // Needs massive intensity to punch through the 2mm volumetric plastic!
-        const pointLight = new THREE.PointLight(color, b * previewLedIntensity.value, 20)
-        pointLight.position.set(x, 10, z + 5)
-        scene.add(pointLight)
-        
-        // Removed topGlow: The fake overhead light caused a harsh specular circle.
-        // The emissive keycap base will now naturally illuminate the label from below!
+      if (isLit) {
+        const key = { style, animated: isAnimatedEffect(style), materials: ledMaterials }
+        applyLed(key, performance.now() / 1000)
+        ledKeys.push(key)
       }
     }
   }
@@ -514,6 +569,10 @@ const buildProceduralDeck = () => {
 
 const animate = () => {
   animationFrameId = requestAnimationFrame(animate)
+  const timeS = performance.now() / 1000
+  for (const key of ledKeys) {
+    if (key.animated) applyLed(key, timeS)
+  }
   controls.update()
   renderer.render(scene, camera)
 }
@@ -527,6 +586,7 @@ watch([matrixWidth, matrixHeight, labels, decks, activeDeckId, globalStyle, dark
     while(scene.children.length > 0){ 
       scene.remove(scene.children[0]) 
     }
+    disposeOwnedResources()
     buildProceduralDeck()
   }, 250) // 250ms debounce prevents Iconify API rate limiting (HTTP 429) and reduces BVH rebuild stutter
 }, { deep: true })
