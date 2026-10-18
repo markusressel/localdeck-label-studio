@@ -358,6 +358,30 @@ const innerStyle = computed(() => {
   filter: blur(calc(var(--p2d-falloff) * 0.5px));
 }
 
+/* Through film the light reaches the label's side edges and up past the text */
+.keycap-outer.material-transparent .diffused-led-glow {
+  background: radial-gradient(
+    ellipse calc(120% + var(--p2d-falloff) * 2%) calc(72% + var(--p2d-falloff) * 2%) at 50% 100%,
+    var(--led-color) 0%,
+    color-mix(in srgb, var(--led-color) 55%, transparent) 50%,
+    transparent 100%
+  );
+}
+
+/*
+ * Film only: a darker rim right inside the cover's lip, where the walls of the
+ * keycap base attach and block part of the light. Paper hides it.
+ */
+.keycap-outer.material-transparent:not(.is-print-mode) .label-insert::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: 2px;
+  box-shadow: 0 0 0 0.5mm rgba(0, 0, 0, 0.3) inset, 0 0 1mm 0.5mm rgba(0, 0, 0, 0.18) inset;
+  pointer-events: none;
+}
+
 /* LED glare at the bottom edge of the label: visible through film, mostly hidden by paper */
 .keycap-led-glow {
   position: absolute;
