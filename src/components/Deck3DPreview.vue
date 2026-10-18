@@ -54,12 +54,13 @@ import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js'
 import * as emoji from 'node-emoji'
 import { WebGLPathTracer } from 'three-gpu-pathtracer'
 import { useStore } from '../composables/useStore'
+import { resolveLabelStyle } from '../utils/labelStyle.js'
 
 const containerRef = ref(null)
 const isLoading = ref(true)
 const showSettings = ref(false)
 
-const { matrixWidth, matrixHeight, labels, globalLightColor, globalLightBrightness, globalBackgroundColor, globalTextColor, darkRoom, highQualityRender, caseColor, labelMaterial, switchBodyColor, switchStemColor, previewLedIntensity, previewCapTranslucency, previewCapAttenuation } = useStore()
+const { matrixWidth, matrixHeight, labels, globalStyle, darkRoom, highQualityRender, caseColor, labelMaterial, switchBodyColor, switchStemColor, previewLedIntensity, previewCapTranslucency, previewCapAttenuation } = useStore()
 
 let scene, camera, renderer, controls, pathTracer
 let switchGLTF = null
@@ -453,7 +454,8 @@ const buildProceduralDeck = () => {
       const ctx = canvas.getContext('2d')
       
       // Background
-      let bgColor = label.backgroundColor || globalBackgroundColor.value || 'transparent'
+      const style = resolveLabelStyle(label, globalStyle.value)
+      let bgColor = style.backgroundColor || 'transparent'
       if (bgColor === 'transparent') bgColor = '#ffffff'
       if (bgColor.length === 9) bgColor = bgColor.substring(0, 7)
       
@@ -465,8 +467,10 @@ const buildProceduralDeck = () => {
       }
       
       // Text/Icon
-      let textColor = label.textColor || globalTextColor.value || '#000000'
+      let textColor = style.textColor || '#000000'
       if (textColor.length === 9) textColor = textColor.substring(0, 7)
+      let iconColor = style.iconColor || '#000000'
+      if (iconColor.length === 9) iconColor = iconColor.substring(0, 7)
       ctx.fillStyle = textColor
       ctx.textAlign = 'center'
       ctx.textBaseline = 'middle'
@@ -485,7 +489,7 @@ const buildProceduralDeck = () => {
       if (label.text) {
         const tX = (label.textOffsetX || 0) * PX_SCALE
         const tY = (label.textOffsetY || 0) * PX_SCALE
-        const tSize = (label.textSize || 10) * PX_SCALE
+        const tSize = style.textSize * PX_SCALE
         
         ctx.save()
         ctx.translate(128 + tX, tBaseY + tY)
@@ -502,9 +506,9 @@ const buildProceduralDeck = () => {
           if (parts.length === 2) {
             const iX = (label.iconOffsetX || 0) * PX_SCALE
             const iY = (label.iconOffsetY || 0) * PX_SCALE
-            const iSize = (label.iconSize || 24) * PX_SCALE
+            const iSize = style.iconSize * PX_SCALE
             
-            const iconUrl = `https://api.simplesvg.com/${parts[0]}/${parts[1]}.svg?color=${encodeURIComponent(textColor)}`
+            const iconUrl = `https://api.simplesvg.com/${parts[0]}/${parts[1]}.svg?color=${encodeURIComponent(iconColor)}`
             
             const drawIcon = (image) => {
               ctx.save()
@@ -532,13 +536,14 @@ const buildProceduralDeck = () => {
           // Native Emoji Rendering
           const iX = (label.iconOffsetX || 0) * PX_SCALE
           const iY = (label.iconOffsetY || 0) * PX_SCALE
-          const iSize = (label.iconSize || 24) * PX_SCALE
+          const iSize = style.iconSize * PX_SCALE
           
           ctx.save()
           ctx.translate(128 + iX, iBaseY + iY)
           ctx.scale(label.iconFlipH ? -1 : 1, label.iconFlipV ? -1 : 1)
           ctx.font = `${iSize}px sans-serif`
           ctx.textBaseline = 'middle'
+          ctx.fillStyle = iconColor
           ctx.fillText(emoji.emojify(label.icon), 0, 0)
           ctx.restore()
         }
@@ -546,7 +551,7 @@ const buildProceduralDeck = () => {
         // Custom Image Rendering
         const iX = (label.iconOffsetX || 0) * PX_SCALE
         const iY = (label.iconOffsetY || 0) * PX_SCALE
-        const iSize = (label.iconSize || 24) * PX_SCALE
+        const iSize = style.iconSize * PX_SCALE
 
         const drawCustomImage = (image) => {
           ctx.save()
@@ -598,12 +603,10 @@ const buildProceduralDeck = () => {
       scene.add(labelMesh)
 
       // LED Light
-      const isEnabled = label.lightEnabled !== false
-      if (isEnabled) {
-        let color = label.lightColor || globalLightColor.value || '#10b981'
+      if (style.lightEnabled) {
+        let color = style.lightColor || '#10b981'
         if (color.length === 9) color = color.substring(0, 7)
-        let brightness = label.lightBrightness !== undefined ? label.lightBrightness : globalLightBrightness.value
-        const b = brightness / 100
+        const b = style.lightBrightness / 100
         
         // Internal LED placed exactly where the physical switch LED slot is.
         // Needs massive intensity to punch through the 2mm volumetric plastic!
@@ -630,7 +633,7 @@ const animate = () => {
 // Watch for changes to rebuild deck
 console.log('3D preview refs:', { matrixWidth, matrixHeight, labels, globalLightColor, globalLightBrightness })
 let rebuildTimeout = null
-watch([matrixWidth, matrixHeight, labels, globalLightColor, globalLightBrightness, globalBackgroundColor, globalTextColor, darkRoom, highQualityRender, caseColor, labelMaterial, switchBodyColor, switchStemColor, previewLedIntensity, previewCapTranslucency, previewCapAttenuation], () => {
+watch([matrixWidth, matrixHeight, labels, globalStyle, darkRoom, highQualityRender, caseColor, labelMaterial, switchBodyColor, switchStemColor, previewLedIntensity, previewCapTranslucency, previewCapAttenuation], () => {
   if (rebuildTimeout) clearTimeout(rebuildTimeout)
   rebuildTimeout = setTimeout(() => {
     // Very crude rebuild: clear scene and rebuild

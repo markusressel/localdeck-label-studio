@@ -198,7 +198,7 @@
 
 <script setup>
 import { Icon } from '@iconify/vue'
-import { computed, watch, ref } from 'vue'
+import { computed, ref } from 'vue'
 import ColorPicker from './ColorPicker.vue'
 import CustomCheckbox from './CustomCheckbox.vue'
 import CustomSwitch from './CustomSwitch.vue'
@@ -210,6 +210,7 @@ import CustomSlider from './CustomSlider.vue'
 import * as emoji from 'node-emoji'
 import { useStore } from '../composables/useStore'
 import { isColorTransparent } from '../utils/colorUtils.js'
+import { resolveLabelStyle } from '../utils/labelStyle.js'
 
 const isEmoji = (str) => {
   if (!str) return false
@@ -230,20 +231,13 @@ const {
   globalIconSize, 
   globalTextSize, 
   globalTextColor, 
-  globalBackgroundColor 
+  globalBackgroundColor,
+  globalStyle
 } = useStore()
 
-const effectiveIconColor = computed(() => props.modelValue.iconColor ?? globalIconColor.value)
-
-const shouldForceFlatColor = computed(() => {
-  if (isColorTransparent(effectiveIconColor.value)) return true;
-  if (props.modelValue.iconFlatten) return true;
-  if (props.modelValue.iconFlatten === false) return false;
-  
-  if (globalIconFlatten.value) return true;
-  return false;
-})
-watch(() => props.modelValue, (newVal) => { console.log("LabelEditor modelValue updated:", newVal) }, { deep: true })
+const style = computed(() => resolveLabelStyle(props.modelValue, globalStyle.value))
+const effectiveIconColor = computed(() => style.value.iconColor)
+const shouldForceFlatColor = computed(() => style.value.iconFlatten)
 
 const contrastProxy = computed({
   get: () => props.modelValue.contrast ?? 100,
@@ -324,9 +318,9 @@ const setBlackLabel = () => {
   const updated = { ...props.modelValue }
   updated.backgroundColor = '#000000'
   updated.iconColor = '#ffffff'
-  updated.iconSize = updated.iconSize || globalIconSize.value
+  updated.iconSize = updated.iconSize ?? globalIconSize.value
   updated.textColor = '#ffffff'
-  updated.textSize = updated.textSize || globalTextSize.value
+  updated.textSize = updated.textSize ?? globalTextSize.value
   emit('update:modelValue', updated)
 }
 

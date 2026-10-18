@@ -217,6 +217,19 @@ if (typeof window !== 'undefined') {
   })
 }
 
+// Global defaults that labels inherit from; see utils/labelStyle.js
+const globalStyle = computed(() => ({
+  textSize: globalTextSize.value,
+  textColor: globalTextColor.value,
+  iconSize: globalIconSize.value,
+  iconColor: globalIconColor.value,
+  iconFlatten: globalIconFlatten.value,
+  backgroundColor: globalBackgroundColor.value,
+  lightColor: globalLightColor.value,
+  lightBrightness: globalLightBrightness.value,
+  lightEffect: globalLightEffect.value
+}))
+
 const selectedItemIndex = computed(() => {
   if (!selectedId.value) return null
   const idx = labels.value.findIndex(l => l.id === selectedId.value)
@@ -736,6 +749,7 @@ export function useStore() {
     globalIconColor,
     globalIconFlatten,
     globalBackgroundColor,
+    globalStyle,
     caseColor,
     switchBodyColor,
     switchStemColor,

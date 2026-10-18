@@ -186,6 +186,7 @@
           :globalIconSize="globalIconSize"
           :globalIconColor="globalIconColor"
           :globalIconFlatten="globalIconFlatten"
+          :globalBackgroundColor="globalBackgroundColor"
           :printMode="false"
           :darkRoom="darkRoom"
         />

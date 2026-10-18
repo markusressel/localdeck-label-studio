@@ -72,6 +72,7 @@ import * as emoji from 'node-emoji'
 
 import { isEmoji } from '../utils/emojiUtils.js'
 import { isColorTransparent } from '../utils/colorUtils.js'
+import { resolveLabelStyle } from '../utils/labelStyle.js'
 import { useStore } from '../composables/useStore.js'
 
 const { preview2dLedIntensity, preview2dTranslucency, preview2dFalloff } = useStore()
@@ -95,30 +96,26 @@ const props = defineProps({
   darkRoom: { type: Boolean, default: false }
 })
 
-const effectiveLightEffect = computed(() => {
-  if (props.label.lightEnabled === false) return 'static'
-  return props.label.lightEffect !== null && props.label.lightEffect !== undefined
-    ? props.label.lightEffect : props.globalLightEffect
-})
+const style = computed(() => resolveLabelStyle(props.label, {
+  textSize: props.globalTextSize,
+  textColor: props.globalTextColor,
+  iconSize: props.globalIconSize,
+  iconColor: props.globalIconColor,
+  iconFlatten: props.globalIconFlatten,
+  backgroundColor: props.globalBackgroundColor,
+  lightColor: props.globalLightColor,
+  lightBrightness: props.globalLightBrightness,
+  lightEffect: props.globalLightEffect
+}))
 
-const effectiveLightColor = computed(() => {
-  if (effectiveLightEffect.value === 'rainbow') return '#ff0000'
-  return props.label.lightColor !== null && props.label.lightColor !== undefined 
-    ? props.label.lightColor : props.globalLightColor
-})
-
-const effectiveLightBrightness = computed(() => {
-  if (props.label.lightEnabled === false) return 0
-  const b = props.label.lightBrightness !== null && props.label.lightBrightness !== undefined
-    ? props.label.lightBrightness : props.globalLightBrightness
-  return b / 100 
-})
-
-const effectiveTextSize = computed(() => props.label.textSize ?? props.globalTextSize)
-const effectiveTextColor = computed(() => props.label.textColor ?? props.globalTextColor)
-const effectiveIconSize = computed(() => props.label.iconSize ?? props.globalIconSize)
-const effectiveIconColor = computed(() => props.label.iconColor ?? props.globalIconColor)
-const effectiveBackgroundColor = computed(() => props.label.backgroundColor ?? props.globalBackgroundColor)
+const effectiveLightEffect = computed(() => style.value.lightEffect)
+const effectiveLightColor = computed(() => effectiveLightEffect.value === 'rainbow' ? '#ff0000' : style.value.lightColor)
+const effectiveLightBrightness = computed(() => style.value.lightBrightness / 100)
+const effectiveTextSize = computed(() => style.value.textSize)
+const effectiveTextColor = computed(() => style.value.textColor)
+const effectiveIconSize = computed(() => style.value.iconSize)
+const effectiveIconColor = computed(() => style.value.iconColor)
+const effectiveBackgroundColor = computed(() => style.value.backgroundColor)
 
 const formattedLabelText = computed(() => {
   if (!props.label.text) return ''
@@ -140,14 +137,7 @@ const currentlyDragging = ref(null)
 const snappedX = ref(false)
 const snappedY = ref(false)
 
-const shouldForceFlatColor = computed(() => {
-  if (isColorTransparent(effectiveIconColor.value)) return true;
-  if (props.label.iconFlatten) return true;
-  if (props.label.iconFlatten === false) return false;
-  
-  if (props.globalIconFlatten) return true;
-  return false;
-})
+const shouldForceFlatColor = computed(() => style.value.iconFlatten)
 
 const handleKeyDown = (e) => { if (e.key === 'Control' || e.key === 'Meta') isCtrlPressed.value = true }
 const handleKeyUp = (e) => { if (e.key === 'Control' || e.key === 'Meta') isCtrlPressed.value = false }
