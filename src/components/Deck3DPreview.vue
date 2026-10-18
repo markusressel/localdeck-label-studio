@@ -250,7 +250,7 @@ const initThreeJS = () => {
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
   renderer.setSize(w, h)
   renderer.shadowMap.enabled = true
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap
+  renderer.shadowMap.type = THREE.PCFShadowMap // PCFSoftShadowMap was removed in three r18x
   // Neutral keeps bright LED colors closer to their hue; ACES pushed them towards white
   renderer.toneMapping = THREE.NeutralToneMapping
   renderer.toneMappingExposure = 1.0
@@ -372,6 +372,7 @@ const buildProceduralDeck = () => {
   shadowCamera.far = 600
   shadowCamera.updateProjectionMatrix()
   dirLight.shadow.bias = -0.0005
+  dirLight.shadow.radius = 3 // soft shadow edges
   dirLight.shadow.normalBias = 0.05
   scene.add(dirLight)
 
