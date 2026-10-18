@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { denoiseSigma, clampFireflies, DENOISE_UNTIL_SAMPLES } from '../utils/pathTracing.js'
+import { denoiseSigma, clampFireflies, fireflyClampFor, FIREFLY_CLAMP_UNIFORM, DENOISE_UNTIL_SAMPLES } from '../utils/pathTracing.js'
 
 describe('denoiseSigma', () => {
   it('denoises the first samples strongly and fades out', () => {
@@ -23,17 +23,25 @@ describe('clampFireflies', () => {
   ].join('\n')
 
   it('wraps every light contribution but not the background', () => {
-    const { source, replaced } = clampFireflies(shader, 25)
+    const { source, replaced } = clampFireflies(shader)
     expect(replaced).toBe(4)
     expect(source.match(/\+= clampFirefly\( /g)).toHaveLength(4)
     expect(source).toContain('gl_FragColor.rgb += sampleBackground(')
     expect(source).toContain('vec3 clampFirefly( vec3 c )')
-    expect(source).toContain('25.0')
+    expect(source).toContain(`uniform float ${FIREFLY_CLAMP_UNIFORM};`)
     expect(source.indexOf('vec3 clampFirefly')).toBeLessThan(source.indexOf('void main() {'))
   })
 
   it('leaves unknown shaders untouched', () => {
     const other = 'void main() { gl_FragColor = vec4(1.0); }'
-    expect(clampFireflies(other, 25)).toEqual({ source: other, replaced: 0 })
+    expect(clampFireflies(other)).toEqual({ source: other, replaced: 0 })
+  })
+})
+
+describe('fireflyClampFor', () => {
+  it('scales with the LED intensity, so brighter LEDs keep their light', () => {
+    expect(fireflyClampFor(3000)).toBe(300)
+    expect(fireflyClampFor(6000)).toBeGreaterThan(fireflyClampFor(3000))
+    expect(fireflyClampFor(0)).toBe(1)
   })
 })

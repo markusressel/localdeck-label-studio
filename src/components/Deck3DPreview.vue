@@ -60,7 +60,7 @@ import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js'
 import { WebGLPathTracer, GradientEquirectTexture, DenoiseMaterial } from 'three-gpu-pathtracer'
 import { FullScreenQuad } from 'three/examples/jsm/postprocessing/Pass.js'
 import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js'
-import { denoiseSigma, clampFireflies } from '../utils/pathTracing.js'
+import { denoiseSigma, clampFireflies, fireflyClampFor, FIREFLY_CLAMP_UNIFORM } from '../utils/pathTracing.js'
 import { useStore } from '../composables/useStore'
 import { resolveLabelStyle } from '../utils/labelStyle.js'
 import { loadIconImage, loadImageElement } from '../utils/iconImage.js'
@@ -275,9 +275,10 @@ const initThreeJS = () => {
   // Clamp single extremely bright paths (fireflies) in the full and the low-res
   // path tracer. These are internals of three-gpu-pathtracer, hence the check.
   for (const tracer of [pathTracer._pathTracer, pathTracer._lowResPathTracer]) {
-    const { source, replaced } = clampFireflies(tracer.material.fragmentShader, 25)
+    const { source, replaced } = clampFireflies(tracer.material.fragmentShader)
     if (replaced === 0) console.warn('3D preview: firefly clamp not applied, the three-gpu-pathtracer shader changed')
     tracer.material.fragmentShader = source
+    tracer.material.uniforms[FIREFLY_CLAMP_UNIFORM] = { value: fireflyClampFor(previewLedIntensity.value) }
     tracer.material.needsUpdate = true
   }
 
@@ -714,7 +715,13 @@ const buildProceduralDeck = () => {
   controls.target.set(0, 0, 0)
 
   // Builds the BVH of the whole scene; rebuilt on every change
-  if (pathTraced) pathTracer.setScene(scene, camera)
+  if (pathTraced) {
+    for (const tracer of [pathTracer._pathTracer, pathTracer._lowResPathTracer]) {
+      const clamp = tracer.material.uniforms[FIREFLY_CLAMP_UNIFORM]
+      if (clamp) clamp.value = fireflyClampFor(previewLedIntensity.value)
+    }
+    pathTracer.setScene(scene, camera)
+  }
 }
 
 const animate = () => {
