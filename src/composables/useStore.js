@@ -82,7 +82,6 @@ export function createStore({ storage = globalThis.localStorage } = {}) {
 
   const fileInput = ref(null)
 
-
   const paperDimensions = computed(() => {
     if (printFormat.value === 'A4') return { w: 210, h: 297 }
     if (printFormat.value === 'A4-L') return { w: 297, h: 210 }
@@ -172,20 +171,6 @@ export function createStore({ storage = globalThis.localStorage } = {}) {
 
   watch(explicitlyPrintedLabels, syncPrintGrid, { deep: true })
   watch([printFormat, labelWidth, labelHeight], syncPrintGrid)
-
-  watch(printFormat, (format) => {
-    let sizeStr = 'A4 portrait'
-    if (format === 'A4-L') sizeStr = 'A4 landscape'
-    if (format === 'Letter') sizeStr = 'letter portrait'
-
-    let styleEl = document.getElementById('dynamic-print-style')
-    if (!styleEl) {
-      styleEl = document.createElement('style')
-      styleEl.id = 'dynamic-print-style'
-      document.head.appendChild(styleEl)
-    }
-    styleEl.textContent = `@media print { @page { size: ${sizeStr} !important; margin: 0 !important; } }`
-  }, { immediate: true })
 
   // Global defaults that labels inherit from; see utils/labelStyle.js
   const globalStyle = computed(() => ({
@@ -533,7 +518,6 @@ export function createStore({ storage = globalThis.localStorage } = {}) {
     const item = printChecklistItems.value.find(i => i.id === id)
     return item ? item.label : null
   }
-
 
   const printLabels = async () => {
     selectedId.value = null
