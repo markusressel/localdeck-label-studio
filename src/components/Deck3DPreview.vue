@@ -55,6 +55,7 @@ import { emojify } from '../utils/emojiUtils.js'
 import { WebGLPathTracer } from 'three-gpu-pathtracer'
 import { useStore } from '../composables/useStore'
 import { resolveLabelStyle } from '../utils/labelStyle.js'
+import { loadIconImage } from '../utils/iconImage.js'
 import NumberStepper from './NumberStepper.vue'
 
 const containerRef = ref(null)
@@ -509,8 +510,6 @@ const buildProceduralDeck = () => {
             const iY = (label.iconOffsetY || 0) * PX_SCALE
             const iSize = style.iconSize * PX_SCALE
             
-            const iconUrl = `https://api.simplesvg.com/${parts[0]}/${parts[1]}.svg?color=${encodeURIComponent(iconColor)}`
-            
             const drawIcon = (image) => {
               ctx.save()
               ctx.translate(128 + iX, iBaseY + iY)
@@ -521,17 +520,9 @@ const buildProceduralDeck = () => {
               if (pathTracer && highQualityRender.value) pathTracer.updateCamera()
             }
 
-            if (iconImageCache.has(iconUrl)) {
-              drawIcon(iconImageCache.get(iconUrl))
-            } else {
-              const img = new Image()
-              img.crossOrigin = 'Anonymous'
-              img.onload = () => {
-                iconImageCache.set(iconUrl, img)
-                drawIcon(img)
-              }
-              img.src = iconUrl
-            }
+            loadIconImage(label.icon, iconColor)
+              .then(drawIcon)
+              .catch(err => console.warn(`3D preview: could not load icon ${label.icon}`, err))
           }
         } else {
           // Native Emoji Rendering
