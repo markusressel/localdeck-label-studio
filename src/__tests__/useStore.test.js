@@ -157,4 +157,44 @@ describe('useStore', () => {
     expect(store.activeDeck.value.slots[0]).toBeUndefined()
     expect(store.activeDeck.value.slots[3]).toBe(id2)
   })
+
+  it('swaps two deck labels when dropping onto an occupied slot', () => {
+    const a = store.addLabel({ text: 'A' }, 0)
+    const b = store.addLabel({ text: 'B' }, 1)
+    store.onDropDeckSlot({ dataTransfer: { getData: (k) => k === 'text/plain' ? a : '0' } }, 1)
+    expect(store.activeDeck.value.slots[0]).toBe(b)
+    expect(store.activeDeck.value.slots[1]).toBe(a)
+  })
+
+  it('removes a deleted label from every deck', () => {
+    const id = store.addLabel({ text: 'Shared' }, 0)
+    store.decks.value.push({ id: 'second', name: 'Second', width: 6, height: 4, slots: { 3: id } })
+    store.selectedId.value = id
+    store.removeSelected()
+    expect(store.decks.value[0].slots[0]).toBeUndefined()
+    expect(store.decks.value[1].slots[3]).toBeUndefined()
+  })
+
+  it('fills empty deck slots with unused library labels only', () => {
+    const placed = store.addLabel({ text: 'Placed' }, 0)
+    const free1 = store.addLabel({ text: 'Free 1' })
+    const free2 = store.addLabel({ text: 'Free 2' })
+    store.fillMatrix()
+    expect(store.activeDeck.value.slots).toEqual({ 0: placed, 1: free1, 2: free2 })
+  })
+
+  it('syncs the print grid with the selected print items', () => {
+    store.addLabel({ text: 'One' }, 0)
+    store.addLabel({ text: 'Two' }, 1)
+    store.selectedPrintIds.value = ['deck-default-slot-0', 'deck-default-slot-1']
+    store.printGrid.value = []
+    store.syncPrintGrid()
+    expect(store.printGrid.value.length).toBe(store.totalPrintSlots.value)
+    expect(store.printGrid.value.slice(0, 2)).toEqual(['deck-default-slot-0', 'deck-default-slot-1'])
+
+    // Deselected items are cleared, keeping the others in place
+    store.selectedPrintIds.value = ['deck-default-slot-1']
+    store.syncPrintGrid()
+    expect(store.printGrid.value.slice(0, 2)).toEqual([null, 'deck-default-slot-1'])
+  })
 })
