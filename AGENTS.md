@@ -10,6 +10,7 @@ A local, web-based tool for designing and printing LocalDeck keycap labels. The 
 - **Styling:** Vanilla CSS (with `@media print` for print optimization)
 - **Icons:** Iconify (for Material Design Icons)
 - **Hosting:** GitHub Pages (fully client-side, no backend)
+- **Linting:** ESLint (`eslint.config.js`, `eslint-plugin-vue`). Run `npm run lint` and `npm test` before committing: Vite builds code with undefined names without complaint, so only the linter catches them.
 
 ## Project Structure
 - `index.html`: Main entry point.

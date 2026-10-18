@@ -182,7 +182,6 @@ const {
   printOffsetY,
   selectedPrintIds,
   printGrid,
-  labels,
   labelWidth,
   labelHeight,
   labelMaterial,
@@ -201,7 +200,6 @@ const {
   cols,
   printChecklistItems,
   onDragEnd,
-  getLabelById,
   getLabelByOccurrenceId,
   printLabels
 } = useStore()
@@ -219,10 +217,6 @@ const {
   endPanOrSelect,
   handleZoom
 } = usePrintCanvas()
-
-const pageCssSize = computed(() => {
-  return `${paperDimensions.value.w}mm ${paperDimensions.value.h}mm`
-})
 
 const getSlotBorderStyle = (index, labelId) => {
   if (!labelId) return {}

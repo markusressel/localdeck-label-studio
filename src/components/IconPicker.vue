@@ -55,7 +55,7 @@
 <script setup>
 import { Icon } from '@iconify/vue'
 import CustomInput from './CustomInput.vue'
-import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, watch, onMounted, onUnmounted } from 'vue'
 
 import Fuse from 'fuse.js'
 
@@ -67,7 +67,6 @@ const emit = defineEmits(['update:modelValue'])
 const pickerRef = ref(null)
 const isOpen = ref(false)
 const searchQuery = ref(props.modelValue)
-const activeTab = ref('iconify')
 const isSearching = ref(false)
 const popularIcons = [
   'mdi:home', 'mdi:lock', 'mdi:settings', 'mdi:account', 'mdi:camera', 

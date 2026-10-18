@@ -223,7 +223,6 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue'])
 const { 
   globalIconColor, 
-  globalIconFlatten, 
   globalIconSize, 
   globalTextSize, 
   globalTextColor, 

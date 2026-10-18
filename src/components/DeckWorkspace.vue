@@ -155,7 +155,7 @@
     
     <div class="interactive-grid" style="overflow-y: auto; flex: 1;">
       <div 
-        v-for="(label, index) in filteredLabels" 
+        v-for="label in filteredLabels" 
         :key="label.id"
         class="grid-item-wrapper"
         :class="{ 
@@ -217,7 +217,6 @@ import ColorPicker from './ColorPicker.vue'
 import CustomSelect from './CustomSelect.vue'
 import CustomInput from './CustomInput.vue'
 import CustomSlider from './CustomSlider.vue'
-import CustomSwitch from './CustomSwitch.vue'
 import DragHandle from './DragHandle.vue'
 import NumberStepper from './NumberStepper.vue'
 
@@ -302,7 +301,6 @@ const {
   globalBackgroundColor,
   zoomLevel,
   darkRoom,
-  highQualityRender,
   preview2dLedIntensity,
   preview2dTranslucency,
   preview2dFalloff,

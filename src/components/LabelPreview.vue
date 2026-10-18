@@ -67,7 +67,7 @@
 
 <script setup>
 import { Icon } from '@iconify/vue'
-import { computed, ref, onMounted, onUpdated, nextTick, onUnmounted } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 
 import { isEmoji, emojify } from '../utils/emojiUtils.js'
 import { isColorTransparent } from '../utils/colorUtils.js'

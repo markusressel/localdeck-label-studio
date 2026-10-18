@@ -58,13 +58,10 @@ const store = useStore()
 const {
   previewMode,
   isDragging,
-  labelWidth,
-  labelHeight,
   fileInput,
   triggerImport,
   importData,
   exportData,
-  printLabels,
   loadState,
   seedDefaultLabels,
   labels,

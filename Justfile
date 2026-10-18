@@ -17,6 +17,10 @@ build:
 typecheck:
     npm run type-check
 
+# Lint JS and Vue files (catches undefined/unused names, Vue template errors)
+lint:
+    npm run lint
+
 # Run tests (if configured)
 test:
     npm run test:unit
