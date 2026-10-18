@@ -305,7 +305,7 @@ const innerStyle = computed(() => {
   pointer-events: none;
 }
 
-/* The white frosted insert behind the label */
+/* What is behind the label: the paper itself, or for film the clear keycap base */
 .insert-base {
   position: absolute;
   inset: 2mm;
@@ -323,6 +323,19 @@ const innerStyle = computed(() => {
   /* Less light gets through paper, and what does is scattered closer to white */
   background: color-mix(in srgb, var(--led-color) calc(var(--p2d-translucency) * 30%), #fff);
   filter: brightness(min(1.2, calc(0.04 + var(--led-level) * (0.2 + 0.75 * var(--p2d-translucency)))));
+}
+
+/*
+ * Film has no backing: behind the print is the clear keycap base, so the lit
+ * walls and the room show through, dimmed a little by the frosted plastic and
+ * the switch below.
+ */
+.keycap-outer.material-transparent .insert-base {
+  background: rgba(216, 218, 221, 0.55);
+  filter: none;
+}
+.keycap-outer.material-transparent.is-dark-room .insert-base {
+  background: rgba(8, 8, 10, 0.6);
 }
 
 /*
