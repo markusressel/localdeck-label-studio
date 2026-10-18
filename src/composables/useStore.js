@@ -271,123 +271,106 @@ const getRandomDefault = () => {
 
 const generateId = () => Math.random().toString(36).substr(2, 9)
 
+const STORAGE_KEY = 'localdeck-labels'
+const STATE_VERSION = 1
+
+// Persisted settings, keyed by their name in the saved JSON. This map drives
+// save, load, export/import and autosave, so new settings only need adding here.
+const persistedSettings = {
+  width: labelWidth,
+  height: labelHeight,
+  material: labelMaterial,
+  globalLightColor,
+  globalLightBrightness,
+  globalLightEffect,
+  globalTextSize,
+  globalTextColor,
+  globalIconSize,
+  globalIconColor,
+  globalIconFlatten,
+  globalBackgroundColor,
+  caseColor,
+  switchBodyColor,
+  switchStemColor,
+  zoomLevel,
+  darkRoom,
+  previewLedIntensity,
+  previewCapTranslucency,
+  previewCapAttenuation,
+  preview2dLedIntensity,
+  preview2dTranslucency,
+  preview2dFalloff,
+  selectedId,
+  printFormat,
+  printZoom,
+  printOffsetY,
+  selectedPrintIds,
+  printGrid
+}
+
+const createDefaultDecks = () => [{ id: 'default', name: 'Main Deck', width: 6, height: 4, slots: {} }]
+
+// migrations[n] upgrades saved data from version n to n + 1, in place
+const migrations = [
+  (data) => {
+    // Labels used to store their own deckSlot, and stored the old global
+    // defaults (10 / 24, black) as explicit overrides.
+    if (!data.decks) data.decks = createDefaultDecks()
+    const deck = data.decks.find(d => d.id === (data.activeDeckId || data.decks[0].id))
+    ;(data.labels || []).forEach(l => {
+      if (l.textSize === 10 && l.textColor === '#000000') { l.textSize = null; l.textColor = null }
+      if (l.iconSize === 24 && l.iconColor === '#000000') { l.iconSize = null; l.iconColor = null }
+      if (l.deckSlot !== undefined && l.deckSlot !== null && deck) {
+        if (!deck.slots) deck.slots = {}
+        deck.slots[l.deckSlot] = l.id
+      }
+      delete l.deckSlot
+      delete l.print
+    })
+  }
+]
+
+const migrateState = (data) => {
+  for (let v = data.version || 0; v < STATE_VERSION; v++) migrations[v](data)
+  data.version = STATE_VERSION
+  return data
+}
+
 const loadStateFromObject = (data) => {
-      if (data.width) labelWidth.value = data.width
-      if (data.height) labelHeight.value = data.height
-      if (data.material) labelMaterial.value = data.material
-      if (data.globalLightColor) globalLightColor.value = data.globalLightColor
-      if (data.globalLightBrightness !== undefined) globalLightBrightness.value = data.globalLightBrightness
-      if (data.globalLightEffect) globalLightEffect.value = data.globalLightEffect
-      if (data.globalTextSize !== undefined) globalTextSize.value = data.globalTextSize
-      if (data.globalTextColor) globalTextColor.value = data.globalTextColor
-      if (data.globalIconSize !== undefined) globalIconSize.value = data.globalIconSize
-      if (data.globalIconColor) globalIconColor.value = data.globalIconColor
-      if (data.globalIconFlatten !== undefined) globalIconFlatten.value = data.globalIconFlatten
-      if (data.caseColor) caseColor.value = data.caseColor
-      if (data.switchBodyColor) switchBodyColor.value = data.switchBodyColor
-      if (data.switchStemColor) switchStemColor.value = data.switchStemColor
-      if (data.globalBackgroundColor) globalBackgroundColor.value = data.globalBackgroundColor
-      if (data.zoomLevel) zoomLevel.value = data.zoomLevel
-      
-      if (data.previewLedIntensity !== undefined) previewLedIntensity.value = data.previewLedIntensity
-      if (data.previewCapTranslucency !== undefined) previewCapTranslucency.value = data.previewCapTranslucency
-      if (data.previewCapAttenuation !== undefined) previewCapAttenuation.value = data.previewCapAttenuation
-      
-      if (data.preview2dLedIntensity !== undefined) preview2dLedIntensity.value = data.preview2dLedIntensity
-      if (data.preview2dTranslucency !== undefined) preview2dTranslucency.value = data.preview2dTranslucency
-      if (data.preview2dFalloff !== undefined) preview2dFalloff.value = data.preview2dFalloff
-      if (data.decks) {
-        decks.value = data.decks
-      } else {
-        decks.value = [{
-          id: 'default',
-          name: 'Main Deck',
-          width: 6,
-          height: 4,
-          slots: {}
-        }]
-      }
-      if (data.activeDeckId) activeDeckId.value = data.activeDeckId
-      else activeDeckId.value = decks.value[0].id
-      if (data.selectedId) selectedId.value = data.selectedId
-      if (data.printFormat) printFormat.value = data.printFormat
-      if (data.printZoom) printZoom.value = data.printZoom
-      if (data.darkRoom !== undefined) darkRoom.value = data.darkRoom
-      if (data.printOffsetY !== undefined) printOffsetY.value = data.printOffsetY
-      if (data.selectedPrintIds) selectedPrintIds.value = data.selectedPrintIds
-      if (data.printGrid) printGrid.value = data.printGrid
-      if (data.labels && data.labels.length > 0) {
-        labels.value = data.labels.map((l, index) => {
-          if (l.textSize === 10 && l.textColor === '#000000') { l.textSize = null; l.textColor = null; }
-          if (l.iconSize === 24 && l.iconColor === '#000000') { l.iconSize = null; l.iconColor = null; }
-          
-          if (l.deckSlot !== undefined && l.deckSlot !== null) {
-            const deck = decks.value.find(d => d.id === activeDeckId.value)
-            if (deck) {
-              if (!deck.slots) deck.slots = {}
-              deck.slots[l.deckSlot] = l.id
-            }
-          }
-          delete l.deckSlot
-          delete l.print
-          return l
-        })
-        return true
-      }
-      return false
+  migrateState(data)
+  for (const [key, setting] of Object.entries(persistedSettings)) {
+    if (data[key] !== undefined && data[key] !== null) setting.value = data[key]
+  }
+  decks.value = data.decks || createDefaultDecks()
+  activeDeckId.value = data.activeDeckId || decks.value[0].id
+  if (data.labels && data.labels.length > 0) {
+    labels.value = data.labels
+    return true
+  }
+  return false
 }
 
 const loadState = () => {
-  const saved = localStorage.getItem('localdeck-labels')
-  let loaded = false
-  if (saved) {
-    try {
-      const data = JSON.parse(saved)
-      loaded = loadStateFromObject(data)
-    } catch (e) {
-      console.error('Failed to load saved labels', e)
-    }
+  const saved = localStorage.getItem(STORAGE_KEY)
+  if (!saved) return false
+  try {
+    return loadStateFromObject(JSON.parse(saved))
+  } catch (e) {
+    console.error('Failed to load saved labels', e)
+    return false
   }
-  return loaded
 }
 
 const getStateObject = () => ({
-    decks: decks.value,
-    activeDeckId: activeDeckId.value,
-    width: labelWidth.value,
-    height: labelHeight.value,
-    material: labelMaterial.value,
-    globalLightColor: globalLightColor.value,
-    globalLightBrightness: globalLightBrightness.value,
-    globalLightEffect: globalLightEffect.value,
-    globalTextSize: globalTextSize.value,
-    globalTextColor: globalTextColor.value,
-    globalIconSize: globalIconSize.value,
-    globalIconColor: globalIconColor.value,
-    globalIconFlatten: globalIconFlatten.value,
-    caseColor: caseColor.value,
-    switchBodyColor: switchBodyColor.value,
-    switchStemColor: switchStemColor.value,
-    globalBackgroundColor: globalBackgroundColor.value,
-    zoomLevel: zoomLevel.value,
-    previewLedIntensity: previewLedIntensity.value,
-    previewCapTranslucency: previewCapTranslucency.value,
-    previewCapAttenuation: previewCapAttenuation.value,
-    preview2dLedIntensity: preview2dLedIntensity.value,
-    preview2dTranslucency: preview2dTranslucency.value,
-    preview2dFalloff: preview2dFalloff.value,
-    selectedId: selectedId.value,
-    printFormat: printFormat.value,
-    printZoom: printZoom.value,
-    darkRoom: darkRoom.value,
-    printOffsetY: printOffsetY.value,
-    selectedPrintIds: selectedPrintIds.value,
-    printGrid: printGrid.value,
-    labels: labels.value
+  version: STATE_VERSION,
+  decks: decks.value,
+  activeDeckId: activeDeckId.value,
+  ...Object.fromEntries(Object.entries(persistedSettings).map(([key, setting]) => [key, setting.value])),
+  labels: labels.value
 })
 
 const saveState = () => {
-  localStorage.setItem('localdeck-labels', JSON.stringify(getStateObject()))
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(getStateObject()))
 }
 
 const addLabel = (overrides = {}, slot = null) => {
@@ -727,13 +710,7 @@ const printLabels = async () => {
   window.print()
 }
 
-watch([decks, activeDeckId, labelWidth, labelHeight, labelMaterial, globalLightColor, globalLightBrightness, globalLightEffect, globalTextSize, globalTextColor, globalIconSize, globalIconColor,
-    caseColor,
-    switchBodyColor,
-    switchStemColor, caseColor, switchBodyColor, switchStemColor,
-    globalBackgroundColor, zoomLevel, labels, selectedId, printFormat, printZoom,
-    printOffsetY, darkRoom, highQualityRender, previewLedIntensity, previewCapTranslucency, previewCapAttenuation, 
-    preview2dLedIntensity, preview2dTranslucency, preview2dFalloff, selectedPrintIds, printGrid], saveState, { deep: true })
+watch([decks, activeDeckId, labels, ...Object.values(persistedSettings)], saveState, { deep: true })
 
 export function useStore() {
   return {
@@ -759,7 +736,6 @@ export function useStore() {
     preview2dLedIntensity,
     preview2dTranslucency,
     preview2dFalloff,
-    globalBackgroundColor,
     zoomLevel,
     darkRoom, highQualityRender,
     labels,
@@ -788,6 +764,8 @@ export function useStore() {
     syncPrintGrid,
     loadState,
     saveState,
+    loadStateFromObject,
+    getStateObject,
     addLabel,
     fillMatrix,
     matrixWidth,

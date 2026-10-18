@@ -77,25 +77,54 @@ describe('useStore', () => {
     expect(store.labels.value[1].id).not.toBe(id1)
   })
 
-  it('handles print selection logic', () => {
-    store.labels.value = [] // Reset
+  it('groups print checklist items by deck, then unused library labels', () => {
     const id1 = store.addLabel({ text: 'One' }, 0)
     const id2 = store.addLabel({ text: 'Two' }, 1)
     const id3 = store.addLabel({ text: 'Three' }) // Not in deck
-    
-    // Select all
-    store.selectAllPrint()
-    expect(store.selectedPrintIds.value.length).toBe(3)
-    
-    // Select none
-    store.selectNonePrint()
-    expect(store.selectedPrintIds.value.length).toBe(0)
-    
-    // Select deck
-    store.selectDeckPrint()
-    expect(store.selectedPrintIds.value.length).toBe(2)
-    expect(store.selectedPrintIds.value).toContain(id1)
-    expect(store.selectedPrintIds.value).toContain(id2)
+
+    const items = store.printChecklistItems.value
+    expect(items.map(i => i.labelId)).toEqual([id1, id2, id3])
+    expect(items[0].id).toBe('deck-default-slot-0')
+    expect(items[0].category).toBe('Main Deck')
+    expect(items[2].id).toBe(`unused-${id3}`)
+    expect(items[2].category).toBe('Library (Unused)')
+  })
+
+  it('round-trips every persisted setting through export and import', () => {
+    store.addLabel({ text: 'Keep' }, 0)
+    const exported = JSON.parse(JSON.stringify(store.getStateObject()))
+    expect(exported.version).toBe(1)
+
+    store.globalTextSize.value = 99
+    store.caseColor.value = '#123456'
+    store.preview2dFalloff.value = 7
+    store.labels.value = []
+
+    expect(store.loadStateFromObject(exported)).toBe(true)
+    expect(JSON.parse(JSON.stringify(store.getStateObject()))).toEqual(exported)
+  })
+
+  it('migrates unversioned saves once', () => {
+    const legacy = {
+      labels: [
+        { id: 'a', text: 'A', deckSlot: 2, print: true, textSize: 10, textColor: '#000000', iconSize: 24, iconColor: '#000000' }
+      ]
+    }
+    store.loadStateFromObject(legacy)
+    expect(store.decks.value[0].slots[2]).toBe('a')
+    const label = store.labels.value[0]
+    expect(label.deckSlot).toBeUndefined()
+    expect(label.print).toBeUndefined()
+    expect(label.textSize).toBeNull()
+    expect(label.iconSize).toBeNull()
+
+    // An explicit 10 / black override saved by the current version must survive a reload
+    label.textSize = 10
+    label.textColor = '#000000'
+    store.saveState()
+    store.loadState()
+    expect(store.labels.value[0].textSize).toBe(10)
+    expect(store.labels.value[0].textColor).toBe('#000000')
   })
 
   it('handles drag and drop logic for labels', () => {
