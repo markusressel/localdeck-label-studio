@@ -278,8 +278,12 @@ const initThreeJS = () => {
   RectAreaLightUniformsLib.init()
 
   pathTracer = new WebGLPathTracer(renderer)
-  pathTracer.bounces = 6
-  pathTracer.transmissiveBounces = 10
+  // Cost per sample is pixels x path length. Light that bounced more than 4 times
+  // adds little here, and 6 transmissive steps cover cover, label and cap walls.
+  pathTracer.bounces = 4
+  pathTracer.transmissiveBounces = 6
+  // Render at 75% resolution (~44% fewer pixels), upscaled to the canvas
+  pathTracer.renderScale = 0.75
   pathTracer.filterGlossyFactor = 0.5
   pathTracer.dynamicLowRes = true // fast low-res preview while the camera moves
   // One full-frame sample per animation frame. The default 3x3 tiles render a
