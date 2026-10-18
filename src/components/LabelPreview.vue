@@ -1,5 +1,12 @@
 <template>
-  <div class="scale-wrapper" :style="wrapperStyle" ref="previewRef">
+  <div
+    class="scale-wrapper"
+    :style="wrapperStyle"
+    :class="['effect-' + effectiveLightEffect, { 'room-dark': darkRoom && !printMode }]"
+    ref="previewRef"
+  >
+    <!-- LED light escaping below the cap onto the case -->
+    <div v-if="!printMode" class="led-spill"></div>
     <div 
       class="keycap-outer" 
       :style="innerStyle" 
@@ -11,7 +18,9 @@
     >
       <!-- Physical Keycap Layers (Hidden in print mode) -->
       <template v-if="!printMode">
-        <div class="material-layer"></div>
+        <div class="cap-wall-glow"></div>
+        <div class="wall-hotspot"></div>
+        <div class="insert-base"></div>
         <div class="diffused-led-glow"></div>
         <div class="keycap-led-glow"></div>
         <div class="plastic-cap"></div>
@@ -91,7 +100,7 @@ const props = defineProps({
 const style = computed(() => resolveLabelStyle(props.label, { ...globalStyle.value, ...props.globals }))
 
 const effectiveLightEffect = computed(() => style.value.lightEffect)
-const effectiveLightColor = computed(() => effectiveLightEffect.value === 'rainbow' ? '#ff0000' : style.value.lightColor)
+const effectiveLightColor = computed(() => style.value.lightColor)
 const effectiveLightBrightness = computed(() => style.value.lightBrightness / 100)
 const effectiveTextSize = computed(() => style.value.textSize)
 const effectiveTextColor = computed(() => style.value.textColor)
@@ -185,7 +194,14 @@ const wrapperStyle = computed(() => {
   }
   return {
     width: `calc((${props.width + 4}mm) * ${props.scale})`,
-    height: `calc((${props.height + 4}mm) * ${props.scale})`
+    height: `calc((${props.height + 4}mm) * ${props.scale})`,
+    // Set on the wrapper so the LED spill outside the cap can use them too
+    '--led-color': effectiveLightEffect.value === 'rainbow' ? 'hsl(var(--led-hue) 100% 55%)' : effectiveLightColor.value,
+    '--led-brightness': effectiveLightBrightness.value,
+    '--p2d-intensity': preview2dLedIntensity.value,
+    '--p2d-translucency': preview2dTranslucency.value,
+    '--p2d-falloff': preview2dFalloff.value,
+    '--scale': props.scale
   }
 })
 
@@ -193,11 +209,6 @@ const innerStyle = computed(() => {
   return {
     '--label-width': props.width + 'mm',
     '--label-height': props.height + 'mm',
-    '--led-color': effectiveLightColor.value,
-    '--led-brightness': effectiveLightBrightness.value,
-    '--p2d-intensity': preview2dLedIntensity.value,
-    '--p2d-translucency': preview2dTranslucency.value,
-    '--p2d-falloff': preview2dFalloff.value,
     'transform': `scale(${props.scale})`,
     'transform-origin': 'top left'
   }
@@ -205,9 +216,42 @@ const innerStyle = computed(() => {
 </script>
 
 <style scoped>
+/* Animated by the breathing and rainbow effects; every LED layer reads them */
+@property --led-breath {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 1;
+}
+@property --led-hue {
+  syntax: '<angle>';
+  inherits: true;
+  initial-value: 0deg;
+}
+
 .scale-wrapper {
   position: relative;
   transition: width 0.2s ease, height 0.2s ease;
+  /* Current LED output, 0-1 */
+  --led-level: calc(var(--led-brightness, 0) * var(--led-breath));
+}
+
+/*
+ * Model of the real keycap: a clear cover over a white frosted insert, with the
+ * printed label between them. The LED sits below the bottom edge, so the clear
+ * walls glow strongly, brightest at the bottom, while the insert and label
+ * stay white and only pick up a tint, mainly in the lower part.
+ */
+.led-spill {
+  position: absolute;
+  inset: 20% 8% -12% 8%;
+  border-radius: 30%;
+  background: var(--led-color);
+  opacity: calc(var(--led-level) * 0.35);
+  filter: blur(calc(var(--scale, 1) * 6px));
+  pointer-events: none;
+}
+.room-dark .led-spill {
+  opacity: calc(var(--led-level) * 0.7);
 }
 
 .keycap-outer {
@@ -216,7 +260,8 @@ const innerStyle = computed(() => {
   width: calc(var(--label-width) + 4mm);
   height: calc(var(--label-height) + 4mm);
   padding: 2mm;
-  background-color: #e2e2e4; 
+  /* Clear plastic walls, lit by the room */
+  background-color: #d8dadd;
   border-radius: 6px;
   display: flex;
   justify-content: center;
@@ -226,22 +271,93 @@ const innerStyle = computed(() => {
   transition: transform 0.2s ease, background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
+/* Dark room: the walls only show LED light */
 .keycap-outer.is-dark-room {
-  background-color: #1a1a1c;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.8), 0 2px 4px rgba(0,0,0,0.6);
+  background-color: #08080a;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.9), 0 2px 4px rgba(0,0,0,0.8);
 }
 
-/* The LED hotspot at the bottom edge: visible through film, hidden by paper */
-.keycap-led-glow {
+/* LED light carried through the clear walls: saturated at the bottom, paler at the top */
+.cap-wall-glow {
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse 35% 22% at 50% 100%, #ffffff 0%, var(--led-color) 35%, transparent 100%);
-  opacity: calc(var(--led-brightness) * var(--p2d-translucency));
+  border-radius: 6px;
+  background: linear-gradient(
+    to top,
+    var(--led-color) 0%,
+    color-mix(in srgb, var(--led-color) 80%, #fff) 35%,
+    color-mix(in srgb, var(--led-color) 40%, transparent) 100%
+  );
+  opacity: calc(var(--led-level) * 0.85);
   pointer-events: none;
-  z-index: 1;
-  mix-blend-mode: screen;
+}
+.is-dark-room .cap-wall-glow {
+  opacity: var(--led-level);
 }
 
+/* The LED itself, seen through the bottom wall */
+.wall-hotspot {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 30% 14% at 50% 100%, #fff 0%, color-mix(in srgb, var(--led-color) 60%, #fff) 40%, transparent 100%);
+  opacity: var(--led-level);
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+/* The white frosted insert behind the label */
+.insert-base {
+  position: absolute;
+  inset: 2mm;
+  border-radius: 2px;
+  background: #f2f2f0;
+  box-shadow: 0 0 0 0.3mm rgba(255, 255, 255, 0.6);
+  pointer-events: none;
+}
+
+/* Dark room: the insert is lit only from behind by the LED */
+.is-dark-room .insert-base {
+  background: color-mix(in srgb, var(--led-color) 15%, #fff);
+  box-shadow: none;
+  filter: brightness(calc(0.05 + var(--led-level) * (0.35 + 0.45 * var(--p2d-intensity))));
+}
+
+/*
+ * LED light passing through the label. The switch stem blocks the direct path
+ * to the upper part, so mainly the lower part is tinted. Paper scatters the
+ * light further up, but lets less through.
+ */
+.diffused-led-glow {
+  position: absolute;
+  inset: 2mm;
+  border-radius: 2px;
+  background: radial-gradient(
+    ellipse calc(80% + var(--p2d-falloff) * 2%) calc(50% + var(--p2d-falloff) * 2%) at 50% 100%,
+    var(--led-color) 0%,
+    color-mix(in srgb, var(--led-color) 35%, transparent) 55%,
+    transparent 100%
+  );
+  pointer-events: none;
+  opacity: calc(var(--led-level) * var(--p2d-intensity) * 0.7);
+  filter: blur(calc(var(--p2d-falloff) * 0.5px));
+}
+
+/* LED glare at the bottom edge of the label: visible through film, hidden by paper */
+.keycap-led-glow {
+  position: absolute;
+  inset: 2mm;
+  background: radial-gradient(ellipse 40% 16% at 50% 100%, #fff 0%, var(--led-color) 45%, transparent 100%);
+  opacity: calc(var(--led-level) * var(--p2d-translucency) * 0.8);
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+/* The insert, its tint and glare sit just below the label */
+.insert-base, .diffused-led-glow, .keycap-led-glow {
+  z-index: 1;
+}
+
+/* Bevel and gloss of the clear cover */
 .plastic-cap {
   position: absolute;
   inset: 0;
@@ -251,29 +367,19 @@ const innerStyle = computed(() => {
   
   border-style: solid;
   border-width: 2mm;
-  border-top-color: rgba(255, 255, 255, 0.5);   
-  border-bottom-color: rgba(0, 0, 0, 0.4);      
-  border-left-color: rgba(255, 255, 255, 0.15);   
-  border-right-color: rgba(0, 0, 0, 0.15);
+  border-top-color: rgba(255, 255, 255, 0.35);
+  border-bottom-color: rgba(0, 0, 0, 0.12);
+  border-left-color: rgba(255, 255, 255, 0.12);
+  border-right-color: rgba(0, 0, 0, 0.06);
   
   background: linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0) 40%);
   background-clip: padding-box;
 }
-
-.plastic-cap::before {
-  content: '';
-  position: absolute;
-  inset: -2mm;
-  border-radius: 5px;
-  border: 2mm solid transparent;
-  border-bottom-color: var(--led-color);
-  border-left-color: var(--led-color);
-  border-right-color: var(--led-color);
-  -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 70%);
-  mask-image: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 70%);
-  opacity: calc(var(--led-brightness) * var(--p2d-translucency) * 1.5);
-  mix-blend-mode: screen;
-  filter: drop-shadow(0 0 calc(var(--p2d-falloff) * 1px) var(--led-color));
+.is-dark-room .plastic-cap {
+  border-top-color: rgba(255, 255, 255, 0.12);
+  border-left-color: rgba(255, 255, 255, 0.05);
+  background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0) 40%);
+  background-clip: padding-box;
 }
 
 .plastic-cap::after {
@@ -293,49 +399,6 @@ const innerStyle = computed(() => {
   justify-content: center;
   align-items: center;
   border-radius: 2px;
-}
-
-.material-layer {
-  position: absolute;
-  inset: 0;
-  border-radius: 6px;
-  z-index: 1;
-  transition: background 0.3s, box-shadow 0.3s;
-  background: rgba(255, 255, 255, calc(1 - var(--p2d-translucency)));
-  box-shadow: 0 1px 3px rgba(0,0,0, calc((1 - var(--p2d-translucency)) * 0.2)) inset;
-}
-
-/* Dark Room Materials - No ambient light, pitch black */
-.keycap-outer.is-dark-room {
-  background-color: #000000;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.9), 0 2px 4px rgba(0,0,0,0.8);
-}
-
-.keycap-outer.is-dark-room .material-layer {
-  background: rgba(0, 0, 0, calc(1 - var(--p2d-translucency)));
-  box-shadow: none;
-}
-
-/*
- * LED light passing through the label. The LED sits below the bottom edge and
- * the switch stem blocks its direct path to the upper part, so mainly the lower
- * third is lit. Paper scatters the light a bit further up, but lets less through.
- */
-.diffused-led-glow {
-  position: absolute;
-  inset: 0;
-  border-radius: 6px;
-  background: radial-gradient(
-    ellipse calc(60% + var(--p2d-falloff) * 2%) calc(38% + var(--p2d-falloff) * 1.5%) at 50% 100%,
-    var(--led-color) 0%,
-    color-mix(in srgb, var(--led-color) 35%, transparent) 55%,
-    transparent 100%
-  );
-  z-index: 1;
-  pointer-events: none;
-  transition: opacity 0.3s, filter 0.3s;
-  opacity: calc(var(--led-brightness) * var(--p2d-intensity));
-  filter: blur(calc(var(--p2d-falloff) * 1px));
 }
 
 .label-content {
@@ -445,52 +508,21 @@ const innerStyle = computed(() => {
   }
 }
 
-/* RGB Light Effects */
-/* Effects scale each layer's own resting opacity, so they work for every material */
-@keyframes breathing-glow {
-  0%, 100% { opacity: calc(var(--led-brightness) * var(--p2d-translucency) * 0.2); }
-  50% { opacity: calc(var(--led-brightness) * var(--p2d-translucency)); }
+/* RGB Light Effects: they animate --led-breath and --led-hue, which every LED layer reads */
+@keyframes led-breathing {
+  0%, 100% { --led-breath: 0.2; }
+  50% { --led-breath: 1; }
 }
-@keyframes breathing-plastic {
-  0%, 100% { opacity: calc(var(--led-brightness) * 1.2 * 0.2); }
-  50% { opacity: calc(var(--led-brightness) * 1.2); }
-}
-@keyframes breathing-diffused {
-  0%, 100% { opacity: calc(var(--led-brightness) * var(--p2d-intensity) * 0.2); }
-  50% { opacity: calc(var(--led-brightness) * var(--p2d-intensity)); }
+@keyframes led-rainbow {
+  0% { --led-hue: 0deg; }
+  100% { --led-hue: 360deg; }
 }
 
-.effect-breathing .keycap-led-glow {
-  animation: breathing-glow 3s infinite ease-in-out;
+.scale-wrapper.effect-breathing {
+  animation: led-breathing 3s infinite ease-in-out;
 }
-.effect-breathing .plastic-cap::before {
-  animation: breathing-plastic 3s infinite ease-in-out;
-}
-.effect-breathing .diffused-led-glow {
-  animation: breathing-diffused 3s infinite ease-in-out;
-}
-
-@keyframes rainbow-glow {
-  0% { filter: hue-rotate(0deg); }
-  100% { filter: hue-rotate(360deg); }
-}
-@keyframes rainbow-plastic {
-  0% { filter: drop-shadow(0 0 4px var(--led-color)) hue-rotate(0deg); }
-  100% { filter: drop-shadow(0 0 4px var(--led-color)) hue-rotate(360deg); }
-}
-@keyframes rainbow-diffused {
-  0% { filter: blur(calc(var(--p2d-falloff) * 1px)) hue-rotate(0deg); }
-  100% { filter: blur(calc(var(--p2d-falloff) * 1px)) hue-rotate(360deg); }
-}
-
-.effect-rainbow .keycap-led-glow {
-  animation: rainbow-glow 3s infinite linear;
-}
-.effect-rainbow .plastic-cap::before {
-  animation: rainbow-plastic 3s infinite linear;
-}
-.effect-rainbow .diffused-led-glow {
-  animation: rainbow-diffused 3s infinite linear;
+.scale-wrapper.effect-rainbow {
+  animation: led-rainbow 3s infinite linear;
 }
 </style>
 
