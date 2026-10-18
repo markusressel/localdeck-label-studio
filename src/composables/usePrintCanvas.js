@@ -1,8 +1,6 @@
 import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { useStore } from './useStore.js'
 
-const MM_TO_PX = 96 / 25.4
-
 /**
  * Interaction state of the print sheet: panning, wheel zoom, box selection and
  * dragging labels between print slots. Local to PrintWorkspace; only the
@@ -16,8 +14,6 @@ export function usePrintCanvas() {
     printChecklistItems,
     printGrid,
     printZoom,
-    labelWidth,
-    labelHeight,
     cols,
     rows,
     totalPrintSlots,
@@ -48,22 +44,34 @@ export function usePrintCanvas() {
   const onKeyUp = (e) => {
     if (e.code === 'Space') spacePressed.value = false
   }
+  // Printing needs the sheet scrolled to the origin; restore the view afterwards
+  let scrollBeforePrint = null
   const onBeforePrint = () => {
-    if (previewContentRef.value) {
-      previewContentRef.value.scrollTop = 0
-      previewContentRef.value.scrollLeft = 0
-    }
+    const el = previewContentRef.value
+    if (!el) return
+    scrollBeforePrint = { left: el.scrollLeft, top: el.scrollTop }
+    el.scrollTop = 0
+    el.scrollLeft = 0
+  }
+  const onAfterPrint = () => {
+    const el = previewContentRef.value
+    if (!el || !scrollBeforePrint) return
+    el.scrollLeft = scrollBeforePrint.left
+    el.scrollTop = scrollBeforePrint.top
+    scrollBeforePrint = null
   }
 
   onMounted(() => {
     window.addEventListener('keydown', onKeyDown)
     window.addEventListener('keyup', onKeyUp)
     window.addEventListener('beforeprint', onBeforePrint)
+    window.addEventListener('afterprint', onAfterPrint)
   })
   onUnmounted(() => {
     window.removeEventListener('keydown', onKeyDown)
     window.removeEventListener('keyup', onKeyUp)
     window.removeEventListener('beforeprint', onBeforePrint)
+    window.removeEventListener('afterprint', onAfterPrint)
   })
 
   // Entering print preview: default to printing the active deck, then center the sheet
@@ -174,19 +182,21 @@ export function usePrintCanvas() {
       const maxY = Math.max(boxSelectStart.value.y, relY)
       printSelectionBox.value = { x: minX, y: minY, w: maxX - minX, h: maxY - minY }
 
+      // Hit-test against the rendered slots (in unscaled sheet coordinates), so
+      // padding, print offset and layout changes can't drift from the box
       const newSelection = new Set()
-      for (let i = 0; i < totalPrintSlots.value; i++) {
-        if (!printGrid.value[i]) continue
-        const c = i % cols.value
-        const r = Math.floor(i / cols.value)
-        const slotX = 5 * MM_TO_PX + c * labelWidth.value * MM_TO_PX
-        const slotY = 5 * MM_TO_PX + r * labelHeight.value * MM_TO_PX
-        const slotW = labelWidth.value * MM_TO_PX
-        const slotH = labelHeight.value * MM_TO_PX
+      const slots = paperSheetRef.value.querySelectorAll('.print-grid-slot')
+      slots.forEach((slot, i) => {
+        if (i >= totalPrintSlots.value || !printGrid.value[i]) return
+        const s = slot.getBoundingClientRect()
+        const slotX = (s.left - rect.left) / printZoom.value
+        const slotY = (s.top - rect.top) / printZoom.value
+        const slotW = s.width / printZoom.value
+        const slotH = s.height / printZoom.value
         if (minX < slotX + slotW && maxX > slotX && minY < slotY + slotH && maxY > slotY) {
           newSelection.add(i)
         }
-      }
+      })
       selectedPrintSlots.value = newSelection
     }
   }
