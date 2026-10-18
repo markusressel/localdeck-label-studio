@@ -23,7 +23,6 @@ saved automatically in the browser's local storage.
   - 2D preview with LED backlight color, brightness and effects (static, breathing, rainbow), and
     label materials (transparent film, thin paper, thick paper)
   - Day and night room lighting
-  - Experimental 3D preview built with three.js, with optional path-traced rendering
 - **Printing**
   - A4 portrait, A4 landscape and US Letter sheets
   - Choose which labels to print per deck, arrange them on the sheet by drag and drop, with box selection
@@ -64,7 +63,7 @@ If you use [just](https://github.com/casey/just), the same tasks are available a
 | Unit tests | `npm test` | `just test` |
 | Coverage report | `npm run test:coverage` | `just coverage` |
 
-Tech stack: Vue 3, Vite, plain JavaScript and CSS, Iconify, three.js, Vitest and ESLint.
+Tech stack: Vue 3, Vite, plain JavaScript and CSS, Iconify, Vitest and ESLint.
 
 Project layout:
 
@@ -82,7 +81,6 @@ static file host.
 
 ## Credits
 
-- Keycap models: [MX Cherry relegendable keycaps](https://grabcad.com/library/mx-cherry-relegendable-keycaps-1) on GrabCAD
 - Icons: [Iconify](https://iconify.design/)
 
 ## License

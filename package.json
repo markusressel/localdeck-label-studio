@@ -18,8 +18,6 @@
     "@iconify/vue": "^5.0.1",
     "fuse.js": "^7.5.0",
     "node-emoji": "^2.2.0",
-    "three": "^0.186.0",
-    "three-gpu-pathtracer": "^0.0.24",
     "vue": "^3.5.0"
   },
   "devDependencies": {

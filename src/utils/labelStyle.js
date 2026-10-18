@@ -5,8 +5,8 @@ const inherit = (value, fallback) => (value === null || value === undefined ? fa
 
 /**
  * Resolve the effective style of a label by applying its per-label overrides
- * on top of the global settings. Single source of truth for the 2D preview,
- * the 3D preview and the label editor.
+ * on top of the global settings. Single source of truth for the label
+ * preview and the label editor.
  *
  * @param {object} label
  * @param {object} globals - { textSize, textColor, iconSize, iconColor, iconFlatten,

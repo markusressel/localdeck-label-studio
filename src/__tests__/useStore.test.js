@@ -116,7 +116,7 @@ describe('useStore', () => {
     expect(exported.version).toBe(2)
 
     store.globalTextSize.value = 99
-    store.caseColor.value = '#123456'
+    store.globalTextColor.value = '#123456'
     store.preview2dFalloff.value = 7
     store.labels.value = []
 

@@ -12,9 +12,6 @@
 
       <div class="spacer"></div>
       
-      <div class="setting-group" style="margin-right: 1rem; cursor: pointer;" @click="show3DPreview = !show3DPreview" :title="show3DPreview ? 'Back to 2D Editor' : 'Experimental 3D Preview'">
-        <Icon :key="show3DPreview ? '3d-on' : '3d-off'" :icon="show3DPreview ? 'mdi:view-dashboard-outline' : 'mdi:cube-outline'" style="font-size: 1.5rem; color: var(--text-muted);" :style="{ color: show3DPreview ? 'var(--primary)' : 'var(--text-muted)' }" />
-      </div>
 
 
 
@@ -42,7 +39,7 @@
     <div class="device-preview-container" style="overflow: auto; flex: 1; position: relative;">
       
       <!-- 2D Render Settings Overlay -->
-      <div class="floating-controls" v-if="!show3DPreview">
+      <div class="floating-controls">
         <div class="settings-dropdown">
           <div 
             class="floating-btn" 
@@ -76,7 +73,7 @@
           </div>
         </div>
       </div>
-      <div class="localdeck-device" v-if="!show3DPreview">
+      <div class="localdeck-device">
         <div class="device-grid" :style="{ gridTemplateColumns: `repeat(${matrixWidth}, max-content)` }">
           <div 
             v-for="i in totalMatrixSlots"
@@ -114,7 +111,6 @@
           </div>
         </div>
       </div>
-      <Deck3DPreview v-else />
     </div>
 
     </div>
@@ -193,7 +189,7 @@
 <script setup>
 import { Icon } from '@iconify/vue'
 import { useStore } from '../composables/useStore.js'
-import { ref, computed, defineAsyncComponent } from 'vue'
+import { ref, computed } from 'vue'
 import LabelPreview from './LabelPreview.vue'
 import ColorPicker from './ColorPicker.vue'
 import CustomSelect from './CustomSelect.vue'
@@ -201,9 +197,6 @@ import CustomInput from './CustomInput.vue'
 import CustomSlider from './CustomSlider.vue'
 import DragHandle from './DragHandle.vue'
 import NumberStepper from './NumberStepper.vue'
-
-// Loaded on demand: three.js + path tracer make up most of the bundle
-const Deck3DPreview = defineAsyncComponent(() => import('./Deck3DPreview.vue'))
 
 const deckPanelHeight = ref(400)
 const show2dSettings = ref(false)
@@ -229,7 +222,6 @@ const promptAddDeck = () => {
 const deckOptions = computed(() => decks.value.map(d => ({ value: d.id, label: d.name })))
 
 const librarySearch = ref('')
-const show3DPreview = ref(false)
 
 const filteredLabels = computed(() => {
   const query = librarySearch.value.toLowerCase().trim()

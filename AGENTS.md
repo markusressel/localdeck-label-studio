@@ -16,7 +16,7 @@ A local, web-based tool for designing and printing LocalDeck keycap labels. The 
 - `index.html`: Main entry point.
 - `src/App.vue`: Main application wrapper. Includes the Header, Sidebar (LabelEditor), DeckWorkspace, and PrintWorkspace.
 - `src/composables/useStore.js`: Core reactive state management, legacy `localStorage` migrations, and label data models.
-- `src/components/DeckWorkspace.vue`: The 3D/Interactive macro-pad layout preview and Deck Manager.
+- `src/components/DeckWorkspace.vue`: The interactive macro-pad layout preview and Deck Manager.
 - `src/components/PrintWorkspace.vue`: The printable layout view where users drag labels onto a virtual sheet of paper.
 - `src/components/LabelEditor.vue`: UI component for editing the properties of a single label (text, icon, overrides).
 - `src/components/LabelPreview.vue`: Pure UI component for rendering the label itself across the library, workspace, and print grids.

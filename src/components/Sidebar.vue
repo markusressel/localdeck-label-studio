@@ -100,23 +100,6 @@
               </div>
             </div>
             
-            <div class="control-row" style="margin-top: 0.5rem">
-              <div class="control-group">
-                <label>Case Base</label>
-                <ColorPicker v-model="caseColor" />
-              </div>
-            </div>
-            
-            <div class="control-row" style="margin-top: 0.5rem">
-              <div class="control-group half">
-                <label>Switch Body</label>
-                <ColorPicker v-model="switchBodyColor" />
-              </div>
-              <div class="control-group half">
-                <label>Switch Stem</label>
-                <ColorPicker v-model="switchStemColor" />
-              </div>
-            </div>
           </div>
 
         </div>
@@ -169,9 +152,6 @@ const {
   globalIconSize,
   globalIconColor,
   globalIconFlatten,
-  caseColor,
-  switchBodyColor,
-  switchStemColor,
   globalBackgroundColor,
   labelWidth,
   labelHeight,

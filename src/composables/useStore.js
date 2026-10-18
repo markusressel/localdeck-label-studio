@@ -37,17 +37,9 @@ export function createStore({ storage = globalThis.localStorage } = {}) {
   const globalIconColor = ref('#000000')
   const globalIconFlatten = ref(false)
 
-  const caseColor = ref('#2a2a2b')
-  const switchBodyColor = ref('#ffffff')
-  const switchStemColor = ref('#ffffff')
   const globalBackgroundColor = ref('transparent')
   const zoomLevel = ref(2)
   const darkRoom = ref(false)
-  const highQualityRender = ref(false)
-  const previewLedIntensity = ref(3000)
-  const previewCapTranslucency = ref(0.9)
-  const previewCapAttenuation = ref(2.0)
-  const previewRoomLight = ref(60) // 3D room light brightness in %, when the room lights are on
 
   const preview2dLedIntensity = ref(1.0)
   const preview2dTranslucency = ref(1.0)
@@ -246,15 +238,8 @@ export function createStore({ storage = globalThis.localStorage } = {}) {
     globalIconColor,
     globalIconFlatten,
     globalBackgroundColor,
-    caseColor,
-    switchBodyColor,
-    switchStemColor,
     zoomLevel,
     darkRoom,
-    previewLedIntensity,
-    previewCapTranslucency,
-    previewCapAttenuation,
-    previewRoomLight,
     preview2dLedIntensity,
     preview2dTranslucency,
     preview2dFalloff,
@@ -573,18 +558,11 @@ export function createStore({ storage = globalThis.localStorage } = {}) {
     globalIconFlatten,
     globalBackgroundColor,
     globalStyle,
-    caseColor,
-    switchBodyColor,
-    switchStemColor,
-    previewLedIntensity,
-    previewCapTranslucency,
-    previewCapAttenuation,
-    previewRoomLight,
     preview2dLedIntensity,
     preview2dTranslucency,
     preview2dFalloff,
     zoomLevel,
-    darkRoom, highQualityRender,
+    darkRoom,
     labels,
     isDragging,
     dragOverTarget,

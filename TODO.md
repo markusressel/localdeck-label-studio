@@ -5,11 +5,3 @@
 The "cutting line" looks unnecessarily thick. We want to design it in a way that it is visible but not overly big. It should be spaced in a way that by cutting it off entirely the
 full inner size of the cap is completely filled with the label. I am not 100% sure the 14x14mm size we currently have is the inner or the outter diameter of the transparent cap on
 the white keycap itself. EDIT: The 14x14 size fits perfectly on the switch, when cutting off the cutting line, so it is correct.
-
-## 3D Rendering (Experimental)
-
-At this point I wonder if we should do a full 3D rendering of the hole keycaps using a library that allows this in the browser, with realistic lighting and all. The CSS hackery
-we use right now is probably not very sustainable. If we can use a real 3D rendering engine we can actually simulate the deck, the switch base with its base and stem, the white
-keycap, the transparent cap on top, and the printed label with its selected material. This would allow us to simulate the RGB backlight more accurately, and also allow us
-to simulate the label in different lighting conditions, like sunlight, room light, etc. I have no idea how difficult it would be to actually implement this though, if this is a
-crazy rabbit hole we might still be better off with what we have right now, but I think it is worth investigating. Maybe we can even utilize ray tracing, for the ultimate realism.
