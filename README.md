@@ -50,11 +50,54 @@ saved automatically in the browser's local storage.
 Open **https://markusressel.github.io/localdeck-label-studio/** in your browser. Nothing needs to be
 installed.
 
-## Printing tips
+## Printing and cutting
+
+### Materials
+
+Clear overhead projector film looks best: the LED shines through it like through the real cap, and the
+unprinted areas stay transparent. Use film made for your printer type: inkjet film can melt in a laser
+printer's hot fuser and damage it, and inkjet ink does not dry on laser film.
+
+<table>
+  <tr>
+    <td align="center" width="33%">
+      <img src="docs/materials/overhead-film-laser.jpg" width="160" alt="Pack of A4 overhead projector film for laser printers"><br>
+      <b>Laser printer: overhead film</b><br>
+      e.g. ELES VIDA "Overheadfolie Premium", A4, 0.11 mm, 100 sheets
+      (<a href="https://www.amazon.de/dp/B092KHJ383">Amazon</a>).<br>
+      The best result: very clear and sharp.
+    </td>
+    <td align="center" width="33%">
+      <img src="docs/materials/overhead-film-inkjet.jpg" width="120" alt="Pack of A4 inkjet transparency film"><br>
+      <b>Inkjet printer: transparency film</b><br>
+      e.g. PPD "Inkjet OHP Transparency Film" PPD-34, A4, 150 µm, 20 sheets
+      (<a href="https://www.amazon.de/dp/B00PFW935Q">Amazon</a>).<br>
+      Works, but is less transparent and less sharp than laser film.
+    </td>
+    <td align="center" width="33%">
+      <img src="docs/materials/paper-trimmer.jpg" width="150" alt="A4 paper trimmer with a sliding blade and grid"><br>
+      <b>Cutting: paper trimmer</b><br>
+      e.g. WORKLION A4 paper trimmer with safety blade, 30.5 cm
+      (<a href="https://www.amazon.de/dp/B07MP9JQ4W">Amazon</a>).<br>
+      Gives straight, repeatable cuts, much easier than scissors.
+    </td>
+  </tr>
+</table>
+
+Paper also works (choose thin or thick paper as the material in the app to preview it), but lets less of
+the LED light through.
+
+### Printing
 
 - Print at **100% scale** ("Actual size"). Do not use "Fit to page".
 - If the labels are shifted vertically on paper, adjust the print offset in the print settings.
+
+### Cutting
+
+- Cut along the dashed cut lines, first into strips, then into single labels.
 - 14×14 mm labels fit the relegendable cap once the cut line is trimmed off.
+
+Product images are © their manufacturers and are shown only to identify the products.
 
 ## Contributing
 
