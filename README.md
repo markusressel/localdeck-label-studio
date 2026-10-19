@@ -1,6 +1,7 @@
 # LocalDeck Label Studio
 
-A browser-based tool for designing and printing labels for LocalDeck macro pads that use Cherry MX
+A browser-based tool for designing and printing labels for
+[LocalDeck](https://www.mylocalbytes.com/products/localdeck-set) macro pads that use Cherry MX
 relegendable keycaps. Lay out your deck, design each label with text, icons, emoji or your own images,
 preview how it looks backlit, and print a sheet of correctly sized labels with cut lines.
 
@@ -36,6 +37,13 @@ saved automatically in the browser's local storage.
 - **Data**
   - Automatic saving in the browser
   - Export and import of the full project as JSON
+
+## Related
+
+- [LocalDeck](https://www.mylocalbytes.com/products/localdeck-set): the macro pad itself, by LocalBytes.
+- [Official LocalDeck Configurator](https://blog.mylocalbytes.com/tools/localdeck-configurator): LocalBytes' own
+  configurator. It is less sophisticated, but it supports their official Home Assistant integration, which
+  this tool does not.
 
 ## Getting started
 
