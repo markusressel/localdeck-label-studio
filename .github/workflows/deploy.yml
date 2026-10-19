@@ -9,6 +9,8 @@ permissions:
   contents: read
   pages: write
   id-token: write
+  # deploy-pages reads the uploaded artifact through the Actions API
+  actions: read
 
 # One deployment at a time; let a running one finish
 concurrency:
