@@ -7,6 +7,8 @@ preview how it looks backlit, and print a sheet of correctly sized labels with c
 Everything runs locally in your browser. There is no backend and no account, and your work is
 saved automatically in the browser's local storage.
 
+![LocalDeck Label Studio with a 6×4 deck in the 2D preview, the label library and the label editor](docs/screenshot.png)
+
 ## Features
 
 - **Label design**
