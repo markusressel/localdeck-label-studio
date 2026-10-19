@@ -4,6 +4,8 @@ A browser-based tool for designing and printing labels for LocalDeck macro pads 
 relegendable keycaps. Lay out your deck, design each label with text, icons, emoji or your own images,
 preview how it looks backlit, and print a sheet of correctly sized labels with cut lines.
 
+**Try it: https://markusressel.github.io/localdeck-label-studio/**
+
 Everything runs locally in your browser. There is no backend and no account, and your work is
 saved automatically in the browser's local storage.
 
